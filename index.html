@@ -26,8 +26,23 @@ input:focus,select:focus,textarea:focus{border-color:#b35bff;box-shadow:0 0 0 3p
 .desc{color:#d0c7dc;font-size:13px;margin:13px 0;min-height:38px}
 .card-actions{display:flex;gap:8px;flex-wrap:wrap}.card-actions .btn{flex:1;text-align:center;text-decoration:none;font-size:13px;padding:9px}
 .empty{padding:35px 15px;text-align:center;color:var(--muted);border:1px dashed #49345e;border-radius:18px}
-.admin-toggle{margin-top:24px;text-align:center}.admin{display:none;margin-top:18px;background:#100b1b;border:1px solid #51336b;border-radius:20px;padding:17px}
+.brand-row{display:flex;justify-content:center;align-items:center;gap:24px;margin:8px auto 22px}
+.brand-seal{width:118px;height:118px;border-radius:50%;display:grid;place-items:center;border:5px ridge #a9a5b3;background:radial-gradient(circle,#726b72 0,#27232d 48%,#0b0a12 70%);box-shadow:0 0 22px #765bff88,inset 0 0 15px #d6d1dd55;color:#eee;font-weight:1000;font-size:28px;text-shadow:0 2px 4px #000;letter-spacing:2px}
+.telegram{width:118px;height:118px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#39b9ed,#1486c9);box-shadow:0 0 24px #278de8aa;border:4px solid #6257c9}
+.telegram svg{width:62px;height:62px;fill:white}
+.admin-toggle{margin:0 0 14px;text-align:left}.admin-toggle .btn{width:100%;display:flex;justify-content:space-between;align-items:center;border:2px solid #a34cff;border-radius:18px;padding:18px 22px;background:linear-gradient(110deg,#15101f,#0e0a16);font-size:18px;box-shadow:0 0 20px #933cff35}
+.admin-toggle .plus{font-size:30px;color:#b35aff;line-height:1}
+.admin{display:none;margin:0 0 28px;background:#100b1b;border:1px solid #51336b;border-radius:20px;padding:17px}
 .admin.open{display:block}.admin h2{margin:0 0 14px;font-size:20px}
+.hero{text-align:left;margin:42px 0 26px}
+.hero h2{text-align:center;font-size:clamp(30px,7vw,48px);font-weight:900;letter-spacing:-1px;margin:0 0 32px;background:linear-gradient(90deg,#398fff,#a34cff,#e33bc9);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 0 22px #883dff35}
+.welcome{font-size:clamp(17px,4vw,24px);font-weight:850;line-height:1.55;margin:0 0 24px}
+.info-title{font-size:clamp(20px,4.5vw,27px);font-weight:900;line-height:1.5;border-top:1px solid #3b2b50;padding-top:22px;margin:0 0 20px}
+.info-line{font-size:clamp(17px,4vw,23px);font-weight:850;line-height:1.55;margin:10px 0}
+.contact{display:inline-flex;align-items:center;gap:12px;color:#3fc8ff;text-decoration:none;font-size:clamp(20px,5vw,27px);font-weight:950;margin-top:8px}
+.wa{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:#21c86b;color:#fff;font-size:24px}
+.catalog-heading{margin:38px 0 12px;font-size:22px;color:#e7d5ff}
+@media(max-width:560px){.brand-row{gap:18px}.brand-seal,.telegram{width:31vw;height:31vw;max-width:118px;max-height:118px}.hero{margin-top:42px}.admin-toggle .btn{padding:17px 20px}}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:flex;flex-direction:column;gap:6px}.field.full{grid-column:1/-1}.field label{font-size:13px;color:#ded2ed}
 textarea{min-height:90px;resize:vertical}.hint{font-size:11px;color:#a99bb8}
 .preview{width:66px;height:66px;border-radius:15px;object-fit:cover;display:none;border:1px solid #69478a}
@@ -35,9 +50,16 @@ footer{text-align:center;color:#756a83;padding:25px;font-size:12px}
 @media(max-width:560px){header{padding-top:20px}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}.filter{flex:1}.actions{width:100%}.actions .btn{flex:1}}
 </style></head>
 <body>
-<header><div class="logo">TT</div><h1>TEXNO-TELEKOM</h1><p>PROQRAMLAR • TEXNOLOGİYA • MƏLUMAT</p></header>
+<header style="position:relative;padding:26px 18px 12px;background:transparent;border:0">
+<div class="brand-row">
+<div class="brand-seal" aria-label="Texno Telekom loqosu">T-T</div>
+<a class="telegram" href="https://t.me/" target="_blank" rel="noopener" aria-label="Telegram">
+<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.7 4.3 18.6 19c-.2 1-1 1.2-1.8.7l-5-3.7-2.4 2.3c-.3.3-.5.5-1 .5l.4-5.1 9.3-8.4c.4-.4-.1-.6-.6-.2L6 12.4 1.1 10.9c-1.1-.3-1.1-1.1.2-1.6L20.2 2c.9-.3 1.7.2 1.5 2.3z"/></svg>
+</a>
+</div>
+</header>
 <main>
-<div class="admin-toggle" style="margin:0 0 14px;text-align:left"><button class="btn ghost" id="adminBtn">⚙ Admin paneli</button></div>
+<div class="admin-toggle"><button class="btn ghost" id="adminBtn"><span>Admin paneli</span><span class="plus">+</span></button></div>
 <section class="admin" id="admin">
 <h2>Proqram əlavə et</h2>
 <div class="form-grid">
@@ -52,8 +74,18 @@ footer{text-align:center;color:#756a83;padding:25px;font-size:12px}
 <div class="actions" style="margin-top:14px"><button class="btn" id="save">Yadda saxla</button><button class="btn ghost" id="cancel">Təmizlə</button></div>
 <p class="hint" id="notice"></p>
 </section>
+<section class="hero">
+<h2>TEXNO-TELEKOM</h2>
+<p class="welcome">✅TEXNO-TELEKOM RƏSMİ SAYTINA XOŞ GƏLMİSİNİZ...</p>
+<h3 class="info-title">TEXNO-TELEKOM RƏSMİ SAYT MƏRKƏZİ</h3>
+<p class="info-line">1️⃣ TƏTBİQLƏRİN PREMİUM VƏ PRO VERSİYALARI 👨‍💻</p>
+<p class="info-line">2️⃣ GOOGLE PLAY'DA OLMAYAN TƏTBİQLƏRİ</p>
+<p class="info-line">3️⃣ ŞİKAYƏT VƏ REKLAM ÜÇÜN ƏLAQƏ</p>
+<a class="contact" href="https://wa.me/994558053305" target="_blank" rel="noopener"><span class="wa">◉</span> +994558053305</a>
+</section>
+<div class="catalog-heading">✦ Proqramlar</div>
 <div class="toolbar"><input id="search" class="search" placeholder="Proqram axtar..."><select id="filter" class="filter"><option value="">Bütün kateqoriyalar</option></select></div>
-<div class="section-title">✦ Proqramlar</div><div id="apps" class="grid"></div>
+<div id="apps" class="grid"></div>
 <p class="hint" style="text-align:center">İlkin sınaq versiyası — ümumi admin və server yaddaşı növbəti mərhələdə qoşulacaq.</p>
 </main><footer>© TEXNO-TELEKOM</footer>
 <script>
