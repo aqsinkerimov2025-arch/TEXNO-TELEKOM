@@ -26,10 +26,8 @@ input:focus,select:focus,textarea:focus{border-color:#b35bff;box-shadow:0 0 0 3p
 .desc{color:#d0c7dc;font-size:13px;margin:13px 0;min-height:38px}
 .card-actions{display:flex;gap:8px;flex-wrap:wrap}.card-actions .btn{flex:1;text-align:center;text-decoration:none;font-size:13px;padding:9px}
 .empty{padding:35px 15px;text-align:center;color:var(--muted);border:1px dashed #49345e;border-radius:18px}
-.brand-row{display:flex;justify-content:center;align-items:center;gap:24px;margin:8px auto 22px}
-.brand-seal{width:118px;height:118px;border-radius:50%;display:grid;place-items:center;border:5px ridge #a9a5b3;background:radial-gradient(circle,#726b72 0,#27232d 48%,#0b0a12 70%);box-shadow:0 0 22px #765bff88,inset 0 0 15px #d6d1dd55;color:#eee;font-weight:1000;font-size:28px;text-shadow:0 2px 4px #000;letter-spacing:2px}
-.telegram{width:118px;height:118px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#39b9ed,#1486c9);box-shadow:0 0 24px #278de8aa;border:4px solid #6257c9}
-.telegram svg{width:62px;height:62px;fill:white}
+.brand-row{display:flex;justify-content:center;align-items:center;margin:8px auto 22px}
+.brand-seal{display:block;width:clamp(170px,48vw,270px);height:clamp(170px,48vw,270px);object-fit:contain;border-radius:50%;box-shadow:0 0 28px #765bff88}
 .admin-toggle{margin:0 0 14px;text-align:left}.admin-toggle .btn{width:100%;display:flex;justify-content:space-between;align-items:center;border:2px solid #a34cff;border-radius:18px;padding:18px 22px;background:linear-gradient(110deg,#15101f,#0e0a16);font-size:18px;box-shadow:0 0 20px #933cff35}
 .admin-toggle .plus{font-size:30px;color:#b35aff;line-height:1}
 .admin{display:none;margin:0 0 28px;background:#100b1b;border:1px solid #51336b;border-radius:20px;padding:17px}
@@ -42,7 +40,7 @@ input:focus,select:focus,textarea:focus{border-color:#b35bff;box-shadow:0 0 0 3p
 .contact{display:inline-flex;align-items:center;gap:12px;color:#3fc8ff;text-decoration:none;font-size:clamp(20px,5vw,27px);font-weight:950;margin-top:8px}
 .wa{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:#21c86b;color:#fff;font-size:24px}
 .catalog-heading{margin:38px 0 12px;font-size:22px;color:#e7d5ff}
-@media(max-width:560px){.brand-row{gap:18px}.brand-seal,.telegram{width:31vw;height:31vw;max-width:118px;max-height:118px}.hero{margin-top:42px}.admin-toggle .btn{padding:17px 20px}}
+@media(max-width:560px){.brand-seal{width:clamp(170px,55vw,240px);height:clamp(170px,55vw,240px)}.hero{margin-top:42px}.admin-toggle .btn{padding:17px 20px}}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:flex;flex-direction:column;gap:6px}.field.full{grid-column:1/-1}.field label{font-size:13px;color:#ded2ed}
 textarea{min-height:90px;resize:vertical}.hint{font-size:11px;color:#a99bb8}
 .preview{width:66px;height:66px;border-radius:15px;object-fit:cover;display:none;border:1px solid #69478a}
@@ -52,7 +50,8 @@ footer{text-align:center;color:#756a83;padding:25px;font-size:12px}
 <body>
 <header style="position:relative;padding:26px 18px 12px;background:transparent;border:0">
 <div class="brand-row">
-<div class="brand-seal" aria-label="Texno Telekom loqosu">T-T</div>
+<img class="brand-seal" src="IMG_20260901_064742_522.jpg" alt="TEXNO-TELEKOM metal loqosu">
+</div>
 <a class="telegram" href="https://t.me/" target="_blank" rel="noopener" aria-label="Telegram">
 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.7 4.3 18.6 19c-.2 1-1 1.2-1.8.7l-5-3.7-2.4 2.3c-.3.3-.5.5-1 .5l.4-5.1 9.3-8.4c.4-.4-.1-.6-.6-.2L6 12.4 1.1 10.9c-1.1-.3-1.1-1.1.2-1.6L20.2 2c.9-.3 1.7.2 1.5 2.3z"/></svg>
 </a>
