@@ -43,7 +43,8 @@ input:focus,select:focus,textarea:focus{border-color:#b35bff;box-shadow:0 0 0 3p
 .contact{display:inline-flex;align-items:center;gap:12px;color:#3fc8ff;text-decoration:none;font-size:clamp(20px,5vw,27px);font-weight:950;margin-top:8px}
 .wa{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:#21c86b;color:#fff;font-size:24px}
 .catalog-heading{margin:38px 0 12px;font-size:22px;color:#e7d5ff}
-.maintenance-notice{max-width:940px;margin:14px auto 18px;padding:16px 18px;border:1px solid #d5a63d;border-radius:18px;background:linear-gradient(120deg,#2a1b0d,#4b3515,#24170c);color:#ffe7a1;text-align:center;box-shadow:0 8px 26px #0005}.maintenance-notice strong{display:block;font-size:clamp(17px,4.5vw,21px);font-weight:900;letter-spacing:.3px}.maintenance-notice span{display:block;margin-top:5px;color:#f6dfb0;font-size:14px}
+.maintenance-notice{max-width:940px;margin:14px auto 18px;padding:16px 18px;border:1px solid #d5a63d;border-radius:18px;background:linear-gradient(120deg,#2a1b0d,#4b3515,#24170c);color:#ffe7a1;text-align:center;box-shadow:0 8px 26px #0005}
+body.maintenance-mode{overflow:hidden}body.maintenance-mode>header,body.maintenance-mode>main,body.maintenance-mode>footer{display:none!important}body.maintenance-mode .maintenance-notice{position:fixed;inset:0;z-index:99999;max-width:none;margin:0;border:0;border-radius:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px;background:radial-gradient(ellipse at 50% 25%,#39204e,#080610 68%);box-shadow:none}body.maintenance-mode .maintenance-notice strong{font-size:clamp(22px,6vw,34px)}body.maintenance-mode .maintenance-notice span{font-size:clamp(15px,4vw,19px);text-align:center}.maintenance-notice strong{display:block;font-size:clamp(17px,4.5vw,21px);font-weight:900;letter-spacing:.3px}.maintenance-notice span{display:block;margin-top:5px;color:#f6dfb0;font-size:14px}
 @media(max-width:560px){.hero{margin-top:28px}.site-header{padding-top:16px}}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:flex;flex-direction:column;gap:6px}.field.full{grid-column:1/-1}.field label{font-size:13px;color:#ded2ed}
 textarea{min-height:90px;resize:vertical}.hint{font-size:11px;color:#a99bb8}
@@ -63,7 +64,7 @@ footer{text-align:center;color:#756a83;padding:25px;font-size:12px}
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 </head>
-<body>
+<body class="maintenance-mode">
 <header class="site-header" style="background:transparent;border:0">
 <h1 class="site-title" id="heroTitleText">TEXNO-TELEKOM</h1>
 <div class="brand-row"><img class="brand-seal" src="IMG_20260901_064742_522.jpg" alt="TEXNO-TELEKOM metal loqosu"></div>
