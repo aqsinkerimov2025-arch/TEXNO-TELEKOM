@@ -190,6 +190,8 @@ fun TexnoTelekomApp() {
             Spacer(Modifier.height(24.dp))
             Text("TEXNO-TELEKOM", color = Color(0xFFCA9BFF), fontSize = 29.sp, fontWeight = FontWeight.Black, modifier = Modifier.align(Alignment.CenterHorizontally))
             Text("PREMIUM • PRO • TEXNOLOGİYA", color = Color.LightGray, fontSize = 11.sp, modifier = Modifier.align(Alignment.CenterHorizontally))
+            Spacer(Modifier.height(12.dp))
+            TexnoTelekomLogo()
             Spacer(Modifier.height(18.dp))
             OutlinedButton(onClick = { adminOpen = !adminOpen; error = ""; message = "" }, modifier = Modifier.fillMaxWidth()) {
                 Text(if (adminOpen) "Admin panelini bağla" else "Admin paneli")
