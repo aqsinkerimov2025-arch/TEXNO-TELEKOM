@@ -602,36 +602,6 @@ fun TexnoTelekomApp() {
             }
 
             Spacer(Modifier.height(22.dp))
-            Text("Kanal paylaşımları", color = Color(0xFFE7D5FF), fontSize = 25.sp, fontWeight = FontWeight.Bold)
-            Spacer(Modifier.height(10.dp))
-            posts.forEach { post ->
-                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF100B19)), shape = RoundedCornerShape(24.dp), modifier = Modifier.fillMaxWidth().padding(vertical = 7.dp)) {
-                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(post.title, Modifier.weight(1f), fontSize = 19.sp, fontWeight = FontWeight.Bold)
-                            if (post.isVip) Text("👑 VIP", color = Color(0xFFFFD66B), fontWeight = FontWeight.Bold)
-                        }
-                        if (post.version.isNotBlank()) Text("Versiya: ${post.version}", color = Color(0xFFD2B7FF))
-                        if (post.description.isNotBlank()) Text(post.description, color = Color.White, lineHeight = 22.sp)
-                        if (post.features.isNotBlank()) {
-                            HorizontalDivider(color = Color(0xFF40334D))
-                            Text("▶ Xüsusiyyətlər və Mod", fontWeight = FontWeight.Bold, color = Color(0xFFBFA0FF))
-                            Text(post.features, color = Color(0xFFD0C7DC), lineHeight = 21.sp)
-                        }
-                        if (post.fileSize.isNotBlank()) Text("📦 Fayl ölçüsü: ${post.fileSize}", color = Color.LightGray)
-                        if (post.androidRequirement.isNotBlank()) Text("📱 Android: ${post.androidRequirement}", color = Color.LightGray)
-                        if (post.downloadUrl.isNotBlank()) Button(onClick = {
-                            try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(post.downloadUrl))) }
-                            catch (_: Exception) { error = "APK linki açıla bilmədi." }
-                        }, modifier = Modifier.fillMaxWidth()) { Text("⬇ Birbaşa APK yüklə") }
-                        if (post.channelUrl.isNotBlank()) OutlinedButton(onClick = {
-                            try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(post.channelUrl))) }
-                            catch (_: Exception) { error = "Kanal linki açıla bilmədi." }
-                        }, modifier = Modifier.fillMaxWidth()) { Text("➜ TEXNO-TELEKOM kanalına qoşul") }
-                    }
-                }
-            }
-            Spacer(Modifier.height(20.dp))
             Text("Proqramlar", color = Color(0xFFE7D5FF), fontSize = 25.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(12.dp))
             OutlinedTextField(
