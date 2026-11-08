@@ -62,6 +62,11 @@ data class AppItem(
     val description: String, val downloadUrl: String, val iconUrl: String,
     val isActive: Boolean, val fileSize: String
 )
+data class ChannelPost(
+    val id: String, val title: String, val version: String, val isVip: Boolean,
+    val description: String, val features: String, val downloadUrl: String,
+    val fileSize: String, val androidRequirement: String, val channelUrl: String
+)
 
 
 @Composable
@@ -126,6 +131,17 @@ fun TexnoTelekomApp() {
     var infoLine3 by remember { mutableStateOf("3️⃣ ŞİKAYƏT VƏ REKLAM ÜÇÜN ƏLAQƏ") }
     var whatsappPhone by remember { mutableStateOf("+994558053305") }
     val programs = remember { mutableStateListOf<AppItem>() }
+    val posts = remember { mutableStateListOf<ChannelPost>() }
+    var postTitle by remember { mutableStateOf("") }
+    var postVersion by remember { mutableStateOf("") }
+    var postVip by remember { mutableStateOf(false) }
+    var postDescription by remember { mutableStateOf("") }
+    var postFeatures by remember { mutableStateOf("") }
+    var postDownloadUrl by remember { mutableStateOf("") }
+    var postFileSize by remember { mutableStateOf("") }
+    var postAndroid by remember { mutableStateOf("Android 5.0+") }
+    var postChannelUrl by remember { mutableStateOf("") }
+    var editingPostId by remember { mutableStateOf<String?>(null) }
 
     val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         pickedImage = uri
@@ -148,6 +164,23 @@ fun TexnoTelekomApp() {
             }
         }
         onDispose { listener.remove() }
+    }
+
+    DisposableEffect(db) {
+        val registration = db.collection("posts").addSnapshotListener { snap, e ->
+            if (e != null) error = "Paylaşımlar yüklənmədi: ${e.localizedMessage}"
+            else if (snap != null) {
+                posts.clear()
+                snap.documents.forEach { d ->
+                    posts.add(ChannelPost(d.id, d.getString("title") ?: "", d.getString("version") ?: "",
+                        d.getBoolean("is_vip") ?: false, d.getString("description") ?: "",
+                        d.getString("features") ?: "", d.getString("download_url") ?: "",
+                        d.getString("file_size") ?: "", d.getString("android_requirement") ?: "",
+                        d.getString("channel_url") ?: ""))
+                }
+            }
+        }
+        onDispose { registration.remove() }
     }
 
     DisposableEffect(db) {
@@ -185,6 +218,34 @@ fun TexnoTelekomApp() {
     fun clearForm() {
         name = ""; category = ""; version = ""; description = ""; link = ""
         fileSize = "0 MB"; editingId = null; currentIcon = ""; pickedImage = null
+    }
+
+    fun clearPostForm() {
+        postTitle = ""; postVersion = ""; postVip = false; postDescription = ""
+        postFeatures = ""; postDownloadUrl = ""; postFileSize = ""
+        postAndroid = "Android 5.0+"; postChannelUrl = ""; editingPostId = null
+    }
+
+    fun savePost() {
+        if (postTitle.isBlank()) { error = "Paylaşımın adı mütləqdir."; return }
+        if (postDownloadUrl.isNotBlank() && !postDownloadUrl.startsWith("https://") && !postDownloadUrl.startsWith("http://")) {
+            error = "APK linki http:// və ya https:// ilə başlamalıdır."; return
+        }
+        val values = hashMapOf<String, Any>(
+            "title" to postTitle.trim(), "version" to postVersion.trim(), "is_vip" to postVip,
+            "description" to postDescription.trim(), "features" to postFeatures.trim(),
+            "download_url" to postDownloadUrl.trim(), "file_size" to postFileSize.trim(),
+            "android_requirement" to postAndroid.trim(), "channel_url" to postChannelUrl.trim(),
+            "updated_at" to FieldValue.serverTimestamp()
+        )
+        val id = editingPostId
+        if (id == null) values["created_at"] = FieldValue.serverTimestamp()
+        val task = if (id == null) db.collection("posts").add(values)
+                   else db.collection("posts").document(id).set(values, SetOptions.merge())
+        task.addOnSuccessListener {
+            message = if (id == null) "Paylaşım əlavə edildi." else "Paylaşım yeniləndi."
+            clearPostForm()
+        }.addOnFailureListener { error = "Paylaşım saxlanmadı: ${it.localizedMessage}" }
     }
 
     fun writeProgram(iconUrl: String) {
@@ -343,6 +404,31 @@ fun TexnoTelekomApp() {
                             OutlinedTextField(whatsappPhone, { whatsappPhone = it }, label = { Text("WhatsApp nömrəsi") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone), modifier = Modifier.fillMaxWidth())
                             Button(onClick = { saveSiteTexts() }, modifier = Modifier.fillMaxWidth()) { Text("Yazıları yadda saxla") }
                             HorizontalDivider()
+                            Text(if (editingPostId == null) "Kanal paylaşımı əlavə et" else "Kanal paylaşımını redaktə et", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                            OutlinedTextField(postTitle, { postTitle = it }, label = { Text("Paylaşımın adı") }, modifier = Modifier.fillMaxWidth())
+                            OutlinedTextField(postVersion, { postVersion = it }, label = { Text("Versiya") }, modifier = Modifier.fillMaxWidth())
+                            Row(verticalAlignment = Alignment.CenterVertically) { Checkbox(postVip, { postVip = it }); Text("VIP / Premium") }
+                            OutlinedTextField(postDescription, { postDescription = it }, label = { Text("Paylaşım mətni") }, modifier = Modifier.fillMaxWidth(), minLines = 3)
+                            OutlinedTextField(postFeatures, { postFeatures = it }, label = { Text("Xüsusiyyətlər və Mod") }, modifier = Modifier.fillMaxWidth(), minLines = 3)
+                            OutlinedTextField(postDownloadUrl, { postDownloadUrl = it }, label = { Text("Birbaşa APK yükləmə linki") }, modifier = Modifier.fillMaxWidth())
+                            OutlinedTextField(postFileSize, { postFileSize = it }, label = { Text("Fayl ölçüsü") }, modifier = Modifier.fillMaxWidth())
+                            OutlinedTextField(postAndroid, { postAndroid = it }, label = { Text("Android tələbi") }, modifier = Modifier.fillMaxWidth())
+                            OutlinedTextField(postChannelUrl, { postChannelUrl = it }, label = { Text("Telegram kanal linki") }, modifier = Modifier.fillMaxWidth())
+                            Button(onClick = { savePost() }, modifier = Modifier.fillMaxWidth()) { Text(if (editingPostId == null) "Paylaşımı əlavə et" else "Paylaşımı yadda saxla") }
+                            if (editingPostId != null) TextButton(onClick = { clearPostForm() }) { Text("Redaktəni ləğv et") }
+                            posts.forEach { p ->
+                                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                    Text(p.title, Modifier.weight(1f), maxLines = 1)
+                                    IconButton(onClick = {
+                                        editingPostId = p.id; postTitle = p.title; postVersion = p.version
+                                        postVip = p.isVip; postDescription = p.description; postFeatures = p.features
+                                        postDownloadUrl = p.downloadUrl; postFileSize = p.fileSize
+                                        postAndroid = p.androidRequirement; postChannelUrl = p.channelUrl
+                                    }) { Icon(Icons.Default.Edit, null, tint = Color(0xFFD5B0FF)) }
+                                    IconButton(onClick = { db.collection("posts").document(p.id).delete() }) { Icon(Icons.Default.Delete, null, tint = Color(0xFFFF7777)) }
+                                }
+                            }
+                            HorizontalDivider()
                             Text(if (editingId == null) "Proqram əlavə et" else "Proqramı redaktə et", fontWeight = FontWeight.Bold)
                             OutlinedTextField(name, { name = it }, label = { Text("Proqramın adı") }, modifier = Modifier.fillMaxWidth())
                             OutlinedTextField(category, { category = it }, label = { Text("Kateqoriya") }, modifier = Modifier.fillMaxWidth())
@@ -414,6 +500,36 @@ fun TexnoTelekomApp() {
                 )
             }
 
+            Spacer(Modifier.height(22.dp))
+            Text("Kanal paylaşımları", color = Color(0xFFE7D5FF), fontSize = 25.sp, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(10.dp))
+            posts.forEach { post ->
+                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF100B19)), shape = RoundedCornerShape(24.dp), modifier = Modifier.fillMaxWidth().padding(vertical = 7.dp)) {
+                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(post.title, Modifier.weight(1f), fontSize = 19.sp, fontWeight = FontWeight.Bold)
+                            if (post.isVip) Text("👑 VIP", color = Color(0xFFFFD66B), fontWeight = FontWeight.Bold)
+                        }
+                        if (post.version.isNotBlank()) Text("Versiya: ${post.version}", color = Color(0xFFD2B7FF))
+                        if (post.description.isNotBlank()) Text(post.description, color = Color.White, lineHeight = 22.sp)
+                        if (post.features.isNotBlank()) {
+                            HorizontalDivider(color = Color(0xFF40334D))
+                            Text("▶ Xüsusiyyətlər və Mod", fontWeight = FontWeight.Bold, color = Color(0xFFBFA0FF))
+                            Text(post.features, color = Color(0xFFD0C7DC), lineHeight = 21.sp)
+                        }
+                        if (post.fileSize.isNotBlank()) Text("📦 Fayl ölçüsü: ${post.fileSize}", color = Color.LightGray)
+                        if (post.androidRequirement.isNotBlank()) Text("📱 Android: ${post.androidRequirement}", color = Color.LightGray)
+                        if (post.downloadUrl.isNotBlank()) Button(onClick = {
+                            try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(post.downloadUrl))) }
+                            catch (_: Exception) { error = "APK linki açıla bilmədi." }
+                        }, modifier = Modifier.fillMaxWidth()) { Text("⬇ Birbaşa APK yüklə") }
+                        if (post.channelUrl.isNotBlank()) OutlinedButton(onClick = {
+                            try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(post.channelUrl))) }
+                            catch (_: Exception) { error = "Kanal linki açıla bilmədi." }
+                        }, modifier = Modifier.fillMaxWidth()) { Text("➜ TEXNO-TELEKOM kanalına qoşul") }
+                    }
+                }
+            }
             Spacer(Modifier.height(20.dp))
             Text("Proqramlar", color = Color(0xFFE7D5FF), fontSize = 25.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(12.dp))
