@@ -704,7 +704,7 @@ fun TexnoTelekomApp() {
             Text("Proqramlar", color = Color(0xFFE7D5FF), fontSize = 25.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(18.dp))
             shown.forEach { p ->
-                val isGoldBankCard = p.name.contains("youtube", ignoreCase = true) && p.name.contains("premium", ignoreCase = true)
+                val isGoldBankCard = true
                 Card(
                     colors = CardDefaults.cardColors(containerColor = if (isGoldBankCard) Color(0xFF6B4B16) else Color(0xFF100B19)),
                     shape = RoundedCornerShape(30.dp),
