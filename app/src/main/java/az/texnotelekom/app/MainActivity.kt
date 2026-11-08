@@ -931,6 +931,26 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
             }
             if (shown.isEmpty()) Text("Proqram tapılmadı.", color = Color.LightGray)
             Spacer(Modifier.height(28.dp))
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 18.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Text(
+                    "TEXNO-TELEKOM",
+                    color = Color(0xFFFFD76B),
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Black,
+                    letterSpacing = 2.sp
+                )
+                Text(
+                    "PROQRAMİST { !_ОПТИМИСТ_! }",
+                    color = Color(0xFFBBAACB),
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    letterSpacing = 0.5.sp
+                )
+            }
         }
     }
 }
