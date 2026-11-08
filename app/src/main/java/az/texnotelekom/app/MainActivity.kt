@@ -248,7 +248,8 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                 val currentCode = if (Build.VERSION.SDK_INT >= 28) info.longVersionCode else @Suppress("DEPRECATION") info.versionCode.toLong()
                 if (remoteCode > currentCode && apkUrl.startsWith("https://")) {
                     Handler(Looper.getMainLooper()).post {
-                        availableUpdate = ReleaseUpdate(remoteCode, json.optString("name", tag), apkUrl, json.optString("body"))
+                        // Yeni versiya aşkarlananda istifadəçidən əlavə düymə tələb etmədən yükləməni başlat.
+                        onInstallUpdate(apkUrl)
                     }
                 }
             } catch (_: Exception) { }
@@ -498,28 +499,6 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
 
     val shown = programs.filter { (it.isActive || loggedIn) && "${it.name} ${it.category} ${it.description}".contains(query, true) }
 
-
-    if (availableUpdate != null) {
-        AlertDialog(
-            onDismissRequest = { availableUpdate = null },
-            title = { Text("Yeni yeniləmə mövcuddur") },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(availableUpdate!!.versionName)
-                    if (availableUpdate!!.notes.isNotBlank()) Text(availableUpdate!!.notes)
-                    Text("Yükləmə bitdikdən sonra Android quraşdırmanı təsdiqləməyini istəyəcək.")
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    val url = availableUpdate!!.apkUrl
-                    availableUpdate = null
-                    onInstallUpdate(url)
-                }) { Text("Yenilə") }
-            },
-            dismissButton = { TextButton(onClick = { availableUpdate = null }) { Text("Sonra") } }
-        )
-    }
 
     MaterialTheme(colorScheme = darkColorScheme(background = bg, surface = panel, primary = accent, onBackground = Color.White, onSurface = Color.White)) {
         Column(
