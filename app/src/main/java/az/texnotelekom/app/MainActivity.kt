@@ -163,6 +163,7 @@ fun TexnoTelekomApp() {
     val db = remember { FirebaseFirestore.getInstance() }
     var query by remember { mutableStateOf("") }
     var searchOpen by remember { mutableStateOf(false) }
+    var showPhoneInfo by remember { mutableStateOf(false) }
     var phoneInfoTitle by remember { mutableStateOf("") }
     var phoneInfoBody by remember { mutableStateOf("") }
     var adminOpen by remember { mutableStateOf(false) }
@@ -639,16 +640,38 @@ fun TexnoTelekomApp() {
             }
 
             Spacer(Modifier.height(22.dp))
-            Text("TEXNO-MƏLUMAT", color = Color(0xFFE7D5FF), fontSize = 25.sp, fontWeight = FontWeight.Bold)
-            Spacer(Modifier.height(12.dp))
-            if (phoneInfos.isEmpty()) Text("Hələ telefon məlumatı paylaşılmayıb.", color = Color.LightGray)
-            phoneInfos.forEach { info ->
-                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF151020)), modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
-                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(info.title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                        Text(info.body, color = Color(0xFFD0C7DC), fontSize = 14.sp, lineHeight = 21.sp)
-                        if (loggedIn) TextButton(onClick = { db.collection("phone_information").document(info.id).delete() }) {
-                            Text("Sil", color = Color(0xFFFF7777))
+            Card(
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF1A1025)),
+                shape = RoundedCornerShape(28.dp),
+                modifier = Modifier.fillMaxWidth().clickable { showPhoneInfo = !showPhoneInfo }
+            ) {
+                Row(
+                    Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 22.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        Text("✦ TEXNO-MƏLUMAT", color = Color(0xFFEEDCFF), fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                        Spacer(Modifier.height(7.dp))
+                        Text(
+                            if (showPhoneInfo) "Telefon məlumatları bölməsini bağlamaq üçün toxunun"
+                            else "Telefonlar haqqında məlumatları oxumaq üçün bölməyə daxil olun",
+                            color = Color(0xFFBBAACB), fontSize = 13.sp, lineHeight = 19.sp
+                        )
+                    }
+                    Text(if (showPhoneInfo) "↑" else "➜", color = Color(0xFFD9B5FF), fontSize = 30.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+            if (showPhoneInfo) {
+                Spacer(Modifier.height(12.dp))
+                if (phoneInfos.isEmpty()) Text("Hələ telefon məlumatı paylaşılmayıb.", color = Color.LightGray)
+                phoneInfos.forEach { info ->
+                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF151020)), modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
+                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(info.title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                            Text(info.body, color = Color(0xFFD0C7DC), fontSize = 14.sp, lineHeight = 21.sp)
+                            if (loggedIn) TextButton(onClick = { db.collection("phone_information").document(info.id).delete() }) {
+                                Text("Sil", color = Color(0xFFFF7777))
+                            }
                         }
                     }
                 }
