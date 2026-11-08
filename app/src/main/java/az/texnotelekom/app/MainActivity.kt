@@ -158,6 +158,7 @@ private fun ProgramIcon(value: String, description: String, size: Int) {
 
 class MainActivity : ComponentActivity() {
     private var updateDownloadId: Long = -1L
+    private var pendingUpdateUrl: String? = null
     private val updateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             if (intent.action != DownloadManager.ACTION_DOWNLOAD_COMPLETE) return
@@ -186,6 +187,7 @@ class MainActivity : ComponentActivity() {
 
     private fun installUpdate(url: String) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !packageManager.canRequestPackageInstalls()) {
+            pendingUpdateUrl = url
             startActivity(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:$packageName")))
             return
         }
@@ -198,6 +200,17 @@ class MainActivity : ComponentActivity() {
                 .setDestinationInExternalFilesDir(this, Environment.DIRECTORY_DOWNLOADS, "texno-telekom-update.apk")
             updateDownloadId = (getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager).enqueue(request)
         } catch (_: Exception) { }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && packageManager.canRequestPackageInstalls()) {
+            val url = pendingUpdateUrl
+            if (url != null) {
+                pendingUpdateUrl = null
+                installUpdate(url)
+            }
+        }
     }
 
     override fun onDestroy() {
