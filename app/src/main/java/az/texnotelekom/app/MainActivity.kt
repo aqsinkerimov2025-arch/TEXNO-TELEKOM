@@ -153,7 +153,7 @@ fun TexnoTelekomApp() {
             if (e != null) error = "Firebase xətası: ${e.localizedMessage}"
             else if (snap != null) {
                 programs.clear()
-                snap.documents.forEach { d ->
+                snap.documents.filter { it.getString("content_type") != "channel_post" }.forEach { d ->
                     programs.add(AppItem(
                         d.id, d.getString("name") ?: "", d.getString("category") ?: "",
                         d.getString("version") ?: "", d.getString("description") ?: "",
@@ -164,23 +164,6 @@ fun TexnoTelekomApp() {
             }
         }
         onDispose { listener.remove() }
-    }
-
-    DisposableEffect(db) {
-        val registration = db.collection("posts").addSnapshotListener { snap, e ->
-            if (e != null) error = "Paylaşımlar yüklənmədi: ${e.localizedMessage}"
-            else if (snap != null) {
-                posts.clear()
-                snap.documents.forEach { d ->
-                    posts.add(ChannelPost(d.id, d.getString("title") ?: "", d.getString("version") ?: "",
-                        d.getBoolean("is_vip") ?: false, d.getString("description") ?: "",
-                        d.getString("features") ?: "", d.getString("download_url") ?: "",
-                        d.getString("file_size") ?: "", d.getString("android_requirement") ?: "",
-                        d.getString("channel_url") ?: ""))
-                }
-            }
-        }
-        onDispose { registration.remove() }
     }
 
     DisposableEffect(db) {
@@ -240,8 +223,9 @@ fun TexnoTelekomApp() {
         )
         val id = editingPostId
         if (id == null) values["created_at"] = FieldValue.serverTimestamp()
-        val task = if (id == null) db.collection("posts").add(values)
-                   else db.collection("posts").document(id).set(values, SetOptions.merge())
+        values["content_type"] = "channel_post"
+        val task = if (id == null) db.collection("programs").add(values)
+                   else db.collection("programs").document(id).set(values, SetOptions.merge())
         task.addOnSuccessListener {
             message = if (id == null) "Paylaşım əlavə edildi." else "Paylaşım yeniləndi."
             clearPostForm()
@@ -425,7 +409,7 @@ fun TexnoTelekomApp() {
                                         postDownloadUrl = p.downloadUrl; postFileSize = p.fileSize
                                         postAndroid = p.androidRequirement; postChannelUrl = p.channelUrl
                                     }) { Icon(Icons.Default.Edit, null, tint = Color(0xFFD5B0FF)) }
-                                    IconButton(onClick = { db.collection("posts").document(p.id).delete() }) { Icon(Icons.Default.Delete, null, tint = Color(0xFFFF7777)) }
+                                    IconButton(onClick = { db.collection("programs").document(p.id).delete() }) { Icon(Icons.Default.Delete, null, tint = Color(0xFFFF7777)) }
                                 }
                             }
                             HorizontalDivider()
