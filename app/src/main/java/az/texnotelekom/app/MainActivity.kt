@@ -103,6 +103,9 @@ fun TexnoTelekomApp() {
     val isAuthorizedDevice = deviceId in ADMIN_DEVICE_IDS
     var loggedIn by remember { mutableStateOf(false) }
 
+    var email by remember { mutableStateOf(ADMIN_EMAIL) }
+    var password by remember { mutableStateOf("") }
+
     DisposableEffect(context, isAuthorizedDevice) {
         val activity = context as? ComponentActivity
         val observer = object : DefaultLifecycleObserver {
@@ -118,8 +121,6 @@ fun TexnoTelekomApp() {
         activity?.lifecycle?.addObserver(observer)
         onDispose { activity?.lifecycle?.removeObserver(observer) }
     }
-    var email by remember { mutableStateOf(ADMIN_EMAIL) }
-    var password by remember { mutableStateOf("") }
     var error by remember { mutableStateOf("") }
     var message by remember { mutableStateOf("") }
     var name by remember { mutableStateOf("") }
