@@ -4,6 +4,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -67,7 +69,7 @@ fun TexnoTelekomApp() {
         background = bg, surface = panel, primary = accent,
         onBackground = Color.White, onSurface = Color.White
     )) {
-        Column(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color(0xFF251039), bg, bg))).padding(horizontal = 16.dp)) {
+        Column(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color(0xFF251039), bg, bg))).verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)) {
             Spacer(Modifier.height(24.dp))
             Text("✦", color = Color(0xFFD5B0FF), fontSize = 34.sp, modifier = Modifier.align(Alignment.CenterHorizontally))
             Text("TEXNO-TELEKOM", color = Color.White, fontSize = 25.sp, fontWeight = FontWeight.Black, letterSpacing = 2.sp, modifier = Modifier.align(Alignment.CenterHorizontally))
@@ -151,8 +153,8 @@ fun TexnoTelekomApp() {
             OutlinedTextField(query, { query = it }, modifier = Modifier.fillMaxWidth(), placeholder = { Text("Proqram axtar...") }, leadingIcon = { Icon(Icons.Default.Search, null) }, singleLine = true)
             Spacer(Modifier.height(12.dp))
             Text("✦ Proqramlar", color = Color(0xFFE7D5FF), fontSize = 21.sp, fontWeight = FontWeight.Bold)
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(bottom = 28.dp)) {
-                items(filtered, key = { it.id }) { app ->
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth().padding(bottom = 28.dp)) {
+                filtered.forEach { app ->
                     Card(colors = CardDefaults.cardColors(containerColor = panel), shape = RoundedCornerShape(18.dp), modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(15.dp)) {
                             Text("✦  ${app.name}", fontSize = 17.sp, fontWeight = FontWeight.Bold)
@@ -163,7 +165,7 @@ fun TexnoTelekomApp() {
                         }
                     }
                 }
-                if (filtered.isEmpty()) item { Text("Axtarışa uyğun proqram tapılmadı", color = Color.LightGray) }
+                if (filtered.isEmpty()) Text("Axtarışa uyğun proqram tapılmadı", color = Color.LightGray)
             }
         }
     }
