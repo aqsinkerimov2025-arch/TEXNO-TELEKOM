@@ -7,6 +7,10 @@ import android.util.Base64
 import java.io.ByteArrayOutputStream
 import android.net.Uri
 import android.os.Bundle
+import android.os.Build
+import android.provider.Settings
+import android.content.ClipData
+import android.content.ClipboardManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -90,6 +94,8 @@ fun TexnoTelekomApp() {
     val db = remember { FirebaseFirestore.getInstance() }
     var query by remember { mutableStateOf("") }
     var adminOpen by remember { mutableStateOf(false) }
+    var showDeviceInfo by remember { mutableStateOf(false) }
+    val deviceId = remember { Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID) ?: "Tapılmadı" }
     var loggedIn by remember { mutableStateOf(false) }
     var email by remember { mutableStateOf(ADMIN_EMAIL) }
     var password by remember { mutableStateOf("") }
@@ -192,7 +198,11 @@ fun TexnoTelekomApp() {
             Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                 TexnoTelekomLogo()
             }
-            Spacer(Modifier.height(30.dp))
+            Spacer(Modifier.height(12.dp))
+            TextButton(onClick = { showDeviceInfo = true }, modifier = Modifier.align(Alignment.CenterHorizontally)) {
+                Text("Cihaz kodunu göstər", color = Color(0xFFBBAACB), fontSize = 13.sp)
+            }
+            Spacer(Modifier.height(18.dp))
             OutlinedButton(
                 onClick = { adminOpen = !adminOpen; error = ""; message = "" },
                 modifier = Modifier.fillMaxWidth().height(92.dp),
@@ -297,6 +307,28 @@ fun TexnoTelekomApp() {
                         if (error.isNotBlank()) Text(error, color = Color(0xFFFF7777), fontSize = 12.sp)
                     }
                 }
+            }
+
+            if (showDeviceInfo) {
+                AlertDialog(
+                    onDismissRequest = { showDeviceInfo = false },
+                    title = { Text("Cihaz məlumatı") },
+                    text = {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text("Model: ${Build.MANUFACTURER} ${Build.MODEL}")
+                            Text("Cihaz kodu:")
+                            Text(deviceId, fontWeight = FontWeight.Bold)
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as ClipboardManager
+                            clipboard.setPrimaryClip(ClipData.newPlainText("Cihaz kodu", deviceId))
+                            showDeviceInfo = false
+                        }) { Text("Kodu kopyala") }
+                    },
+                    dismissButton = { TextButton(onClick = { showDeviceInfo = false }) { Text("Bağla") } }
+                )
             }
 
             Spacer(Modifier.height(20.dp))
