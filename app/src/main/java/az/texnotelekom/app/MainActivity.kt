@@ -1,6 +1,10 @@
 package az.texnotelekom.app
 
 import android.content.Intent
+import android.content.BroadcastReceiver
+import android.content.IntentFilter
+import android.app.DownloadManager
+import android.os.Environment
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Base64
@@ -118,6 +122,8 @@ private const val ADMIN_ICON_BASE64 = "iVBORw0KGgoAAAANSUhEUgAAAEAAAABICAYAAABGO
 private const val ADMIN_UID = "FflCErahavNIb8ZXsvHIyrxZYZH3"
 private val ADMIN_DEVICE_IDS = setOf("a20e9a204172f84f", "2ad6b306ca18b8e0")
 
+private data class ReleaseUpdate(val versionCode: Long, val versionName: String, val apkUrl: String, val notes: String)
+
 data class AppItem(
     val id: String, val name: String, val category: String, val version: String,
     val description: String, val downloadUrl: String, val iconUrl: String,
@@ -151,16 +157,90 @@ private fun ProgramIcon(value: String, description: String, size: Int) {
 }
 
 class MainActivity : ComponentActivity() {
+    private var updateDownloadId: Long = -1L
+    private val updateReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if (intent.action != DownloadManager.ACTION_DOWNLOAD_COMPLETE) return
+            val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1L)
+            if (id != updateDownloadId) return
+            val manager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+            val uri = manager.getUriForDownloadedFile(id) ?: return
+            val install = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, "application/vnd.android.package-archive")
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            try { startActivity(install) } catch (_: Exception) { }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { TexnoTelekomApp() }
+        val filter = IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
+        if (Build.VERSION.SDK_INT >= 33) registerReceiver(updateReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        else {
+            @Suppress("DEPRECATION")
+            registerReceiver(updateReceiver, filter)
+        }
+        setContent { TexnoTelekomApp(onInstallUpdate = { url -> installUpdate(url) }) }
+    }
+
+    private fun installUpdate(url: String) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !packageManager.canRequestPackageInstalls()) {
+            startActivity(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:$packageName")))
+            return
+        }
+        try {
+            val request = DownloadManager.Request(Uri.parse(url))
+                .setTitle("TEXNO-TELEKOM yenilənir")
+                .setDescription("Yeni versiya yüklənir")
+                .setMimeType("application/vnd.android.package-archive")
+                .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+                .setDestinationInExternalFilesDir(this, Environment.DIRECTORY_DOWNLOADS, "texno-telekom-update.apk")
+            updateDownloadId = (getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager).enqueue(request)
+        } catch (_: Exception) { }
+    }
+
+    override fun onDestroy() {
+        try { unregisterReceiver(updateReceiver) } catch (_: Exception) { }
+        super.onDestroy()
     }
 }
 
 @Composable
-fun TexnoTelekomApp() {
+fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     val context = LocalContext.current
     val db = remember { FirebaseFirestore.getInstance() }
+
+    var availableUpdate by remember { mutableStateOf<ReleaseUpdate?>(null) }
+    LaunchedEffect(Unit) {
+        Thread {
+            try {
+                val connection = (URL("https://api.github.com/repos/aqsinkerimov2025-arch/TEXNO-TELEKOM/releases/latest").openConnection() as HttpURLConnection).apply {
+                    connectTimeout = 10000
+                    readTimeout = 10000
+                    setRequestProperty("Accept", "application/vnd.github+json")
+                    setRequestProperty("User-Agent", "TEXNO-TELEKOM-Android")
+                }
+                val json = connection.inputStream.bufferedReader().use { JSONObject(it.readText()) }
+                connection.disconnect()
+                val tag = json.optString("tag_name")
+                val remoteCode = tag.removePrefix("app-v").toLongOrNull() ?: 0L
+                val assets = json.optJSONArray("assets")
+                var apkUrl = ""
+                if (assets != null) for (i in 0 until assets.length()) {
+                    val asset = assets.getJSONObject(i)
+                    if (asset.optString("name") == "TEXNO-TELEKOM.apk") apkUrl = asset.optString("browser_download_url")
+                }
+                val info = context.packageManager.getPackageInfo(context.packageName, 0)
+                val currentCode = if (Build.VERSION.SDK_INT >= 28) info.longVersionCode else @Suppress("DEPRECATION") info.versionCode.toLong()
+                if (remoteCode > currentCode && apkUrl.startsWith("https://")) {
+                    Handler(Looper.getMainLooper()).post {
+                        availableUpdate = ReleaseUpdate(remoteCode, json.optString("name", tag), apkUrl, json.optString("body"))
+                    }
+                }
+            } catch (_: Exception) { }
+        }.start()
+    }
     var query by remember { mutableStateOf("") }
     var searchOpen by remember { mutableStateOf(false) }
     var showPhoneInfo by remember { mutableStateOf(false) }
@@ -404,6 +484,29 @@ fun TexnoTelekomApp() {
     }
 
     val shown = programs.filter { (it.isActive || loggedIn) && "${it.name} ${it.category} ${it.description}".contains(query, true) }
+
+
+    if (availableUpdate != null) {
+        AlertDialog(
+            onDismissRequest = { availableUpdate = null },
+            title = { Text("Yeni yeniləmə mövcuddur") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(availableUpdate!!.versionName)
+                    if (availableUpdate!!.notes.isNotBlank()) Text(availableUpdate!!.notes)
+                    Text("Yükləmə bitdikdən sonra Android quraşdırmanı təsdiqləməyini istəyəcək.")
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    val url = availableUpdate!!.apkUrl
+                    availableUpdate = null
+                    onInstallUpdate(url)
+                }) { Text("Yenilə") }
+            },
+            dismissButton = { TextButton(onClick = { availableUpdate = null }) { Text("Sonra") } }
+        )
+    }
 
     MaterialTheme(colorScheme = darkColorScheme(background = bg, surface = panel, primary = accent, onBackground = Color.White, onSurface = Color.White)) {
         Column(
