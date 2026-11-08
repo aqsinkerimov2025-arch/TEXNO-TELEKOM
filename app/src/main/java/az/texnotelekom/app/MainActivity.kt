@@ -68,6 +68,10 @@ private const val ADMIN_EMAIL = "aqsin.kerimov.2025@gmail.com"
 private const val CLOUDINARY_CLOUD = "at4nuvsd"
 private const val CLOUDINARY_PRESET = "texno_telekom_upload"
 
+private fun remoteColor(hex: String, fallback: Color): Color = try {
+    Color(android.graphics.Color.parseColor(if (hex.startsWith("#")) hex else "#$hex"))
+} catch (_: Exception) { fallback }
+
 private fun uploadApk(context: Context, uri: Uri, callback: (Result<Pair<String, Long>>) -> Unit) {
     Thread {
         try {
@@ -224,6 +228,15 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     val context = LocalContext.current
     val db = remember { FirebaseFirestore.getInstance() }
 
+    // Server-managed design values update live without publishing a new APK.
+    var designBgHex by remember { mutableStateOf("#080610") }
+    var designPanelHex by remember { mutableStateOf("#151020") }
+    var designAccentHex by remember { mutableStateOf("#AA4CFF") }
+    var designGoldCards by remember { mutableStateOf(true) }
+    val liveBg = remoteColor(designBgHex, bg)
+    val livePanel = remoteColor(designPanelHex, panel)
+    val liveAccent = remoteColor(designAccentHex, accent)
+
     var availableUpdate by remember { mutableStateOf<ReleaseUpdate?>(null) }
     LaunchedEffect(Unit) {
         Thread {
@@ -326,6 +339,19 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     }
 
     DisposableEffect(db) {
+        val designListener = db.collection("app_design").document("current")
+            .addSnapshotListener { snapshot, e ->
+                if (e == null && snapshot != null && snapshot.exists()) {
+                    designBgHex = snapshot.getString("background") ?: designBgHex
+                    designPanelHex = snapshot.getString("panel") ?: designPanelHex
+                    designAccentHex = snapshot.getString("accent") ?: designAccentHex
+                    designGoldCards = snapshot.getBoolean("goldCards") ?: designGoldCards
+                }
+            }
+        onDispose { designListener.remove() }
+    }
+
+    DisposableEffect(db) {
         val phoneListener = db.collection("phone_information").orderBy("created_at", com.google.firebase.firestore.Query.Direction.DESCENDING)
             .addSnapshotListener { snap, e ->
                 if (e == null && snap != null) {
@@ -376,6 +402,19 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                 }
             }
         onDispose { registration.remove() }
+    }
+
+    fun saveLiveDesign() {
+        val values = hashMapOf<String, Any>(
+            "background" to designBgHex.trim(),
+            "panel" to designPanelHex.trim(),
+            "accent" to designAccentHex.trim(),
+            "goldCards" to designGoldCards,
+            "updated_at" to FieldValue.serverTimestamp()
+        )
+        db.collection("app_design").document("current").set(values, SetOptions.merge())
+            .addOnSuccessListener { message = "Dizayn bütün istifadəçilər üçün yeniləndi." }
+            .addOnFailureListener { error = "Dizayn yadda saxlanmadı: ${it.localizedMessage}" }
     }
 
     fun saveSiteTexts() {
@@ -500,9 +539,9 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     val shown = programs.filter { (it.isActive || loggedIn) && "${it.name} ${it.category} ${it.description}".contains(query, true) }
 
 
-    MaterialTheme(colorScheme = darkColorScheme(background = bg, surface = panel, primary = accent, onBackground = Color.White, onSurface = Color.White)) {
+    MaterialTheme(colorScheme = darkColorScheme(background = liveBg, surface = livePanel, primary = liveAccent, onBackground = Color.White, onSurface = Color.White)) {
         Column(
-            Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color(0xFF251039), bg, bg)))
+            Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(livePanel, liveBg, liveBg)))
                 .statusBarsPadding().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)
         ) {
             Spacer(Modifier.height(12.dp))
@@ -608,7 +647,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
             }
 
             if (adminOpen && isAuthorizedDevice) {
-                Card(colors = CardDefaults.cardColors(containerColor = panel), modifier = Modifier.fillMaxWidth()) {
+                Card(colors = CardDefaults.cardColors(containerColor = livePanel), modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         if (!loggedIn) {
                             Text("Admin girişi", fontWeight = FontWeight.Bold)
@@ -626,6 +665,17 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                     }
                             }, enabled = email.isNotBlank() && password.isNotBlank()) { Text("Daxil ol") }
                         } else {
+                            Text("Canlı dizayn idarəetməsi", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                            Text("Bu dəyişikliklər APK yeniləmədən bütün istifadəçilərə çatır.", fontSize = 12.sp, color = Color.LightGray)
+                            OutlinedTextField(designBgHex, { designBgHex = it }, label = { Text("Arxa fon rəngi (#RRGGBB)") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                            OutlinedTextField(designPanelHex, { designPanelHex = it }, label = { Text("Kart rəngi (#RRGGBB)") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                            OutlinedTextField(designAccentHex, { designAccentHex = it }, label = { Text("Əsas vurğu rəngi (#RRGGBB)") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Checkbox(checked = designGoldCards, onCheckedChange = { designGoldCards = it })
+                                Text("Qızılı premium kart dizaynı")
+                            }
+                            Button(onClick = { saveLiveDesign() }, modifier = Modifier.fillMaxWidth()) { Text("Dizaynı hamıda yenilə") }
+                            HorizontalDivider()
                             Text("Sayt yazılarını düzəlt", fontWeight = FontWeight.Bold, fontSize = 18.sp)
                             OutlinedTextField(heroTitle, { heroTitle = it }, label = { Text("Əsas başlıq") }, modifier = Modifier.fillMaxWidth())
                             OutlinedTextField(welcomeText, { welcomeText = it }, label = { Text("Qarşılama yazısı") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
@@ -799,7 +849,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
             Text("Proqramlar", color = Color(0xFFE7D5FF), fontSize = 25.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(18.dp))
             shown.forEach { p ->
-                val isGoldBankCard = true
+                val isGoldBankCard = designGoldCards
                 Card(
                     colors = CardDefaults.cardColors(containerColor = if (isGoldBankCard) Color(0xFF6B4B16) else Color(0xFF100B19)),
                     shape = RoundedCornerShape(30.dp),
