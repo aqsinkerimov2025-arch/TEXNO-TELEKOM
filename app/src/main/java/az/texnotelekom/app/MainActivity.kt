@@ -237,10 +237,10 @@ fun TexnoTelekomApp() {
     MaterialTheme(colorScheme = darkColorScheme(background = bg, surface = panel, primary = accent, onBackground = Color.White, onSurface = Color.White)) {
         Column(
             Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color(0xFF251039), bg, bg)))
-                .verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)
+                .statusBarsPadding().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)
         ) {
-            Spacer(Modifier.height(14.dp))
-            Box(Modifier.fillMaxWidth()) {
+            Spacer(Modifier.height(12.dp))
+            Box(Modifier.fillMaxWidth().padding(top = 4.dp)) {
                 Column(
                     modifier = Modifier.align(Alignment.Center),
                     horizontalAlignment = Alignment.CenterHorizontally
@@ -248,7 +248,7 @@ fun TexnoTelekomApp() {
                     Text(
                         heroTitle,
                         style = TextStyle(brush = Brush.horizontalGradient(listOf(Color(0xFF557CFF), Color(0xFFB63CDB)))),
-                        fontSize = 27.sp, fontWeight = FontWeight.Black
+                        fontSize = 25.sp, fontWeight = FontWeight.Black
                     )
                     Spacer(Modifier.height(6.dp))
                     Box(
@@ -270,7 +270,7 @@ fun TexnoTelekomApp() {
                     Text("Cihaz kodunu göstər", color = Color(0xFFBBAACB), fontSize = 13.sp)
                 }
             }
-            Spacer(Modifier.height(34.dp))
+            Spacer(Modifier.height(24.dp))
             Text(
                 "✅ TEXNO-TELEKOM RƏSMİ SAYTINA XOŞ GƏLMİSİNİZ...",
                 color = Color.White, fontSize = 19.sp, lineHeight = 27.sp,
