@@ -14,7 +14,7 @@ import android.graphics.RectF
 
 @Composable
 fun TexnoTelekomLogo() {
-    Canvas(Modifier.size(112.dp)) {
+    Canvas(Modifier.size(220.dp)) {
         val cx = size.width / 2f
         val cy = size.height / 2f
         val r = size.minDimension * 0.43f
