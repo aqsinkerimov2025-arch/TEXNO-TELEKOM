@@ -142,7 +142,7 @@ footer{text-align:center;color:#756a83;padding:25px;font-size:12px}
 </section>
 <section id="mainCatalog">
 <div class="catalog-heading">✦ Proqramlar</div>
-<div class="toolbar" id="searchPanel"><input id="search" class="search" placeholder="Axtar..."></div>
+<div class="toolbar" id="searchPanel"><input id="search" class="search" type="search" inputmode="search" enterkeyhint="search" autocomplete="off" autocapitalize="off" placeholder="Proqramın adını yazın..."></div>
 <div id="apps" class="grid"></div>
 <p class="hint" style="text-align:center">Proqram siyahısı və sayt yazıları TEXNO-TELEKOM tətbiqi ilə eyni Firebase bazasından yenilənir.</p>
 </section>
@@ -166,7 +166,7 @@ function render(){
 }
 function clearForm(){['name','category','version','description','download','fileSize'].forEach(id=>$(id).value='');$('iconFile').value='';$('preview').style.display='none';selectedImage='';editingId=null;$('notice').textContent=''}
 $('adminBtn').onclick=()=>$('admin').classList.toggle('open');
-$('searchToggle').onclick=()=>$('searchPanel').classList.toggle('open');
+$('searchToggle').onclick=()=>{const panel=$('searchPanel');panel.classList.toggle('open');if(panel.classList.contains('open')){$('search').focus();}};
 $('search').oninput=render;
 function renderPhoneInfos(){const sorted=phoneInfos.slice().sort((a,b)=>(b.created_at?.seconds||0)-(a.created_at?.seconds||0));const html=sorted.map(x=>`<article class="phone-info-card"><h3>${esc(x.title||'')}</h3><p>${esc(x.body||'')}</p>${auth.currentUser?`<div class="card-actions" style="margin-top:12px"><button class="btn danger" onclick="deletePhoneInfo('${x.id}')">Sil</button></div>`:''}</article>`).join('');$('phoneInfoList').innerHTML=html||'<div class="empty">Hələ TEXNO-MƏLUMAT bölməsində paylaşım yoxdur</div>';$('phoneInfoAdminList').innerHTML=auth.currentUser?sorted.map(x=>`<p class="hint">${esc(x.title||'')} <button class="btn danger" onclick="deletePhoneInfo('${x.id}')">Sil</button></p>`).join(''):''}
 function showPhoneInfoSection(){ $('heroSection').hidden=true; $('phoneInfoHome').hidden=true; $('mainCatalog').hidden=true; $('phoneInfoSection').hidden=false; window.scrollTo({top:0,behavior:'smooth'}); }
