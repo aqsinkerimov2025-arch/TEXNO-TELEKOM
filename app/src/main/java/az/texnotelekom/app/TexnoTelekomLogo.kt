@@ -4,6 +4,8 @@ import android.graphics.BitmapFactory
 import android.util.Base64
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -23,7 +25,7 @@ fun TexnoTelekomLogo(size: androidx.compose.ui.unit.Dp = 120.dp) {
         Image(
             bitmap = it,
             contentDescription = "TEXNO-TELEKOM official logo",
-            modifier = Modifier.size(size),
+            modifier = Modifier.size(size).clip(CircleShape),
             contentScale = ContentScale.Fit
         )
     }
