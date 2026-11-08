@@ -923,7 +923,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                     letterSpacing = 2.sp
                 )
                 Text(
-                    "PROQRAMİST { !_ОПТИМИСТ_! }",
+                    "PROQRAMİST { !*ОПТИМИСТ*! }",
                     color = Color(0xFFBBAACB),
                     fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold,
