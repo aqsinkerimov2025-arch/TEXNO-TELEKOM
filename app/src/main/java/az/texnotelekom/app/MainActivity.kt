@@ -99,7 +99,6 @@ fun TexnoTelekomApp() {
     var revealDeviceCodeButton by remember { mutableStateOf(false) }
     val deviceId = remember { Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID) ?: "Tapılmadı" }
     val isAuthorizedDevice = deviceId in ADMIN_DEVICE_IDS
-    LaunchedEffect(isAuthorizedDevice) { if (!isAuthorizedDevice) { adminOpen = false; loggedIn = false } }
     var loggedIn by remember { mutableStateOf(false) }
     var email by remember { mutableStateOf(ADMIN_EMAIL) }
     var password by remember { mutableStateOf("") }
