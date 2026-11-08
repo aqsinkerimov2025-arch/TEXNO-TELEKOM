@@ -26,15 +26,15 @@ input:focus,select:focus,textarea:focus{border-color:#b35bff;box-shadow:0 0 0 3p
 .desc{color:#d0c7dc;font-size:13px;margin:13px 0;min-height:38px}
 .card-actions{display:flex;gap:8px;flex-wrap:wrap}.card-actions .btn{flex:1;text-align:center;text-decoration:none;font-size:13px;padding:9px}
 .empty{padding:35px 15px;text-align:center;color:var(--muted);border:1px dashed #49345e;border-radius:18px}
-.site-header{position:relative;padding:18px 64px 8px;text-align:center}
-.site-title{font-size:clamp(25px,6vw,34px);font-weight:950;letter-spacing:-1px;margin:0 0 5px;background:linear-gradient(90deg,#398fff,#a34cff,#e33bc9);-webkit-background-clip:text;background-clip:text;color:transparent}
+.site-header{position:relative;padding:calc(30px + env(safe-area-inset-top, 0px)) 64px 14px;text-align:center;min-height:170px}
+.site-title{font-size:clamp(23px,5.5vw,31px);font-weight:950;letter-spacing:-1px;line-height:1.2;margin:0 0 9px;background:linear-gradient(90deg,#398fff,#a34cff,#e33bc9);-webkit-background-clip:text;background-clip:text;color:transparent}
 .brand-row{display:flex;justify-content:center;align-items:center;margin:0 auto 10px}
-.brand-seal{display:block;width:clamp(82px,23vw,112px);height:clamp(82px,23vw,112px);object-fit:contain;border-radius:50%;box-shadow:0 0 20px #765bff66}
-.admin-icon{position:absolute;right:14px;top:10px;width:46px;height:46px;border-radius:14px;border:1px solid #69478a;background:#171020;color:#c27aff;font-size:27px;font-weight:900;cursor:pointer;box-shadow:0 0 16px #933cff25}
+.brand-seal{display:block;width:clamp(86px,22vw,108px);height:clamp(86px,22vw,108px);object-fit:cover;border-radius:50%;box-shadow:0 0 20px #765bff66}
+.admin-icon{position:absolute;right:14px;top:calc(26px + env(safe-area-inset-top, 0px));width:46px;height:46px;border-radius:14px;border:1px solid #69478a;background:#171020;color:#c27aff;font-size:27px;font-weight:900;cursor:pointer;box-shadow:0 0 16px #933cff25}
 
 .admin{display:none;margin:0 0 28px;background:#100b1b;border:1px solid #51336b;border-radius:20px;padding:17px}
 .admin.open{display:block}.admin h2{margin:0 0 14px;font-size:20px}
-.hero{text-align:left;margin:42px 0 26px}
+.hero{text-align:left;margin:24px 0 26px}
 .hero h2{text-align:center;font-size:clamp(30px,7vw,48px);font-weight:900;letter-spacing:-1px;margin:0 0 32px;background:linear-gradient(90deg,#398fff,#a34cff,#e33bc9);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 0 22px #883dff35}
 .welcome{font-size:clamp(17px,4vw,24px);font-weight:850;line-height:1.55;margin:0 0 24px}
 .info-title{font-size:clamp(20px,4.5vw,27px);font-weight:900;line-height:1.5;border-top:1px solid #3b2b50;padding-top:22px;margin:0 0 20px}
