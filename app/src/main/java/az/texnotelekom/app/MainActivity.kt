@@ -13,6 +13,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -263,25 +264,89 @@ fun TexnoTelekomApp() {
             }
 
             Spacer(Modifier.height(20.dp))
-            Text("TEXNO-TELEKOM RƏSMİ TƏTBİQİNƏ XOŞ GƏLMİSİNİZ", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 17.sp)
-            OutlinedTextField(query, { query = it }, modifier = Modifier.fillMaxWidth(), placeholder = { Text("Proqram axtar...") }, leadingIcon = { Icon(Icons.Default.Search, null) }, singleLine = true)
+            Text("Proqramlar", color = Color(0xFFE7D5FF), fontSize = 25.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(12.dp))
-            Text("Proqramlar", color = Color(0xFFE7D5FF), fontSize = 21.sp, fontWeight = FontWeight.Bold)
+            OutlinedTextField(
+                query, { query = it },
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text("Proqram axtar...") },
+                leadingIcon = { Icon(Icons.Default.Search, null) },
+                singleLine = true,
+                shape = RoundedCornerShape(22.dp)
+            )
+            Spacer(Modifier.height(18.dp))
             shown.forEach { p ->
-                Card(colors = CardDefaults.cardColors(containerColor = panel), modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp)) {
-                    Column(Modifier.padding(14.dp)) {
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF100B19)),
+                    shape = RoundedCornerShape(30.dp),
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 7.dp)
+                ) {
+                    Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            if (p.iconUrl.isNotBlank()) ProgramIcon(p.iconUrl, p.name, 46)
-                            Column(Modifier.weight(1f).padding(start = 8.dp)) {
-                                Text(p.name, fontWeight = FontWeight.Bold, fontSize = 17.sp)
-                                Text("${p.category} • ${p.version}", color = Color.LightGray, fontSize = 12.sp)
+                            Box(
+                                Modifier.size(74.dp).background(Color(0xFF21152E), RoundedCornerShape(23.dp)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (p.iconUrl.isNotBlank()) ProgramIcon(p.iconUrl, p.name, 58)
+                                else Text("✦", color = Color(0xFFD9B5FF), fontSize = 38.sp)
+                            }
+                            Column(Modifier.weight(1f).padding(start = 14.dp)) {
+                                Text(p.name, fontWeight = FontWeight.Bold, fontSize = 19.sp, color = Color.White)
+                                Spacer(Modifier.height(5.dp))
+                                Text(
+                                    if (p.version.isNotBlank()) "${p.category} • ${p.version}" else p.category,
+                                    color = Color(0xFFBBAACB), fontSize = 13.sp
+                                )
                             }
                         }
-                        Text(p.description, color = Color(0xFFD0C7DC), fontSize = 13.sp)
-                        if (p.downloadUrl.isNotBlank()) TextButton(onClick = {
-                            try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(p.downloadUrl))) }
-                            catch (_: Exception) { error = "Yükləmə linki açıla bilmədi." }
-                        }) { Text("YÜKLƏ", color = Color(0xFFD5B0FF), fontWeight = FontWeight.Bold) }
+                        Text(p.description, color = Color(0xFFD0C7DC), fontSize = 14.sp, lineHeight = 20.sp)
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            if (p.downloadUrl.isNotBlank()) {
+                                Box(
+                                    Modifier.weight(1f).height(54.dp)
+                                        .background(
+                                            Brush.horizontalGradient(listOf(Color(0xFF278CFF), Color(0xFFE12BC8))),
+                                            RoundedCornerShape(18.dp)
+                                        )
+                                        .clickable {
+                                            try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(p.downloadUrl))) }
+                                            catch (_: Exception) { error = "Yükləmə linki açıla bilmədi." }
+                                        },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text("Yüklə", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                }
+                            } else {
+                                Text("Link əlavə edilməyib", color = Color(0xFFBBAACB), modifier = Modifier.weight(1f), fontSize = 12.sp)
+                            }
+                            if (loggedIn) {
+                                OutlinedButton(
+                                    onClick = {
+                                        editingId = p.id; name = p.name; category = p.category; version = p.version
+                                        description = p.description; link = p.downloadUrl; fileSize = p.fileSize
+                                        currentIcon = p.iconUrl; pickedImage = null; adminOpen = true
+                                        message = "Redaktə üçün seçildi."
+                                    },
+                                    shape = RoundedCornerShape(18.dp),
+                                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 14.dp)
+                                ) { Text("Redaktə", fontWeight = FontWeight.Bold) }
+                                Button(
+                                    onClick = {
+                                        db.collection("programs").document(p.id).delete().addOnSuccessListener {
+                                            if (editingId == p.id) clearForm()
+                                            message = "Proqram silindi."
+                                        }.addOnFailureListener { error = "Silmək alınmadı: ${it.localizedMessage}" },
+                                    },
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF641B3C)),
+                                    shape = RoundedCornerShape(18.dp),
+                                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 14.dp)
+                                ) { Text("Sil", fontWeight = FontWeight.Bold) }
+                            }
+                        }
                     }
                 }
             }
