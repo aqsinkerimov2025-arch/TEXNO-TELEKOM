@@ -771,7 +771,6 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                             OutlinedTextField(whatsappPhone, { whatsappPhone = it }, label = { Text("WhatsApp nömrəsi") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone), modifier = Modifier.fillMaxWidth())
                             Button(onClick = { saveSiteTexts() }, modifier = Modifier.fillMaxWidth()) { Text("Yazıları yadda saxla") }
                             HorizontalDivider()
-                            if (false) {
                             Text(if (editingPostId == null) "Kanal paylaşımı əlavə et" else "Kanal paylaşımını redaktə et", fontWeight = FontWeight.Bold, fontSize = 18.sp)
                             OutlinedTextField(postTitle, { postTitle = it }, label = { Text("Paylaşımın adı") }, modifier = Modifier.fillMaxWidth())
                             OutlinedTextField(postVersion, { postVersion = it }, label = { Text("Versiya") }, modifier = Modifier.fillMaxWidth())
@@ -802,7 +801,6 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                     }) { Icon(Icons.Default.Edit, null, tint = Color(0xFFD5B0FF)) }
                                     IconButton(onClick = { db.collection("programs").document(p.id).delete() }) { Icon(Icons.Default.Delete, null, tint = Color(0xFFFF7777)) }
                                 }
-                            }
                             }
                             HorizontalDivider()
                             Text("TEXNO-MƏLUMAT paylaş", fontWeight = FontWeight.Bold, fontSize = 18.sp)
@@ -934,6 +932,29 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                 }
             }
             Spacer(Modifier.height(18.dp))
+            if (posts.isNotEmpty()) {
+                Text("Kanal paylaşımları", color = Color(0xFFE7D5FF), fontSize = 23.sp, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(10.dp))
+                posts.forEach { post ->
+                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF151020)), modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
+                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(post.title + if (post.isVip) "  👑 VIP PREMIUM" else "", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                            if (post.version.isNotBlank()) Text("Versiya: ${post.version}", color = Color(0xFFD5B0FF), fontSize = 12.sp)
+                            Text(post.description, color = Color(0xFFD0C7DC), fontSize = 14.sp)
+                            if (post.features.isNotBlank()) Text(post.features, color = Color(0xFFD0C7DC), fontSize = 13.sp)
+                            if (post.fileSize.isNotBlank()) Text("Fayl ölçüsü: ${post.fileSize}", color = Color.LightGray, fontSize = 12.sp)
+                            if (post.androidRequirement.isNotBlank()) Text("Android: ${post.androidRequirement}", color = Color.LightGray, fontSize = 12.sp)
+                            if (post.downloadUrl.isNotBlank()) Button(onClick = { try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(post.downloadUrl))) } catch (_: Exception) { error = "APK linki açıla bilmədi." } }) { Text("APK yüklə") }
+                            if (post.channelUrl.isNotBlank()) OutlinedButton(onClick = { try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(post.channelUrl))) } catch (_: Exception) { error = "Kanal linki açıla bilmədi." } }) { Text("Telegram kanalına qoşul") }
+                            if (loggedIn) Row {
+                                TextButton(onClick = { editingPostId = post.id; postTitle = post.title; postVersion = post.version; postVip = post.isVip; postDescription = post.description; postFeatures = post.features; postDownloadUrl = post.downloadUrl; postFileSize = post.fileSize; postAndroid = post.androidRequirement; postChannelUrl = post.channelUrl; adminOpen = true }) { Text("Redaktə") }
+                                TextButton(onClick = { db.collection("programs").document(post.id).delete() }) { Text("Sil", color = Color(0xFFFF7777)) }
+                            }
+                        }
+                    }
+                }
+                Spacer(Modifier.height(14.dp))
+            }
             Text("Proqramlar", color = Color(0xFFE7D5FF), fontSize = 25.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(18.dp))
             shown.forEach { p ->
