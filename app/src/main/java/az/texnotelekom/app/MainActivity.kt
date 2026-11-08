@@ -153,6 +153,14 @@ fun TexnoTelekomApp() {
             if (e != null) error = "Firebase xətası: ${e.localizedMessage}"
             else if (snap != null) {
                 programs.clear()
+                posts.clear()
+                snap.documents.filter { it.getString("content_type") == "channel_post" }.forEach { d ->
+                    posts.add(ChannelPost(d.id, d.getString("title") ?: "", d.getString("version") ?: "",
+                        d.getBoolean("is_vip") ?: false, d.getString("description") ?: "",
+                        d.getString("features") ?: "", d.getString("download_url") ?: "",
+                        d.getString("file_size") ?: "", d.getString("android_requirement") ?: "",
+                        d.getString("channel_url") ?: ""))
+                }
                 snap.documents.filter { it.getString("content_type") != "channel_post" }.forEach { d ->
                     programs.add(AppItem(
                         d.id, d.getString("name") ?: "", d.getString("category") ?: "",
