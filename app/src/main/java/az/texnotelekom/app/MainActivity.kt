@@ -86,10 +86,10 @@ private fun uploadPhoneImage(context: Context, uri: Uri, callback: (Result<Strin
             }
             connection.outputStream.use { output ->
                 fun field(name: String, value: String) {
-                    output.write("--$boundary\\r\\nContent-Disposition: form-data; name=\\"$name\\"\\r\\n\\r\\n$value\\r\\n".toByteArray(Charsets.UTF_8))
+                    output.write("--$boundary\r\nContent-Disposition: form-data; name=\"$name\"\r\n\r\n$value\r\n".toByteArray(Charsets.UTF_8))
                 }
                 field("upload_preset", CLOUDINARY_PRESET)
-                output.write("--$boundary\\r\\nContent-Disposition: form-data; name=\\"file\\"; filename=\\"texno-melumat.jpg\\"\\r\\nContent-Type: image/jpeg\\r\\n\\r\\n".toByteArray(Charsets.UTF_8))
+                output.write("--$boundary\r\nContent-Disposition: form-data; name=\"file\"; filename=\"texno-melumat.jpg\"\r\nContent-Type: image/jpeg\r\n\r\n".toByteArray(Charsets.UTF_8))
                 val input = context.contentResolver.openInputStream(uri) ?: throw Exception("Şəkil oxunmadı.")
                 input.use { stream ->
                     val buffer = ByteArray(65536)
@@ -99,7 +99,7 @@ private fun uploadPhoneImage(context: Context, uri: Uri, callback: (Result<Strin
                         output.write(buffer, 0, count)
                     }
                 }
-                output.write("\\r\\n--$boundary--\\r\\n".toByteArray(Charsets.UTF_8))
+                output.write("\r\n--$boundary--\r\n".toByteArray(Charsets.UTF_8))
                 val code = connection.responseCode
                 val response = (if (code in 200..299) connection.inputStream else connection.errorStream)
                     ?.bufferedReader()?.use { it.readText() } ?: ""
