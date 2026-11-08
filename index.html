@@ -26,10 +26,12 @@ input:focus,select:focus,textarea:focus{border-color:#b35bff;box-shadow:0 0 0 3p
 .desc{color:#d0c7dc;font-size:13px;margin:13px 0;min-height:38px}
 .card-actions{display:flex;gap:8px;flex-wrap:wrap}.card-actions .btn{flex:1;text-align:center;text-decoration:none;font-size:13px;padding:9px}
 .empty{padding:35px 15px;text-align:center;color:var(--muted);border:1px dashed #49345e;border-radius:18px}
-.brand-row{display:flex;justify-content:center;align-items:center;margin:8px auto 22px}
-.brand-seal{display:block;width:clamp(170px,48vw,270px);height:clamp(170px,48vw,270px);object-fit:contain;border-radius:50%;box-shadow:0 0 28px #765bff88}
-.admin-toggle{margin:0 0 14px;text-align:left}.admin-toggle .btn{width:100%;display:flex;justify-content:space-between;align-items:center;border:2px solid #a34cff;border-radius:18px;padding:18px 22px;background:linear-gradient(110deg,#15101f,#0e0a16);font-size:18px;box-shadow:0 0 20px #933cff35}
-.admin-toggle .plus{font-size:30px;color:#b35aff;line-height:1}
+.site-header{position:relative;padding:18px 64px 8px;text-align:center}
+.site-title{font-size:clamp(25px,6vw,34px);font-weight:950;letter-spacing:-1px;margin:0 0 5px;background:linear-gradient(90deg,#398fff,#a34cff,#e33bc9);-webkit-background-clip:text;background-clip:text;color:transparent}
+.brand-row{display:flex;justify-content:center;align-items:center;margin:0 auto 10px}
+.brand-seal{display:block;width:clamp(82px,23vw,112px);height:clamp(82px,23vw,112px);object-fit:contain;border-radius:50%;box-shadow:0 0 20px #765bff66}
+.admin-icon{position:absolute;right:14px;top:10px;width:46px;height:46px;border-radius:14px;border:1px solid #69478a;background:#171020;color:#c27aff;font-size:27px;font-weight:900;cursor:pointer;box-shadow:0 0 16px #933cff25}
+
 .admin{display:none;margin:0 0 28px;background:#100b1b;border:1px solid #51336b;border-radius:20px;padding:17px}
 .admin.open{display:block}.admin h2{margin:0 0 14px;font-size:20px}
 .hero{text-align:left;margin:42px 0 26px}
@@ -40,7 +42,7 @@ input:focus,select:focus,textarea:focus{border-color:#b35bff;box-shadow:0 0 0 3p
 .contact{display:inline-flex;align-items:center;gap:12px;color:#3fc8ff;text-decoration:none;font-size:clamp(20px,5vw,27px);font-weight:950;margin-top:8px}
 .wa{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:#21c86b;color:#fff;font-size:24px}
 .catalog-heading{margin:38px 0 12px;font-size:22px;color:#e7d5ff}
-@media(max-width:560px){.brand-seal{width:clamp(170px,55vw,240px);height:clamp(170px,55vw,240px)}.hero{margin-top:42px}.admin-toggle .btn{padding:17px 20px}}
+@media(max-width:560px){.hero{margin-top:28px}.site-header{padding-top:16px}}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:flex;flex-direction:column;gap:6px}.field.full{grid-column:1/-1}.field label{font-size:13px;color:#ded2ed}
 textarea{min-height:90px;resize:vertical}.hint{font-size:11px;color:#a99bb8}
 .preview{width:66px;height:66px;border-radius:15px;object-fit:cover;display:none;border:1px solid #69478a}
@@ -51,14 +53,12 @@ footer{text-align:center;color:#756a83;padding:25px;font-size:12px}
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 </head>
 <body>
-<header style="position:relative;padding:26px 18px 12px;background:transparent;border:0">
-<div class="brand-row">
-<img class="brand-seal" src="IMG_20260901_064742_522.jpg" alt="TEXNO-TELEKOM metal loqosu">
-</div>
-</div>
+<header class="site-header" style="background:transparent;border:0">
+<h1 class="site-title" id="heroTitleText">TEXNO-TELEKOM</h1>
+<div class="brand-row"><img class="brand-seal" src="IMG_20260901_064742_522.jpg" alt="TEXNO-TELEKOM metal loqosu"></div>
+<button class="admin-icon" id="adminBtn" aria-label="Admin paneli" title="Admin paneli">⚙</button>
 </header>
 <main>
-<div class="admin-toggle"><button class="btn ghost" id="adminBtn"><span>Admin paneli</span><span class="plus">+</span></button></div>
 <section class="admin" id="admin">
 <div id="adminLogin" style="margin-bottom:18px"><h2>Admin girişi</h2><div class="form-grid"><div class="field full"><label>E-poçt</label><input id="adminEmail" type="email" value="aqsin.kerimov.2025@gmail.com"></div><div class="field full"><label>Şifrə</label><input id="adminPassword" type="password" placeholder="Admin şifrəsi"></div></div><button class="btn" id="adminLoginBtn" style="margin-top:12px">Daxil ol</button><p class="hint" id="loginNotice"></p></div><div id="adminEditor" hidden><button class="btn ghost" id="adminLogoutBtn" style="margin-bottom:14px">Admin hesabından çıxış</button><h2>Sayt yazılarını düzəlt</h2>
 <div class="form-grid" style="margin-bottom:22px">
@@ -87,7 +87,6 @@ footer{text-align:center;color:#756a83;padding:25px;font-size:12px}
 </div>
 </section>
 <section class="hero">
-<h2 id="heroTitleText">TEXNO-TELEKOM</h2>
 <p class="welcome" id="welcomeText">✅TEXNO-TELEKOM RƏSMİ SAYTINA XOŞ GƏLMİSİNİZ...</p>
 <h3 class="info-title" id="infoTitleText">TEXNO-TELEKOM RƏSMİ SAYT MƏRKƏZİ</h3>
 <p class="info-line" id="infoLine1">1️⃣ TƏTBİQLƏRİN PREMİUM VƏ PRO VERSİYALARI 👨‍💻</p>
