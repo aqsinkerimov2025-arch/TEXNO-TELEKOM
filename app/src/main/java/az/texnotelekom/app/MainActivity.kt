@@ -272,19 +272,47 @@ fun TexnoTelekomApp() {
                 }
             }
             Spacer(Modifier.height(24.dp))
-            Text(
-                "✅ TEXNO-TELEKOM RƏSMİ SAYTINA XOŞ GƏLMİSİNİZ...",
-                color = Color.White, fontSize = 19.sp, lineHeight = 27.sp,
-                fontWeight = FontWeight.ExtraBold
-            )
+            if (welcomeText.isNotBlank()) {
+                Text(
+                    welcomeText,
+                    color = Color.White, fontSize = 19.sp, lineHeight = 27.sp,
+                    fontWeight = FontWeight.ExtraBold
+                )
+            }
             Spacer(Modifier.height(28.dp))
             HorizontalDivider(color = Color(0xFF40334D), thickness = 1.dp)
             Spacer(Modifier.height(28.dp))
-            Text(
-                "TEXNO-TELEKOM RƏSMİ SAYT MƏRKƏZİ",
-                color = Color.White, fontSize = 21.sp, lineHeight = 29.sp,
-                fontWeight = FontWeight.ExtraBold
-            )
+            if (infoTitle.isNotBlank()) {
+                Text(
+                    infoTitle,
+                    color = Color.White, fontSize = 21.sp, lineHeight = 29.sp,
+                    fontWeight = FontWeight.ExtraBold
+                )
+            }
+            if (infoLine1.isNotBlank()) {
+                Spacer(Modifier.height(12.dp))
+                Text(infoLine1, color = Color.White, fontSize = 17.sp, lineHeight = 25.sp, fontWeight = FontWeight.Bold)
+            }
+            if (infoLine2.isNotBlank()) {
+                Spacer(Modifier.height(8.dp))
+                Text(infoLine2, color = Color.White, fontSize = 17.sp, lineHeight = 25.sp, fontWeight = FontWeight.Bold)
+            }
+            if (infoLine3.isNotBlank()) {
+                Spacer(Modifier.height(8.dp))
+                Text(infoLine3, color = Color.White, fontSize = 17.sp, lineHeight = 25.sp, fontWeight = FontWeight.Bold)
+            }
+            if (whatsappPhone.isNotBlank()) {
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    "WhatsApp: $whatsappPhone",
+                    color = Color(0xFF67D6FF), fontSize = 17.sp, fontWeight = FontWeight.Bold,
+                    modifier = Modifier.clickable {
+                        val number = whatsappPhone.filter { it.isDigit() }
+                        val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://wa.me/$number"))
+                        context.startActivity(intent)
+                    }
+                )
+            }
 
             if (adminOpen && isAuthorizedDevice) {
                 Card(colors = CardDefaults.cardColors(containerColor = panel), modifier = Modifier.fillMaxWidth()) {
