@@ -128,6 +128,7 @@ data class ChannelPost(
     val description: String, val features: String, val downloadUrl: String,
     val fileSize: String, val androidRequirement: String, val channelUrl: String
 )
+data class PhoneInfo(val id: String, val title: String, val body: String)
 
 
 @Composable
@@ -161,6 +162,9 @@ fun TexnoTelekomApp() {
     val context = LocalContext.current
     val db = remember { FirebaseFirestore.getInstance() }
     var query by remember { mutableStateOf("") }
+    var searchOpen by remember { mutableStateOf(false) }
+    var phoneInfoTitle by remember { mutableStateOf("") }
+    var phoneInfoBody by remember { mutableStateOf("") }
     var adminOpen by remember { mutableStateOf(false) }
     var showDeviceInfo by remember { mutableStateOf(false) }
     var revealDeviceCodeButton by remember { mutableStateOf(false) }
@@ -193,6 +197,7 @@ fun TexnoTelekomApp() {
     var whatsappPhone by remember { mutableStateOf("+994558053305") }
     val programs = remember { mutableStateListOf<AppItem>() }
     val posts = remember { mutableStateListOf<ChannelPost>() }
+    val phoneInfos = remember { mutableStateListOf<PhoneInfo>() }
     var postTitle by remember { mutableStateOf("") }
     var postVersion by remember { mutableStateOf("") }
     var postVip by remember { mutableStateOf(false) }
@@ -223,6 +228,17 @@ fun TexnoTelekomApp() {
     val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         pickedImage = uri
         if (uri != null) message = "Şəkil qalereyadan seçildi."
+    }
+
+    DisposableEffect(db) {
+        val phoneListener = db.collection("phone_information").orderBy("created_at", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .addSnapshotListener { snap, e ->
+                if (e == null && snap != null) {
+                    phoneInfos.clear()
+                    snap.documents.forEach { d -> phoneInfos.add(PhoneInfo(d.id, d.getString("title") ?: "", d.getString("body") ?: "")) }
+                }
+            }
+        onDispose { phoneListener.remove() }
     }
 
     DisposableEffect(db) {
@@ -413,11 +429,15 @@ fun TexnoTelekomApp() {
                 if (isAuthorizedDevice) {
                     IconButton(
                         onClick = { adminOpen = !adminOpen; error = ""; message = "" },
-                        modifier = Modifier.align(Alignment.TopEnd).size(48.dp)
+                        modifier = Modifier.align(Alignment.TopStart).size(48.dp)
                     ) {
                         ProgramIcon("b64:$ADMIN_ICON_BASE64", "Admin paneli", 40)
                     }
                 }
+                IconButton(
+                    onClick = { searchOpen = !searchOpen },
+                    modifier = Modifier.align(Alignment.TopEnd).size(48.dp)
+                ) { Icon(Icons.Default.Search, contentDescription = "Axtarış", tint = Color(0xFFE7D5FF)) }
             }
             if (revealDeviceCodeButton) {
                 TextButton(onClick = { showDeviceInfo = true }, modifier = Modifier.align(Alignment.CenterHorizontally)) {
@@ -530,6 +550,23 @@ fun TexnoTelekomApp() {
                             }
                             }
                             HorizontalDivider()
+                            Text("TEXNO-MƏLUMAT paylaş", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                            OutlinedTextField(phoneInfoTitle, { phoneInfoTitle = it }, label = { Text("Telefon modeli / başlıq") }, modifier = Modifier.fillMaxWidth())
+                            OutlinedTextField(phoneInfoBody, { phoneInfoBody = it }, label = { Text("Telefon haqqında məlumat") }, modifier = Modifier.fillMaxWidth(), minLines = 4)
+                            Button(onClick = {
+                                if (phoneInfoTitle.isBlank() || phoneInfoBody.isBlank()) {
+                                    error = "Başlıq və məlumatı yazın."
+                                } else {
+                                    db.collection("phone_information").add(hashMapOf(
+                                        "title" to phoneInfoTitle.trim(),
+                                        "body" to phoneInfoBody.trim(),
+                                        "created_at" to FieldValue.serverTimestamp()
+                                    )).addOnSuccessListener {
+                                        phoneInfoTitle = ""; phoneInfoBody = ""; message = "TEXNO-MƏLUMAT bölməsində paylaşıldı."
+                                    }.addOnFailureListener { error = "Paylaşmaq alınmadı: ${it.localizedMessage}" }
+                                }
+                            }, modifier = Modifier.fillMaxWidth()) { Text("TEXNO-MƏLUMAT bölməsində paylaş") }
+                            HorizontalDivider()
                             Text(if (editingId == null) "Proqram əlavə et" else "Proqramı redaktə et", fontWeight = FontWeight.Bold)
                             OutlinedTextField(name, { name = it }, label = { Text("Proqramın adı") }, modifier = Modifier.fillMaxWidth())
                             OutlinedTextField(category, { category = it }, label = { Text("Kateqoriya") }, modifier = Modifier.fillMaxWidth())
@@ -602,16 +639,33 @@ fun TexnoTelekomApp() {
             }
 
             Spacer(Modifier.height(22.dp))
-            Text("Proqramlar", color = Color(0xFFE7D5FF), fontSize = 25.sp, fontWeight = FontWeight.Bold)
+            Text("TEXNO-MƏLUMAT", color = Color(0xFFE7D5FF), fontSize = 25.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(12.dp))
-            OutlinedTextField(
-                query, { query = it },
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Proqram axtar...") },
-                leadingIcon = { Icon(Icons.Default.Search, null) },
-                singleLine = true,
-                shape = RoundedCornerShape(22.dp)
-            )
+            if (phoneInfos.isEmpty()) Text("Hələ telefon məlumatı paylaşılmayıb.", color = Color.LightGray)
+            phoneInfos.forEach { info ->
+                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF151020)), modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
+                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(info.title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                        Text(info.body, color = Color(0xFFD0C7DC), fontSize = 14.sp, lineHeight = 21.sp)
+                        if (loggedIn) TextButton(onClick = { db.collection("phone_information").document(info.id).delete() }) {
+                            Text("Sil", color = Color(0xFFFF7777))
+                        }
+                    }
+                }
+            }
+            Spacer(Modifier.height(18.dp))
+            Text("Proqramlar", color = Color(0xFFE7D5FF), fontSize = 25.sp, fontWeight = FontWeight.Bold)
+            if (searchOpen) {
+                Spacer(Modifier.height(12.dp))
+                OutlinedTextField(
+                    query, { query = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text("Axtar...") },
+                    leadingIcon = { Icon(Icons.Default.Search, null) },
+                    singleLine = true,
+                    shape = RoundedCornerShape(22.dp)
+                )
+            }
             Spacer(Modifier.height(18.dp))
             shown.forEach { p ->
                 Card(
