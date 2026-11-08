@@ -72,6 +72,22 @@ footer{text-align:center;color:#756a83;padding:25px;font-size:12px}
 </div>
 <div class="actions" style="margin-bottom:24px"><button class="btn" id="saveTexts">Yazıları yadda saxla</button></div>
 <hr style="border-color:#352347;margin:18px 0">
+<hr style="border-color:#352347;margin:18px 0">
+<h2>Kanal paylaşımı əlavə et</h2>
+<div class="form-grid">
+<div class="field full"><label>Paylaşımın adı *</label><input id="postTitle" placeholder="Məsələn: Ghosty Gizli Profil Baxmaq"></div>
+<div class="field"><label>Versiya</label><input id="postVersion" placeholder="1.5.4"></div>
+<div class="field"><label>Fayl ölçüsü</label><input id="postFileSize" placeholder="3.3 MB"></div>
+<div class="field full"><label>Paylaşım mətni</label><textarea id="postDescription" placeholder="Tətbiq haqqında məlumat"></textarea></div>
+<div class="field full"><label>Xüsusiyyətlər və Mod</label><textarea id="postFeatures" placeholder="Xüsusiyyətləri sətir-sətir yaz"></textarea></div>
+<div class="field full"><label>Birbaşa APK yükləmə linki</label><input id="postDownload" type="url" placeholder="https://..."></div>
+<div class="field"><label>Android tələbi</label><input id="postAndroid" value="Android 5.0+"></div>
+<div class="field full"><label>Telegram kanal linki</label><input id="postChannel" placeholder="https://t.me/..."></div>
+<div class="field full"><label><input id="postVip" type="checkbox" style="width:auto"> VIP / Premium</label></div>
+</div>
+<div class="actions" style="margin-top:14px"><button class="btn" id="savePost">Paylaşımı əlavə et</button><button class="btn ghost" id="clearPost">Təmizlə</button></div>
+<p class="hint" id="postNotice"></p>
+<hr style="border-color:#352347;margin:18px 0">
 <h2>Proqram əlavə et</h2>
 <div class="form-grid">
 <div class="field full"><label>Proqramın adı *</label><input id="name" placeholder="Məsələn: YouTube Music Premium"></div>
@@ -94,7 +110,7 @@ footer{text-align:center;color:#756a83;padding:25px;font-size:12px}
 <p class="info-line" id="infoLine3">3️⃣ ŞİKAYƏT VƏ REKLAM ÜÇÜN ƏLAQƏ</p>
 <a class="contact" id="contactLink" href="https://wa.me/994558053305" target="_blank" rel="noopener"><span class="wa">◉</span> <span id="contactText">+994558053305</span></a>
 </section>
-<div class="catalog-heading">✦ Proqramlar</div>
+<div class="catalog-heading">✦ Kanal paylaşımları</div><div id="posts"></div><div class="catalog-heading">✦ Proqramlar</div>
 <div class="toolbar"><input id="search" class="search" placeholder="Proqram axtar..."></div>
 <div id="apps" class="grid"></div>
 <p class="hint" style="text-align:center">Proqram siyahısı və sayt yazıları TEXNO-TELEKOM tətbiqi ilə eyni Firebase bazasından yenilənir.</p>
@@ -105,7 +121,7 @@ const firebaseConfig={apiKey:"AIzaSyCuvSdI5dZxqhWc3PC-IXWMfvUhXTDPqSw",authDomai
 if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const auth=firebase.auth(), db=firebase.firestore();
 const TEXT_KEY='tt_site_texts_v2';
-let selectedImage='', editingId=null, programs=[];
+let selectedImage='', editingId=null, programs=[], posts=[], editingPostId=null;
 const defaultTexts={heroTitle:'TEXNO-TELEKOM',welcome:'✅TEXNO-TELEKOM RƏSMİ SAYTINA XOŞ GƏLMİSİNİZ...',infoTitle:'TEXNO-TELEKOM RƏSMİ SAYT MƏRKƏZİ',line1:'1️⃣ TƏTBİQLƏRİN PREMİUM VƏ PRO VERSİYALARI 👨‍💻',line2:"2️⃣ GOOGLE PLAY'DA OLMAYAN TƏTBİQLƏRİ",line3:'3️⃣ ŞİKAYƏT VƏ REKLAM ÜÇÜN ƏLAQƏ',phone:'+994558053305'};
 function getTexts(){try{return {...defaultTexts,...JSON.parse(localStorage.getItem(TEXT_KEY)||'{}')}}catch{return {...defaultTexts}}}
 function applyTexts(){const t=getTexts();$('heroTitleText').textContent=t.heroTitle;$('welcomeText').textContent=t.welcome;$('infoTitleText').textContent=t.infoTitle;$('infoLine1').textContent=t.line1;$('infoLine2').textContent=t.line2;$('infoLine3').textContent=t.line3;$('contactText').textContent=t.phone;$('contactLink').href='https://wa.me/'+t.phone.replace(/\D/g,'');$('editHeroTitle').value=t.heroTitle;$('editWelcome').value=t.welcome;$('editInfoTitle').value=t.infoTitle;$('editLine1').value=t.line1;$('editLine2').value=t.line2;$('editLine3').value=t.line3;$('editPhone').value=t.phone}
@@ -123,12 +139,30 @@ $('saveTexts').onclick=async()=>{const t={heroTitle:$('editHeroTitle').value.tri
 $('iconFile').onchange=e=>{const f=e.target.files[0];if(!f)return;if(!/^image\/(png|jpeg|webp)$/.test(f.type)){alert('Yalnız JPG, PNG və WEBP şəkli seçin.');e.target.value='';return}if(f.size>2*1024*1024){alert('Şəkil 2 MB-dan kiçik olmalıdır.');e.target.value='';return}const r=new FileReader();r.onload=()=>{selectedImage='b64:'+String(r.result).split(',')[1];$('preview').src=r.result;$('preview').style.display='block'};r.readAsDataURL(f)};
 $('save').onclick=async()=>{const name=$('name').value.trim(),category=$('category').value.trim();if(!name||!category){$('notice').textContent='Proqramın adı və kateqoriya mütləqdir.';return}const old=programs.find(x=>x.id===editingId);const values={name,category,version:$('version').value.trim(),description:$('description').value.trim(),download_url:$('download').value.trim(),icon_url:selectedImage||(old?.icon_url||''),file_size:$('fileSize').value.trim()||'0 MB',is_active:old?.is_active??true,updated_at:firebase.firestore.FieldValue.serverTimestamp()};try{if(editingId)await db.collection('programs').doc(editingId).set(values,{merge:true});else await db.collection('programs').add({...values,created_at:firebase.firestore.FieldValue.serverTimestamp()});clearForm();$('notice').textContent='Proqram Firebase yaddaşında saxlanıldı.'}catch(e){$('notice').textContent='Xəta: '+e.message}};
 $('cancel').onclick=clearForm;
+function clearPostForm(){['postTitle','postVersion','postFileSize','postDescription','postFeatures','postDownload','postAndroid','postChannel'].forEach(id=>$(id).value='');$('postAndroid').value='Android 5.0+';$('postVip').checked=false;editingPostId=null;$('savePost').textContent='Paylaşımı əlavə et'}
+function renderPosts(){
+ $('posts').innerHTML=posts.map(p=>`<article class="post-card"><div class="post-title">${esc(p.title||'')}${p.is_vip?' <span class="vip-tag">👑 VIP PREMIUM</span>':''}</div>
+ ${p.version?`<div class="post-meta">🔔 Versiya: ${esc(p.version)}</div>`:''}<div>${esc(p.description||'')}</div>
+ ${p.features?`<div class="post-features"><strong>▶ Xüsusiyyətlər və Mod:</strong><br>${esc(p.features)}</div>`:''}
+ ${p.file_size?`<div class="post-meta">📦 Fayl ölçüsü: ${esc(p.file_size)}</div>`:''}
+ ${p.android_requirement?`<div class="post-meta">📱 Android tələb edir: ${esc(p.android_requirement)}</div>`:''}
+ <div class="post-actions">${p.download_url?`<a class="btn" href="${esc(p.download_url)}" target="_blank" rel="noopener">⬇ Birbaşa APK yüklə</a>`:''}
+ ${p.channel_url?`<a class="btn ghost" href="${esc(p.channel_url)}" target="_blank" rel="noopener">➜ TEXNO-TELEKOM kanalına qoşul</a>`:''}
+ ${auth.currentUser?`<button class="btn ghost" onclick="editPost('${p.id}')">Redaktə</button><button class="btn danger" onclick="deletePost('${p.id}')">Sil</button>`:''}</div></article>`).join('');
+}
+$('savePost').onclick=async()=>{const title=$('postTitle').value.trim();if(!title){$('postNotice').textContent='Paylaşımın adı mütləqdir.';return}
+ const values={title,version:$('postVersion').value.trim(),is_vip:$('postVip').checked,description:$('postDescription').value.trim(),features:$('postFeatures').value.trim(),download_url:$('postDownload').value.trim(),file_size:$('postFileSize').value.trim(),android_requirement:$('postAndroid').value.trim(),channel_url:$('postChannel').value.trim(),updated_at:firebase.firestore.FieldValue.serverTimestamp()};
+ try{if(editingPostId)await db.collection('posts').doc(editingPostId).set(values,{merge:true});else await db.collection('posts').add({...values,created_at:firebase.firestore.FieldValue.serverTimestamp()});clearPostForm();$('postNotice').textContent='Paylaşım yadda saxlanıldı.'}catch(e){$('postNotice').textContent='Xəta: '+e.message}};
+$('clearPost').onclick=clearPostForm;
+window.editPost=id=>{const p=posts.find(x=>x.id===id);if(!p)return;editingPostId=id;$('postTitle').value=p.title||'';$('postVersion').value=p.version||'';$('postVip').checked=!!p.is_vip;$('postDescription').value=p.description||'';$('postFeatures').value=p.features||'';$('postDownload').value=p.download_url||'';$('postFileSize').value=p.file_size||'';$('postAndroid').value=p.android_requirement||'';$('postChannel').value=p.channel_url||'';$('savePost').textContent='Dəyişiklikləri yadda saxla';$('admin').classList.add('open')};
+window.deletePost=async id=>{if(confirm('Bu paylaşımı silmək istəyirsiniz?')){try{await db.collection('posts').doc(id).delete()}catch(e){$('postNotice').textContent='Silmək alınmadı: '+e.message}}};
 window.editApp=id=>{const x=programs.find(a=>a.id===id);if(!x)return;editingId=id;['name','category','version','description'].forEach(k=>$(k).value=x[k]||'');$('download').value=x.download_url||'';$('fileSize').value=x.file_size||'0 MB';selectedImage=x.icon_url||'';const src=iconSrc(selectedImage);if(src){$('preview').src=src;$('preview').style.display='block'}$('admin').classList.add('open');$('notice').textContent='Redaktə rejimi'};
 window.deleteApp=async id=>{if(confirm('Bu proqramı silmək istəyirsiniz?')){try{await db.collection('programs').doc(id).delete()}catch(e){$('notice').textContent='Silmək alınmadı: '+e.message}}};
 auth.onAuthStateChanged(user=>{$('adminLogin').hidden=!!user;$('adminEditor').hidden=!user;render()});
 $('adminLoginBtn').onclick=async()=>{try{await auth.signInWithEmailAndPassword($('adminEmail').value.trim(),$('adminPassword').value);$('loginNotice').textContent='Giriş uğurludur.'}catch(e){$('loginNotice').textContent='Giriş alınmadı: '+e.message}};
 $('adminLogoutBtn').onclick=()=>auth.signOut();
 db.collection('site_settings').doc('content').onSnapshot(s=>{if(s.exists){const t={...defaultTexts,...s.data()};localStorage.setItem(TEXT_KEY,JSON.stringify(t));applyTexts()}});
+db.collection('posts').onSnapshot(s=>{posts=s.docs.map(d=>({id:d.id,...d.data()}));renderPosts()},e=>{$('posts').textContent='Paylaşımlar yüklənmədi: '+e.message});
 db.collection('programs').onSnapshot(s=>{programs=s.docs.map(d=>({id:d.id,...d.data()}));render()},e=>{$('apps').innerHTML='<div class="empty">Proqramları yükləmək alınmadı: '+esc(e.message)+'</div>'});
 applyTexts();
 </script></body></html>
