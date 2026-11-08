@@ -496,6 +496,7 @@ fun TexnoTelekomApp() {
                             OutlinedTextField(whatsappPhone, { whatsappPhone = it }, label = { Text("WhatsApp nömrəsi") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone), modifier = Modifier.fillMaxWidth())
                             Button(onClick = { saveSiteTexts() }, modifier = Modifier.fillMaxWidth()) { Text("Yazıları yadda saxla") }
                             HorizontalDivider()
+                            if (false) {
                             Text(if (editingPostId == null) "Kanal paylaşımı əlavə et" else "Kanal paylaşımını redaktə et", fontWeight = FontWeight.Bold, fontSize = 18.sp)
                             OutlinedTextField(postTitle, { postTitle = it }, label = { Text("Paylaşımın adı") }, modifier = Modifier.fillMaxWidth())
                             OutlinedTextField(postVersion, { postVersion = it }, label = { Text("Versiya") }, modifier = Modifier.fillMaxWidth())
@@ -526,6 +527,7 @@ fun TexnoTelekomApp() {
                                     }) { Icon(Icons.Default.Edit, null, tint = Color(0xFFD5B0FF)) }
                                     IconButton(onClick = { db.collection("programs").document(p.id).delete() }) { Icon(Icons.Default.Delete, null, tint = Color(0xFFFF7777)) }
                                 }
+                            }
                             }
                             HorizontalDivider()
                             Text(if (editingId == null) "Proqram əlavə et" else "Proqramı redaktə et", fontWeight = FontWeight.Bold)
