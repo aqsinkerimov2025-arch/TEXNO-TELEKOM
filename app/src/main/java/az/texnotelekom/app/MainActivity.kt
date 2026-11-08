@@ -315,7 +315,9 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     var searchOpen by remember { mutableStateOf(false) }
     var showPhoneInfo by remember { mutableStateOf(false) }
     var phoneInfoTitle by remember { mutableStateOf("") }
-    var phoneInfoBody by remember { mutableStateOf("") }\n    var phoneInfoImage by remember { mutableStateOf<Uri?>(null) }\n    var phoneInfoBusy by remember { mutableStateOf(false) }
+    var phoneInfoBody by remember { mutableStateOf("") }
+    var phoneInfoImage by remember { mutableStateOf<Uri?>(null) }
+    var phoneInfoBusy by remember { mutableStateOf(false) }
     var adminOpen by remember { mutableStateOf(false) }
     var showDeviceInfo by remember { mutableStateOf(false) }
     var revealDeviceCodeButton by remember { mutableStateOf(false) }
@@ -922,7 +924,8 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                     Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF151020)), modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text(info.title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                            Text(info.body, color = Color(0xFFD0C7DC), fontSize = 14.sp, lineHeight = 21.sp)\n                            if (info.imageUrl.isNotBlank()) AsyncImage(model = info.imageUrl, contentDescription = info.title, modifier = Modifier.fillMaxWidth().heightIn(max = 320.dp), contentScale = ContentScale.Fit)
+                            Text(info.body, color = Color(0xFFD0C7DC), fontSize = 14.sp, lineHeight = 21.sp)
+                            if (info.imageUrl.isNotBlank()) AsyncImage(model = info.imageUrl, contentDescription = info.title, modifier = Modifier.fillMaxWidth().heightIn(max = 320.dp), contentScale = ContentScale.Fit)
                             if (loggedIn) TextButton(onClick = { db.collection("phone_information").document(info.id).delete() }) {
                                 Text("Sil", color = Color(0xFFFF7777))
                             }
