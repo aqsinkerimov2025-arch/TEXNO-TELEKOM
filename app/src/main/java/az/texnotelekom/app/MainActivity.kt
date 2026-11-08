@@ -704,12 +704,42 @@ fun TexnoTelekomApp() {
             Text("Proqramlar", color = Color(0xFFE7D5FF), fontSize = 25.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(18.dp))
             shown.forEach { p ->
+                val isGoldBankCard = p.name.contains("youtube", ignoreCase = true) && p.name.contains("premium", ignoreCase = true)
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF100B19)),
+                    colors = CardDefaults.cardColors(containerColor = if (isGoldBankCard) Color(0xFF6B4B16) else Color(0xFF100B19)),
                     shape = RoundedCornerShape(30.dp),
                     modifier = Modifier.fillMaxWidth().padding(vertical = 7.dp)
                 ) {
-                    Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                    Column(
+                        Modifier.fillMaxWidth()
+                            .background(
+                                if (isGoldBankCard) Brush.linearGradient(
+                                    listOf(Color(0xFFFFE8A3), Color(0xFFD5A63D), Color(0xFF805516), Color(0xFFE8C66D))
+                                ) else Brush.linearGradient(listOf(Color(0xFF100B19), Color(0xFF100B19))),
+                                RoundedCornerShape(28.dp)
+                            )
+                            .padding(18.dp),
+                        verticalArrangement = Arrangement.spacedBy(14.dp)
+                    ) {
+                        if (isGoldBankCard) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("TEXNO-TELEKOM", color = Color(0xFF4A310B), fontSize = 12.sp, fontWeight = FontWeight.Black)
+                                Spacer(Modifier.weight(1f))
+                                Text("✦ GOLD", color = Color(0xFF4A310B), fontSize = 13.sp, fontWeight = FontWeight.Black)
+                            }
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(
+                                    Modifier.size(width = 48.dp, height = 34.dp)
+                                        .background(
+                                            Brush.linearGradient(listOf(Color(0xFFFFF1C2), Color(0xFFB8892B))),
+                                            RoundedCornerShape(8.dp)
+                                        ),
+                                    contentAlignment = Alignment.Center
+                                ) { Text("▦", color = Color(0xFF65430D), fontSize = 23.sp, fontWeight = FontWeight.Bold) }
+                                Spacer(Modifier.weight(1f))
+                                Text("PREMIUM MEMBER", color = Color(0xFF4A310B), fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Box(
                                 Modifier.size(74.dp).background(Color(0xFF21152E), RoundedCornerShape(23.dp)),
@@ -719,15 +749,15 @@ fun TexnoTelekomApp() {
                                 else Text("✦", color = Color(0xFFD9B5FF), fontSize = 38.sp)
                             }
                             Column(Modifier.weight(1f).padding(start = 14.dp)) {
-                                Text(p.name, fontWeight = FontWeight.Bold, fontSize = 19.sp, color = Color.White)
+                                Text(if (isGoldBankCard) "YOUTUBE PREMIUM" else p.name, fontWeight = FontWeight.Bold, fontSize = 19.sp, color = if (isGoldBankCard) Color(0xFF382507) else Color.White)
                                 Spacer(Modifier.height(5.dp))
                                 Text(
                                     if (p.version.isNotBlank()) "${p.category} • ${p.version}" else p.category,
-                                    color = Color(0xFFBBAACB), fontSize = 13.sp
+                                    color = if (isGoldBankCard) Color(0xFF5B3E0D) else Color(0xFFBBAACB), fontSize = 13.sp
                                 )
                             }
                         }
-                        Text(p.description, color = Color(0xFFD0C7DC), fontSize = 14.sp, lineHeight = 20.sp)
+                        Text(p.description, color = if (isGoldBankCard) Color(0xFF4A310B) else Color(0xFFD0C7DC), fontSize = 14.sp, lineHeight = 20.sp)
                         Row(
                             Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically,
@@ -737,7 +767,7 @@ fun TexnoTelekomApp() {
                                 Box(
                                     Modifier.weight(1f).height(54.dp)
                                         .background(
-                                            Brush.horizontalGradient(listOf(Color(0xFF278CFF), Color(0xFFE12BC8))),
+                                            if (isGoldBankCard) Brush.horizontalGradient(listOf(Color(0xFF8A5B12), Color(0xFFFFD76B), Color(0xFF9A6A18))) else Brush.horizontalGradient(listOf(Color(0xFF278CFF), Color(0xFFE12BC8))),
                                             RoundedCornerShape(18.dp)
                                         )
                                         .clickable {
@@ -746,7 +776,7 @@ fun TexnoTelekomApp() {
                                         },
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text("Yüklə", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                    Text("Yüklə", color = if (isGoldBankCard) Color(0xFF382507) else Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                                 }
                             } else {
                                 Text("Link əlavə edilməyib", color = Color(0xFFBBAACB), modifier = Modifier.weight(1f), fontSize = 12.sp)
