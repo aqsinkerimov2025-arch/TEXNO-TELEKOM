@@ -51,7 +51,10 @@ footer{text-align:center;color:#756a83;padding:25px;font-size:12px}
 
 .search-icon{position:absolute;right:14px;top:calc(26px + env(safe-area-inset-top, 0px));width:46px;height:46px;border-radius:14px;border:1px solid #69478a;background:#171020;color:#e7d5ff;font-size:25px;cursor:pointer}
 #searchPanel{display:none;margin:12px 0 18px}#searchPanel.open{display:flex}
-.phone-info-card{background:linear-gradient(145deg,#151020,#0d0915);border:1px solid #49345e;border-radius:18px;padding:15px;margin:12px 0}.phone-info-card h3{margin:0 0 8px;color:#e7d5ff}.phone-info-card p{margin:0;color:#d0c7dc;white-space:pre-wrap}
+.phone-info-card{background:linear-gradient(145deg,#151020,#0d0915);border:1px solid #49345e;border-radius:18px;padding:17px;margin:12px 0}.phone-info-card h3{margin:0 0 10px;color:#e7d5ff;font-size:19px}.phone-info-card p{margin:0;color:#d0c7dc;white-space:pre-wrap;line-height:1.75}
+.phone-info-entry{width:100%;display:flex;align-items:center;justify-content:space-between;gap:14px;text-align:left;background:linear-gradient(120deg,#21132f,#100b1b);border:1px solid #62427d;border-radius:19px;padding:18px;color:#fff;cursor:pointer;box-shadow:0 8px 28px #0005}.phone-info-entry strong{display:block;color:#f0e4ff;font-size:18px}.phone-info-entry small{display:block;color:#b9a9ca;margin-top:4px}.phone-info-entry .entry-icon{font-size:28px;color:#d9b5ff}
+.phone-info-head{display:flex;align-items:center;gap:12px;margin:5px 0 18px}.phone-info-head .btn{flex:0 0 auto}.phone-info-head h2{margin:0;color:#e7d5ff;font-size:22px}
+
 </style><script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
@@ -120,7 +123,7 @@ footer{text-align:center;color:#756a83;padding:25px;font-size:12px}
 <p class="hint" id="notice"></p>
 </div>
 </section>
-<section class="hero">
+<section class="hero" id="heroSection">
 <p class="welcome" id="welcomeText">✅TEXNO-TELEKOM RƏSMİ SAYTINA XOŞ GƏLMİSİNİZ...</p>
 <h3 class="info-title" id="infoTitleText">TEXNO-TELEKOM RƏSMİ SAYT MƏRKƏZİ</h3>
 <p class="info-line" id="infoLine1">1️⃣ TƏTBİQLƏRİN PREMİUM VƏ PRO VERSİYALARI 👨‍💻</p>
@@ -128,10 +131,21 @@ footer{text-align:center;color:#756a83;padding:25px;font-size:12px}
 <p class="info-line" id="infoLine3">3️⃣ ŞİKAYƏT VƏ REKLAM ÜÇÜN ƏLAQƏ</p>
 <a class="contact" id="contactLink" href="https://wa.me/994558053305" target="_blank" rel="noopener"><span class="wa">◉</span> <span id="contactText">+994558053305</span></a>
 </section>
-<div id="posts" hidden></div><div class="catalog-heading">✦ TEXNO-MƏLUMAT</div><div id="phoneInfoList"></div><div class="catalog-heading">✦ Proqramlar</div>
+<div id="posts" hidden></div>
+<section id="phoneInfoHome" style="margin:24px 0">
+<button class="phone-info-entry" id="openPhoneInfo"><span><strong>✦ TEXNO-MƏLUMAT</strong><small>Telefonlar haqqında məlumatları oxumaq üçün bölməyə daxil olun</small></span><span class="entry-icon">➜</span></button>
+</section>
+<section id="phoneInfoSection" hidden>
+<div class="phone-info-head"><button class="btn ghost" id="backFromPhoneInfo">← Geri</button><h2>✦ TEXNO-MƏLUMAT</h2></div>
+<p class="hint">Telefon modelləri və onların xüsusiyyətləri haqqında məlumatlar</p>
+<div id="phoneInfoList"></div>
+</section>
+<section id="mainCatalog">
+<div class="catalog-heading">✦ Proqramlar</div>
 <div class="toolbar" id="searchPanel"><input id="search" class="search" placeholder="Axtar..."></div>
 <div id="apps" class="grid"></div>
 <p class="hint" style="text-align:center">Proqram siyahısı və sayt yazıları TEXNO-TELEKOM tətbiqi ilə eyni Firebase bazasından yenilənir.</p>
+</section>
 </main><footer>© TEXNO-TELEKOM</footer>
 <script>
 const $=id=>document.getElementById(id);
@@ -154,7 +168,11 @@ function clearForm(){['name','category','version','description','download','file
 $('adminBtn').onclick=()=>$('admin').classList.toggle('open');
 $('searchToggle').onclick=()=>$('searchPanel').classList.toggle('open');
 $('search').oninput=render;
-function renderPhoneInfos(){const html=phoneInfos.slice().sort((a,b)=>(b.created_at?.seconds||0)-(a.created_at?.seconds||0)).map(x=>`<article class="phone-info-card"><h3>${esc(x.title||'')}</h3><p>${esc(x.body||'')}</p>${auth.currentUser?`<div class="card-actions" style="margin-top:12px"><button class="btn danger" onclick="deletePhoneInfo('${x.id}')">Sil</button></div>`:''}</article>`).join('');$('phoneInfoList').innerHTML=html||'<div class="empty">Hələ telefon məlumatı paylaşılmayıb</div>';$('phoneInfoAdminList').innerHTML=auth.currentUser?phoneInfos.map(x=>`<p class="hint">${esc(x.title||'')} <button class="btn danger" onclick="deletePhoneInfo('${x.id}')">Sil</button></p>`).join(''):''}
+function renderPhoneInfos(){const sorted=phoneInfos.slice().sort((a,b)=>(b.created_at?.seconds||0)-(a.created_at?.seconds||0));const html=sorted.map(x=>`<article class="phone-info-card"><h3>${esc(x.title||'')}</h3><p>${esc(x.body||'')}</p>${auth.currentUser?`<div class="card-actions" style="margin-top:12px"><button class="btn danger" onclick="deletePhoneInfo('${x.id}')">Sil</button></div>`:''}</article>`).join('');$('phoneInfoList').innerHTML=html||'<div class="empty">Hələ TEXNO-MƏLUMAT bölməsində paylaşım yoxdur</div>';$('phoneInfoAdminList').innerHTML=auth.currentUser?sorted.map(x=>`<p class="hint">${esc(x.title||'')} <button class="btn danger" onclick="deletePhoneInfo('${x.id}')">Sil</button></p>`).join(''):''}
+function showPhoneInfoSection(){ $('heroSection').hidden=true; $('phoneInfoHome').hidden=true; $('mainCatalog').hidden=true; $('phoneInfoSection').hidden=false; window.scrollTo({top:0,behavior:'smooth'}); }
+function hidePhoneInfoSection(){ $('phoneInfoSection').hidden=true; $('heroSection').hidden=false; $('phoneInfoHome').hidden=false; $('mainCatalog').hidden=false; window.scrollTo({top:0,behavior:'smooth'}); }
+$('openPhoneInfo').onclick=showPhoneInfoSection;
+$('backFromPhoneInfo').onclick=hidePhoneInfoSection;
 $('savePhoneInfo').onclick=async()=>{const title=$('phoneInfoTitle').value.trim(),body=$('phoneInfoBody').value.trim();if(!title||!body){$('phoneInfoNotice').textContent='Başlıq və məlumatı yazın.';return}try{await db.collection('phone_information').add({title,body,created_at:firebase.firestore.FieldValue.serverTimestamp()});$('phoneInfoTitle').value='';$('phoneInfoBody').value='';$('phoneInfoNotice').textContent='TEXNO-MƏLUMAT bölməsində paylaşıldı.'}catch(e){$('phoneInfoNotice').textContent='Xəta: '+e.message}};
 $('clearPhoneInfo').onclick=()=>{$('phoneInfoTitle').value='';$('phoneInfoBody').value='';$('phoneInfoNotice').textContent=''};
 window.deletePhoneInfo=async id=>{if(confirm('Bu telefon məlumatını silmək istəyirsiniz?'))await db.collection('phone_information').doc(id).delete()};
