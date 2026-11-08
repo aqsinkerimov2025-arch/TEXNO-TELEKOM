@@ -22,6 +22,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.firebase.auth.FirebaseAuth
 
 private val bg = Color(0xFF080610)
 private val panel = Color(0xFF151020)
@@ -40,6 +41,7 @@ fun TexnoTelekomApp() {
     var query by remember { mutableStateOf("") }
     var adminOpen by remember { mutableStateOf(false) }
     var loggedIn by remember { mutableStateOf(false) }
+    var email by remember { mutableStateOf("aqsin.kerimov.2025@gmail.com") }
     var password by remember { mutableStateOf("") }
     var error by remember { mutableStateOf("") }
     var title by remember { mutableStateOf("TEXNO-TELEKOM") }
@@ -79,10 +81,32 @@ fun TexnoTelekomApp() {
                     Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         if (!loggedIn) {
                             Text("Admin girişi", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                            OutlinedTextField(password, { password = it }, label = { Text("Admin şifrəsi") }, visualTransformation = PasswordVisualTransformation(), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password), modifier = Modifier.fillMaxWidth())
-                            Text("Təhlükəsiz admin girişi server bağlantısı qoşulduqdan sonra aktiv ediləcək.", color = Color(0xFFFFC46B), fontSize = 12.sp)
+                            OutlinedTextField(email, { email = it }, label = { Text("Admin e-poçtu") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email), modifier = Modifier.fillMaxWidth())
+                            OutlinedTextField(password, { password = it }, label = { Text("Şifrə") }, visualTransformation = PasswordVisualTransformation(), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password), modifier = Modifier.fillMaxWidth())
+                            Text("Yalnız təsdiqlənmiş admin hesabı daxil ola bilər.", color = Color(0xFFFFC46B), fontSize = 12.sp)
                             if (error.isNotBlank()) Text(error, color = Color.Red)
-                            Button(onClick = { error = "Admin autentifikasiyası hələ serverə qoşulmayıb." }) { Text("Daxil ol") }
+                            Button(
+                                onClick = {
+                                    error = ""
+                                    if (email.trim() != "aqsin.kerimov.2025@gmail.com" || password.isBlank()) {
+                                        error = "Admin e-poçtunu və şifrəni yoxla."
+                                    } else {
+                                        FirebaseAuth.getInstance()
+                                            .signInWithEmailAndPassword(email.trim(), password)
+                                            .addOnCompleteListener { task ->
+                                                val user = FirebaseAuth.getInstance().currentUser
+                                                if (task.isSuccessful && user?.uid == "FflCErahavNIb8ZXsvHIyrxZYZH3" && user.email == "aqsin.kerimov.2025@gmail.com") {
+                                                    loggedIn = true
+                                                    password = ""
+                                                } else {
+                                                    FirebaseAuth.getInstance().signOut()
+                                                    error = "Giriş alınmadı. Şifrəni və admin hesabını yoxla."
+                                                }
+                                            }
+                                    }
+                                },
+                                enabled = email.isNotBlank() && password.isNotBlank()
+                            ) { Text("Daxil ol") }
                         } else {
                             Text("Sayt yazılarını düzəlt", fontWeight = FontWeight.Bold)
                             listOf(
