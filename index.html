@@ -46,7 +46,10 @@ textarea{min-height:90px;resize:vertical}.hint{font-size:11px;color:#a99bb8}
 .preview{width:66px;height:66px;border-radius:15px;object-fit:cover;display:none;border:1px solid #69478a}
 footer{text-align:center;color:#756a83;padding:25px;font-size:12px}
 @media(max-width:560px){header{padding-top:20px}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}.actions{width:100%}.actions .btn{flex:1}}
-</style></head>
+</style><script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+</head>
 <body>
 <header style="position:relative;padding:26px 18px 12px;background:transparent;border:0">
 <div class="brand-row">
@@ -57,7 +60,7 @@ footer{text-align:center;color:#756a83;padding:25px;font-size:12px}
 <main>
 <div class="admin-toggle"><button class="btn ghost" id="adminBtn"><span>Admin paneli</span><span class="plus">+</span></button></div>
 <section class="admin" id="admin">
-<h2>Sayt yazılarını düzəlt</h2>
+<div id="adminLogin" style="margin-bottom:18px"><h2>Admin girişi</h2><div class="form-grid"><div class="field full"><label>E-poçt</label><input id="adminEmail" type="email" value="aqsin.kerimov.2025@gmail.com"></div><div class="field full"><label>Şifrə</label><input id="adminPassword" type="password" placeholder="Admin şifrəsi"></div></div><button class="btn" id="adminLoginBtn" style="margin-top:12px">Daxil ol</button><p class="hint" id="loginNotice"></p></div><div id="adminEditor" hidden><button class="btn ghost" id="adminLogoutBtn" style="margin-bottom:14px">Admin hesabından çıxış</button><h2>Sayt yazılarını düzəlt</h2>
 <div class="form-grid" style="margin-bottom:22px">
 <div class="field full"><label>Əsas başlıq</label><input id="editHeroTitle"></div>
 <div class="field full"><label>Qarşılama yazısı</label><textarea id="editWelcome"></textarea></div>
@@ -81,6 +84,7 @@ footer{text-align:center;color:#756a83;padding:25px;font-size:12px}
 </div>
 <div class="actions" style="margin-top:14px"><button class="btn" id="save">Yadda saxla</button><button class="btn ghost" id="cancel">Təmizlə</button></div>
 <p class="hint" id="notice"></p>
+</div>
 </section>
 <section class="hero">
 <h2 id="heroTitleText">TEXNO-TELEKOM</h2>
@@ -98,6 +102,9 @@ footer{text-align:center;color:#756a83;padding:25px;font-size:12px}
 </main><footer>© TEXNO-TELEKOM</footer>
 <script>
 const $=id=>document.getElementById(id);
+const firebaseConfig={apiKey:"AIzaSyCuvSdI5dZxqhWc3PC-IXWMfvUhXTDPqSw",authDomain:"texno-telekom.firebaseapp.com",projectId:"texno-telekom"};
+firebase.initializeApp(firebaseConfig);
+const auth=firebase.auth(), db=firebase.firestore();
 const KEY='tt_apps_demo_v1', TEXT_KEY='tt_site_texts_v1'; let selectedImage='', editingId=null;
 const defaultTexts={heroTitle:'TEXNO-TELEKOM',welcome:'✅TEXNO-TELEKOM RƏSMİ SAYTINA XOŞ GƏLMİSİNİZ...',infoTitle:'TEXNO-TELEKOM RƏSMİ SAYT MƏRKƏZİ',line1:'1️⃣ TƏTBİQLƏRİN PREMİUM VƏ PRO VERSİYALARI 👨‍💻',line2:"2️⃣ GOOGLE PLAY'DA OLMAYAN TƏTBİQLƏRİ",line3:'3️⃣ ŞİKAYƏT VƏ REKLAM ÜÇÜN ƏLAQƏ',phone:'+994558053305'};
 function getTexts(){try{return {...defaultTexts,...JSON.parse(localStorage.getItem(TEXT_KEY)||'{}')}}catch{return {...defaultTexts}}}
@@ -117,12 +124,16 @@ function render(){
 function clearForm(){['name','category','version','description','download'].forEach(id=>$(id).value='');$('order').value=1;$('iconFile').value='';$('preview').style.display='none';selectedImage='';editingId=null;$('notice').textContent=''}
 $('adminBtn').onclick=()=>$('admin').classList.toggle('open');
 $('search').oninput=render;
-$('saveTexts').onclick=()=>{const t={heroTitle:$('editHeroTitle').value.trim(),welcome:$('editWelcome').value.trim(),infoTitle:$('editInfoTitle').value.trim(),line1:$('editLine1').value.trim(),line2:$('editLine2').value.trim(),line3:$('editLine3').value.trim(),phone:$('editPhone').value.trim()};localStorage.setItem(TEXT_KEY,JSON.stringify(t));applyTexts();$('notice').textContent='Sayt yazıları yadda saxlanıldı.'};
+$('saveTexts').onclick=async()=>{const t={heroTitle:$('editHeroTitle').value.trim(),welcome:$('editWelcome').value.trim(),infoTitle:$('editInfoTitle').value.trim(),line1:$('editLine1').value.trim(),line2:$('editLine2').value.trim(),line3:$('editLine3').value.trim(),phone:$('editPhone').value.trim()};try{await db.collection('site_settings').doc('content').set({...t,updated_at:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});localStorage.setItem(TEXT_KEY,JSON.stringify(t));applyTexts();$('notice').textContent='Sayt yazıları yadda saxlanıldı.'}catch(e){$('notice').textContent='Xəta: '+e.message}};
 $('iconFile').onchange=e=>{const f=e.target.files[0];if(!f)return;if(!/^image\/(png|jpeg|webp)$/.test(f.type)){alert('Yalnız JPG, PNG və WEBP şəkli seçin.');e.target.value='';return}if(f.size>2*1024*1024){alert('Şəkil 2 MB-dan kiçik olmalıdır.');e.target.value='';return}const r=new FileReader();r.onload=()=>{selectedImage=r.result;$('preview').src=selectedImage;$('preview').style.display='block'};r.readAsDataURL(f)};
 $('save').onclick=()=>{const name=$('name').value.trim(),category=$('category').value.trim();if(!name||!category){$('notice').textContent='Proqramın adı və kateqoriya mütləqdir.';return}let all=load(),old=all.find(x=>x.id===editingId);const item={id:editingId||String(Date.now()),name,category,version:$('version').value.trim(),order:+$('order').value||1,description:$('description').value.trim(),download:$('download').value.trim(),icon:selectedImage||(old?.icon||'')};if(old)all=all.map(x=>x.id===editingId?item:x);else all.push(item);try{saveAll(all);clearForm();render();$('notice').textContent='Yadda saxlanıldı.'}catch(e){$('notice').textContent='Brauzer yaddaşı dolub. Daha kiçik ikon seçin.'}};
 $('cancel').onclick=clearForm;
 window.editApp=id=>{const x=load().find(a=>a.id===id);if(!x)return;editingId=id;['name','category','version','description','download','order'].forEach(k=>$(k).value=x[k]??'');selectedImage=x.icon||'';if(selectedImage){$('preview').src=selectedImage;$('preview').style.display='block'}$('admin').classList.add('open');$('notice').textContent='Redaktə rejimi'};
 window.deleteApp=id=>{if(confirm('Bu proqramı silmək istəyirsiniz?')){saveAll(load().filter(x=>x.id!==id));render()}};
 applyTexts();
+auth.onAuthStateChanged(user=>{$('adminLogin').hidden=!!user;$('adminEditor').hidden=!user});
+$('adminLoginBtn').onclick=async()=>{try{await auth.signInWithEmailAndPassword($('adminEmail').value.trim(),$('adminPassword').value);$('loginNotice').textContent='Giriş uğurludur.'}catch(e){$('loginNotice').textContent='Giriş alınmadı: '+e.message}};
+$('adminLogoutBtn').onclick=()=>auth.signOut();
+db.collection('site_settings').doc('content').onSnapshot(s=>{if(s.exists){const t={...defaultTexts,...s.data()};localStorage.setItem(TEXT_KEY,JSON.stringify(t));applyTexts()}});
 render();
 </script></body></html>
