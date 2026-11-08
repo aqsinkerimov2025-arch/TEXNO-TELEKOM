@@ -19,7 +19,7 @@ android {
         applicationId = "az.texnotelekom.app"
         minSdk = 24
         targetSdk = 35
-        versionCode = 14
+        versionCode = 14 + (System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 0)
         versionName = "2.3"
     }
 
