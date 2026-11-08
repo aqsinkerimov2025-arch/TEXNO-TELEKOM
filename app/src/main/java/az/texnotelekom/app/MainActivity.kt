@@ -117,6 +117,13 @@ fun TexnoTelekomApp() {
     var currentIcon by remember { mutableStateOf("") }
     var pickedImage by remember { mutableStateOf<Uri?>(null) }
     var busy by remember { mutableStateOf(false) }
+    var heroTitle by remember { mutableStateOf("TEXNO-TELEKOM") }
+    var welcomeText by remember { mutableStateOf("✅TEXNO-TELEKOM RƏSMİ SAYTINA XOŞ GƏLMİSİNİZ...") }
+    var infoTitle by remember { mutableStateOf("TEXNO-TELEKOM RƏSMİ SAYT MƏRKƏZİ") }
+    var infoLine1 by remember { mutableStateOf("1️⃣ TƏTBİQLƏRİN PREMİUM VƏ PRO VERSİYALARI 👨‍💻") }
+    var infoLine2 by remember { mutableStateOf("2️⃣ GOOGLE PLAY'DA OLMAYAN TƏTBİQLƏRİ") }
+    var infoLine3 by remember { mutableStateOf("3️⃣ ŞİKAYƏT VƏ REKLAM ÜÇÜN ƏLAQƏ") }
+    var whatsappPhone by remember { mutableStateOf("+994558053305") }
     val programs = remember { mutableStateListOf<AppItem>() }
 
     val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -140,6 +147,38 @@ fun TexnoTelekomApp() {
             }
         }
         onDispose { listener.remove() }
+    }
+
+    DisposableEffect(db) {
+        val registration = db.collection("site_settings").document("content")
+            .addSnapshotListener { snapshot, e ->
+                if (e == null && snapshot != null && snapshot.exists()) {
+                    heroTitle = snapshot.getString("heroTitle") ?: heroTitle
+                    welcomeText = snapshot.getString("welcome") ?: welcomeText
+                    infoTitle = snapshot.getString("infoTitle") ?: infoTitle
+                    infoLine1 = snapshot.getString("line1") ?: infoLine1
+                    infoLine2 = snapshot.getString("line2") ?: infoLine2
+                    infoLine3 = snapshot.getString("line3") ?: infoLine3
+                    whatsappPhone = snapshot.getString("phone") ?: whatsappPhone
+                }
+            }
+        onDispose { registration.remove() }
+    }
+
+    fun saveSiteTexts() {
+        val values = hashMapOf<String, Any>(
+            "heroTitle" to heroTitle.trim(),
+            "welcome" to welcomeText.trim(),
+            "infoTitle" to infoTitle.trim(),
+            "line1" to infoLine1.trim(),
+            "line2" to infoLine2.trim(),
+            "line3" to infoLine3.trim(),
+            "phone" to whatsappPhone.trim(),
+            "updated_at" to FieldValue.serverTimestamp()
+        )
+        db.collection("site_settings").document("content").set(values, SetOptions.merge())
+            .addOnSuccessListener { message = "Sayt yazıları yadda saxlanıldı." }
+            .addOnFailureListener { error = "Yadda saxlamaq alınmadı: ${it.localizedMessage}" }
     }
 
     fun clearForm() {
@@ -270,6 +309,16 @@ fun TexnoTelekomApp() {
                                     }
                             }, enabled = email.isNotBlank() && password.isNotBlank()) { Text("Daxil ol") }
                         } else {
+                            Text("Sayt yazılarını düzəlt", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                            OutlinedTextField(heroTitle, { heroTitle = it }, label = { Text("Əsas başlıq") }, modifier = Modifier.fillMaxWidth())
+                            OutlinedTextField(welcomeText, { welcomeText = it }, label = { Text("Qarşılama yazısı") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
+                            OutlinedTextField(infoTitle, { infoTitle = it }, label = { Text("Məlumat başlığı") }, modifier = Modifier.fillMaxWidth())
+                            OutlinedTextField(infoLine1, { infoLine1 = it }, label = { Text("1-ci məlumat sətri") }, modifier = Modifier.fillMaxWidth())
+                            OutlinedTextField(infoLine2, { infoLine2 = it }, label = { Text("2-ci məlumat sətri") }, modifier = Modifier.fillMaxWidth())
+                            OutlinedTextField(infoLine3, { infoLine3 = it }, label = { Text("3-cü məlumat sətri") }, modifier = Modifier.fillMaxWidth())
+                            OutlinedTextField(whatsappPhone, { whatsappPhone = it }, label = { Text("WhatsApp nömrəsi") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone), modifier = Modifier.fillMaxWidth())
+                            Button(onClick = { saveSiteTexts() }, modifier = Modifier.fillMaxWidth()) { Text("Yazıları yadda saxla") }
+                            HorizontalDivider()
                             Text(if (editingId == null) "Proqram əlavə et" else "Proqramı redaktə et", fontWeight = FontWeight.Bold)
                             OutlinedTextField(name, { name = it }, label = { Text("Proqramın adı") }, modifier = Modifier.fillMaxWidth())
                             OutlinedTextField(category, { category = it }, label = { Text("Kateqoriya") }, modifier = Modifier.fillMaxWidth())
