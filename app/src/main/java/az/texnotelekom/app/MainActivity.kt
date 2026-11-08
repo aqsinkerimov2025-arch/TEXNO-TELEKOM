@@ -1003,7 +1003,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                 else Text("✦", color = Color(0xFFD9B5FF), fontSize = 38.sp)
                             }
                             Column(Modifier.weight(1f).padding(start = 14.dp)) {
-                                Text(if (isGoldBankCard) "YOUTUBE PREMIUM" else p.name, fontWeight = FontWeight.Bold, fontSize = 19.sp, color = if (isGoldBankCard) Color(0xFF382507) else Color.White)
+                                Text(p.name, fontWeight = FontWeight.Bold, fontSize = 19.sp, color = if (isGoldBankCard) Color(0xFF382507) else Color.White)
                                 Spacer(Modifier.height(5.dp))
                                 Text(
                                     if (p.version.isNotBlank()) "${p.category} • ${p.version}" else p.category,
