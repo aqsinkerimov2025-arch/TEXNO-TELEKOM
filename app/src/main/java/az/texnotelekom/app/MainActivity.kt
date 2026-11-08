@@ -54,6 +54,7 @@ private val panel = Color(0xFF151020)
 private val accent = Color(0xFFAA4CFF)
 private const val ADMIN_EMAIL = "aqsin.kerimov.2025@gmail.com"
 private const val ADMIN_UID = "FflCErahavNIb8ZXsvHIyrxZYZH3"
+private val ADMIN_DEVICE_IDS = setOf("a20e9a204172f84f", "2ad6b306ca18b8e0")
 
 data class AppItem(
     val id: String, val name: String, val category: String, val version: String,
@@ -97,6 +98,8 @@ fun TexnoTelekomApp() {
     var showDeviceInfo by remember { mutableStateOf(false) }
     var revealDeviceCodeButton by remember { mutableStateOf(false) }
     val deviceId = remember { Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID) ?: "Tapılmadı" }
+    val isAuthorizedDevice = deviceId in ADMIN_DEVICE_IDS
+    LaunchedEffect(isAuthorizedDevice) { if (!isAuthorizedDevice) { adminOpen = false; loggedIn = false } }
     var loggedIn by remember { mutableStateOf(false) }
     var email by remember { mutableStateOf(ADMIN_EMAIL) }
     var password by remember { mutableStateOf("") }
@@ -208,7 +211,7 @@ fun TexnoTelekomApp() {
                 }
             }
             Spacer(Modifier.height(18.dp))
-            OutlinedButton(
+            if (isAuthorizedDevice) OutlinedButton(
                 onClick = { adminOpen = !adminOpen; error = ""; message = "" },
                 modifier = Modifier.fillMaxWidth().height(92.dp),
                 shape = RoundedCornerShape(30.dp),
@@ -246,7 +249,7 @@ fun TexnoTelekomApp() {
                 fontWeight = FontWeight.ExtraBold
             )
 
-            if (adminOpen) {
+            if (adminOpen && isAuthorizedDevice) {
                 Card(colors = CardDefaults.cardColors(containerColor = panel), modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         if (!loggedIn) {
