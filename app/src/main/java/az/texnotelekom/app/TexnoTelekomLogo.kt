@@ -18,10 +18,10 @@ fun TexnoTelekomLogo() {
         val cx = size.width / 2f
         val cy = size.height / 2f
         val r = size.minDimension * 0.43f
-        drawCircle(Color(0xFF171419), r = r, center = androidx.compose.ui.geometry.Offset(cx, cy))
-        drawCircle(Color(0xFFC8BBA8), r = r * 0.94f, center = androidx.compose.ui.geometry.Offset(cx, cy), style = Stroke(width = 3.dp.toPx()))
-        drawCircle(Color(0xFF3B3530), r = r * 0.76f, center = androidx.compose.ui.geometry.Offset(cx, cy), style = Stroke(width = 5.dp.toPx()))
-        drawCircle(Color(0xFFE4D7C3), r = r * 0.68f, center = androidx.compose.ui.geometry.Offset(cx, cy), style = Stroke(width = 2.dp.toPx()))
+        drawCircle(Color(0xFF171419), radius = r, center = androidx.compose.ui.geometry.Offset(cx, cy))
+        drawCircle(Color(0xFFC8BBA8), radius = r * 0.94f, center = androidx.compose.ui.geometry.Offset(cx, cy), style = Stroke(width = 3.dp.toPx()))
+        drawCircle(Color(0xFF3B3530), radius = r * 0.76f, center = androidx.compose.ui.geometry.Offset(cx, cy), style = Stroke(width = 5.dp.toPx()))
+        drawCircle(Color(0xFFE4D7C3), radius = r * 0.68f, center = androidx.compose.ui.geometry.Offset(cx, cy), style = Stroke(width = 2.dp.toPx()))
         drawContext.canvas.nativeCanvas.apply {
             val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = android.graphics.Color.rgb(215, 203, 184)
