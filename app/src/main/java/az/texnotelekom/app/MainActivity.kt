@@ -339,7 +339,7 @@ fun TexnoTelekomApp() {
                                         db.collection("programs").document(p.id).delete().addOnSuccessListener {
                                             if (editingId == p.id) clearForm()
                                             message = "Proqram silindi."
-                                        }.addOnFailureListener { error = "Silmək alınmadı: ${it.localizedMessage}" },
+                                        }.addOnFailureListener { error = "Silmək alınmadı: ${it.localizedMessage}" }
                                     },
                                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF641B3C)),
                                     shape = RoundedCornerShape(18.dp),
