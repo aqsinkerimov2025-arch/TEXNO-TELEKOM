@@ -790,6 +790,8 @@ fun TexnoTelekomApp() {
                                         message = "Redaktə üçün seçildi."
                                     },
                                     shape = RoundedCornerShape(18.dp),
+                                    border = androidx.compose.foundation.BorderStroke(1.5.dp, Color(0xFFD5A63D)),
+                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFFD76B)),
                                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 14.dp)
                                 ) { Text("Redaktə", fontWeight = FontWeight.Bold) }
                                 Button(
@@ -799,7 +801,10 @@ fun TexnoTelekomApp() {
                                             message = "Proqram silindi."
                                         }.addOnFailureListener { error = "Silmək alınmadı: ${it.localizedMessage}" }
                                     },
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF641B3C)),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color(0xFFD5A63D),
+                                        contentColor = Color(0xFF382507)
+                                    ),
                                     shape = RoundedCornerShape(18.dp),
                                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 14.dp)
                                 ) { Text("Sil", fontWeight = FontWeight.Bold) }
