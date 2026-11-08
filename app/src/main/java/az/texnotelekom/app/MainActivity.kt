@@ -43,6 +43,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import coil.compose.AsyncImage
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
@@ -100,6 +102,22 @@ fun TexnoTelekomApp() {
     val deviceId = remember { Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID) ?: "Tapılmadı" }
     val isAuthorizedDevice = deviceId in ADMIN_DEVICE_IDS
     var loggedIn by remember { mutableStateOf(false) }
+
+    DisposableEffect(context, isAuthorizedDevice) {
+        val activity = context as? ComponentActivity
+        val observer = object : DefaultLifecycleObserver {
+            override fun onStop(owner: LifecycleOwner) {
+                if (isAuthorizedDevice) {
+                    loggedIn = false
+                    adminOpen = false
+                    password = ""
+                    FirebaseAuth.getInstance().signOut()
+                }
+            }
+        }
+        activity?.lifecycle?.addObserver(observer)
+        onDispose { activity?.lifecycle?.removeObserver(observer) }
+    }
     var email by remember { mutableStateOf(ADMIN_EMAIL) }
     var password by remember { mutableStateOf("") }
     var error by remember { mutableStateOf("") }
