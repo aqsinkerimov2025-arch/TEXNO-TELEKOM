@@ -1,14 +1,14 @@
 name: Build TEXNO-TELEKOM APK
 on:
   workflow_dispatch:
-permissions:
-  contents: write
   push:
     paths:
       - 'app/**'
       - '*.gradle.kts'
       - 'gradle.properties'
       - '.github/workflows/android-apk.yml'
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -58,7 +58,7 @@ jobs:
           retention-days: 30
       - name: Publish update release
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           VERSION_CODE=$(grep -oE 'versionCode = [0-9]+' app/build.gradle.kts | awk '{print $3}')
           gh release create "app-v${VERSION_CODE}" app/build/outputs/apk/release/app-release.apk#TEXNO-TELEKOM.apk \
