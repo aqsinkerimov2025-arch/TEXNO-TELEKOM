@@ -95,6 +95,7 @@ fun TexnoTelekomApp() {
     var query by remember { mutableStateOf("") }
     var adminOpen by remember { mutableStateOf(false) }
     var showDeviceInfo by remember { mutableStateOf(false) }
+    var revealDeviceCodeButton by remember { mutableStateOf(false) }
     val deviceId = remember { Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID) ?: "Tapılmadı" }
     var loggedIn by remember { mutableStateOf(false) }
     var email by remember { mutableStateOf(ADMIN_EMAIL) }
@@ -195,12 +196,16 @@ fun TexnoTelekomApp() {
                 .verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)
         ) {
             Spacer(Modifier.height(28.dp))
-            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+            Box(
+                Modifier.fillMaxWidth().clickable { revealDeviceCodeButton = !revealDeviceCodeButton },
+                contentAlignment = Alignment.Center
+            ) {
                 TexnoTelekomLogo()
             }
-            Spacer(Modifier.height(12.dp))
-            TextButton(onClick = { showDeviceInfo = true }, modifier = Modifier.align(Alignment.CenterHorizontally)) {
-                Text("Cihaz kodunu göstər", color = Color(0xFFBBAACB), fontSize = 13.sp)
+            if (revealDeviceCodeButton) {
+                TextButton(onClick = { showDeviceInfo = true }, modifier = Modifier.align(Alignment.CenterHorizontally)) {
+                    Text("Cihaz kodunu göstər", color = Color(0xFFBBAACB), fontSize = 13.sp)
+                }
             }
             Spacer(Modifier.height(18.dp))
             OutlinedButton(
