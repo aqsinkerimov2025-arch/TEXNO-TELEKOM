@@ -339,19 +339,6 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     }
 
     DisposableEffect(db) {
-        val designListener = db.collection("app_design").document("current")
-            .addSnapshotListener { snapshot, e ->
-                if (e == null && snapshot != null && snapshot.exists()) {
-                    designBgHex = snapshot.getString("background") ?: designBgHex
-                    designPanelHex = snapshot.getString("panel") ?: designPanelHex
-                    designAccentHex = snapshot.getString("accent") ?: designAccentHex
-                    designGoldCards = snapshot.getBoolean("goldCards") ?: designGoldCards
-                }
-            }
-        onDispose { designListener.remove() }
-    }
-
-    DisposableEffect(db) {
         val phoneListener = db.collection("phone_information").orderBy("created_at", com.google.firebase.firestore.Query.Direction.DESCENDING)
             .addSnapshotListener { snap, e ->
                 if (e == null && snap != null) {
@@ -399,6 +386,10 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                     infoLine2 = snapshot.getString("line2") ?: infoLine2
                     infoLine3 = snapshot.getString("line3") ?: infoLine3
                     whatsappPhone = snapshot.getString("phone") ?: whatsappPhone
+                    designBgHex = snapshot.getString("design_background") ?: designBgHex
+                    designPanelHex = snapshot.getString("design_panel") ?: designPanelHex
+                    designAccentHex = snapshot.getString("design_accent") ?: designAccentHex
+                    designGoldCards = snapshot.getBoolean("design_gold_cards") ?: designGoldCards
                 }
             }
         onDispose { registration.remove() }
@@ -406,13 +397,13 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
 
     fun saveLiveDesign() {
         val values = hashMapOf<String, Any>(
-            "background" to designBgHex.trim(),
-            "panel" to designPanelHex.trim(),
-            "accent" to designAccentHex.trim(),
-            "goldCards" to designGoldCards,
+            "design_background" to designBgHex.trim(),
+            "design_panel" to designPanelHex.trim(),
+            "design_accent" to designAccentHex.trim(),
+            "design_gold_cards" to designGoldCards,
             "updated_at" to FieldValue.serverTimestamp()
         )
-        db.collection("app_design").document("current").set(values, SetOptions.merge())
+        db.collection("site_settings").document("content").set(values, SetOptions.merge())
             .addOnSuccessListener { message = "Dizayn bütün istifadəçilər üçün yeniləndi." }
             .addOnFailureListener { error = "Dizayn yadda saxlanmadı: ${it.localizedMessage}" }
     }
