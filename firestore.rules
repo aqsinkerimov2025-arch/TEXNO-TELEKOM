@@ -1,6 +1,11 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    match /site_settings/{settingId} {
+      allow read: if true;
+      allow create, update, delete: if request.auth != null
+        && request.auth.uid == "FflCErahavNIb8ZXsvHIyrxZYZH3";
+    }
     match /programs/{programId} {
       allow read: if true;
       allow create, update, delete: if request.auth != null
