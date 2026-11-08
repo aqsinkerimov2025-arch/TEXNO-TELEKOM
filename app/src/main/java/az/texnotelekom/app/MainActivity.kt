@@ -435,10 +435,34 @@ fun TexnoTelekomApp() {
                         ProgramIcon("b64:$ADMIN_ICON_BASE64", "Admin paneli", 40)
                     }
                 }
-                IconButton(
-                    onClick = { searchOpen = !searchOpen },
-                    modifier = Modifier.align(Alignment.TopEnd).size(48.dp)
-                ) { Icon(Icons.Default.Search, contentDescription = "Axtarış", tint = Color(0xFFE7D5FF)) }
+                Row(
+                    modifier = Modifier.align(Alignment.TopEnd),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    if (searchOpen) {
+                        OutlinedTextField(
+                            value = query,
+                            onValueChange = { query = it },
+                            modifier = Modifier.width(170.dp).height(54.dp),
+                            placeholder = { Text("Axtar...", color = Color(0xFFBBAACB)) },
+                            singleLine = true,
+                            shape = RoundedCornerShape(14.dp),
+                            textStyle = TextStyle(color = Color.White, fontSize = 14.sp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = Color.White,
+                                unfocusedTextColor = Color.White,
+                                focusedBorderColor = Color(0xFF69478A),
+                                unfocusedBorderColor = Color(0xFF69478A),
+                                cursorColor = Color.White
+                            )
+                        )
+                    }
+                    IconButton(
+                        onClick = { searchOpen = !searchOpen; if (!searchOpen) query = "" },
+                        modifier = Modifier.size(48.dp)
+                    ) { Icon(Icons.Default.Search, contentDescription = "Axtarış", tint = Color(0xFFE7D5FF)) }
+                }
             }
             if (revealDeviceCodeButton) {
                 TextButton(onClick = { showDeviceInfo = true }, modifier = Modifier.align(Alignment.CenterHorizontally)) {
@@ -678,17 +702,6 @@ fun TexnoTelekomApp() {
             }
             Spacer(Modifier.height(18.dp))
             Text("Proqramlar", color = Color(0xFFE7D5FF), fontSize = 25.sp, fontWeight = FontWeight.Bold)
-            if (searchOpen) {
-                Spacer(Modifier.height(12.dp))
-                OutlinedTextField(
-                    query, { query = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("Axtar...") },
-                    leadingIcon = { Icon(Icons.Default.Search, null) },
-                    singleLine = true,
-                    shape = RoundedCornerShape(22.dp)
-                )
-            }
             Spacer(Modifier.height(18.dp))
             shown.forEach { p ->
                 Card(
