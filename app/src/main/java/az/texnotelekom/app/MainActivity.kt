@@ -239,43 +239,38 @@ fun TexnoTelekomApp() {
             Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color(0xFF251039), bg, bg)))
                 .verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)
         ) {
-            Spacer(Modifier.height(28.dp))
-            Box(
-                Modifier.fillMaxWidth().clickable { revealDeviceCodeButton = !revealDeviceCodeButton },
-                contentAlignment = Alignment.Center
-            ) {
-                TexnoTelekomLogo()
+            Spacer(Modifier.height(14.dp))
+            Box(Modifier.fillMaxWidth()) {
+                Column(
+                    modifier = Modifier.align(Alignment.Center),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        heroTitle,
+                        style = TextStyle(brush = Brush.horizontalGradient(listOf(Color(0xFF557CFF), Color(0xFFB63CDB)))),
+                        fontSize = 27.sp, fontWeight = FontWeight.Black
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    Box(
+                        Modifier.clickable { revealDeviceCodeButton = !revealDeviceCodeButton },
+                        contentAlignment = Alignment.Center
+                    ) { TexnoTelekomLogo(size = 78.dp) }
+                }
+                if (isAuthorizedDevice) {
+                    IconButton(
+                        onClick = { adminOpen = !adminOpen; error = ""; message = "" },
+                        modifier = Modifier.align(Alignment.TopEnd).size(48.dp)
+                    ) {
+                        Text("⚙", color = accent, fontSize = 30.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
             }
             if (revealDeviceCodeButton) {
                 TextButton(onClick = { showDeviceInfo = true }, modifier = Modifier.align(Alignment.CenterHorizontally)) {
                     Text("Cihaz kodunu göstər", color = Color(0xFFBBAACB), fontSize = 13.sp)
                 }
             }
-            Spacer(Modifier.height(18.dp))
-            if (isAuthorizedDevice) OutlinedButton(
-                onClick = { adminOpen = !adminOpen; error = ""; message = "" },
-                modifier = Modifier.fillMaxWidth().height(92.dp),
-                shape = RoundedCornerShape(30.dp),
-                border = androidx.compose.foundation.BorderStroke(2.dp, accent),
-                contentPadding = PaddingValues(horizontal = 22.dp, vertical = 12.dp)
-            ) {
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        if (adminOpen) "Admin panelini bağla" else "Admin paneli",
-                        color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Text("+", color = accent, fontSize = 38.sp, fontWeight = FontWeight.Bold)
-                }
-            }
-            Spacer(Modifier.height(42.dp))
-            Text(
-                "TEXNO-TELEKOM",
-                style = TextStyle(brush = Brush.horizontalGradient(listOf(Color(0xFF557CFF), Color(0xFFB63CDB)))),
-                fontSize = 31.sp, fontWeight = FontWeight.Black,
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            )
-            Spacer(Modifier.height(36.dp))
+            Spacer(Modifier.height(34.dp))
             Text(
                 "✅ TEXNO-TELEKOM RƏSMİ SAYTINA XOŞ GƏLMİSİNİZ...",
                 color = Color.White, fontSize = 19.sp, lineHeight = 27.sp,
