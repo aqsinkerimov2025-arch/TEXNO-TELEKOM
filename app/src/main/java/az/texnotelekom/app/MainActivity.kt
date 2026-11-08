@@ -1,10 +1,17 @@
 package az.texnotelekom.app
 
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.util.Base64
+import java.io.ByteArrayOutputStream
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -21,6 +28,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -45,6 +54,26 @@ data class AppItem(
     val description: String, val downloadUrl: String, val iconUrl: String,
     val isActive: Boolean, val fileSize: String
 )
+
+
+@Composable
+private fun ProgramIcon(value: String, description: String, size: Int) {
+    if (value.startsWith("b64:")) {
+        val bitmap = remember(value) {
+            try {
+                val bytes = Base64.decode(value.removePrefix("b64:"), Base64.DEFAULT)
+                BitmapFactory.decodeByteArray(bytes, 0, bytes.size)?.asImageBitmap()
+            } catch (_: Exception) { null }
+        }
+        if (bitmap != null) {
+            Image(bitmap, contentDescription = description, modifier = Modifier.size(size.dp), contentScale = ContentScale.Crop)
+        } else {
+            Text("📱", modifier = Modifier.size(size.dp))
+        }
+    } else {
+        AsyncImage(value, description, Modifier.size(size.dp), contentScale = ContentScale.Crop)
+    }
+}
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -72,8 +101,14 @@ fun TexnoTelekomApp() {
     var fileSize by remember { mutableStateOf("0 MB") }
     var editingId by remember { mutableStateOf<String?>(null) }
     var currentIcon by remember { mutableStateOf("") }
+    var pickedImage by remember { mutableStateOf<Uri?>(null) }
     var busy by remember { mutableStateOf(false) }
     val programs = remember { mutableStateListOf<AppItem>() }
+
+    val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        pickedImage = uri
+        if (uri != null) message = "Şəkil qalereyadan seçildi."
+    }
 
     DisposableEffect(db) {
         val listener = db.collection("programs").addSnapshotListener { snap, e ->
@@ -95,7 +130,7 @@ fun TexnoTelekomApp() {
 
     fun clearForm() {
         name = ""; category = ""; version = ""; description = ""; link = ""
-        fileSize = "0 MB"; editingId = null; currentIcon = ""
+        fileSize = "0 MB"; editingId = null; currentIcon = ""; pickedImage = null
     }
 
     fun writeProgram(iconUrl: String) {
@@ -123,7 +158,25 @@ fun TexnoTelekomApp() {
             error = "Yükləmə linki http:// və ya https:// ilə başlamalıdır."; return
         }
         error = ""; message = ""; busy = true
-        writeProgram(currentIcon.trim())
+        val uri = pickedImage
+        if (uri == null) {
+            writeProgram(currentIcon)
+            return
+        }
+        try {
+            val source = context.contentResolver.openInputStream(uri) ?: throw Exception("Şəkil oxunmadı")
+            val original = source.use { BitmapFactory.decodeStream(it) } ?: throw Exception("Şəkil formatı dəstəklənmir")
+            val scaled = Bitmap.createScaledBitmap(original, 256, 256, true)
+            val output = ByteArrayOutputStream()
+            scaled.compress(Bitmap.CompressFormat.JPEG, 72, output)
+            val encoded = "b64:" + Base64.encodeToString(output.toByteArray(), Base64.NO_WRAP)
+            if (scaled !== original) scaled.recycle()
+            original.recycle()
+            writeProgram(encoded)
+        } catch (e: Exception) {
+            error = "Şəkli hazırlamaq alınmadı: " + (e.localizedMessage ?: "naməlum xəta")
+            busy = false
+        }
     }
 
     val shown = programs.filter { (it.isActive || loggedIn) && "${it.name} ${it.category} ${it.description}".contains(query, true) }
@@ -167,8 +220,11 @@ fun TexnoTelekomApp() {
                             OutlinedTextField(description, { description = it }, label = { Text("Təsvir") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
                             OutlinedTextField(link, { link = it }, label = { Text("Yükləmə linki") }, modifier = Modifier.fillMaxWidth())
                             OutlinedTextField(fileSize, { fileSize = it }, label = { Text("Fayl ölçüsü") }, modifier = Modifier.fillMaxWidth())
-                            OutlinedTextField(currentIcon, { currentIcon = it }, label = { Text("Proqram şəklinin URL linki") }, modifier = Modifier.fillMaxWidth())
-                            Text("Şəkil üçün internetdə yerləşdirilmiş birbaşa şəkil linkini yazın.", color = Color.LightGray, fontSize = 11.sp)
+                            OutlinedButton(onClick = { imagePicker.launch("image/*") }, modifier = Modifier.fillMaxWidth()) {
+                                Icon(Icons.Default.Image, null); Spacer(Modifier.width(8.dp)); Text("Qalereyadan proqram şəkli seç")
+                            }
+                            if (pickedImage != null) Text("Yeni şəkil seçilib", color = Color(0xFF8DE6A5))
+                            else if (currentIcon.isNotBlank()) Text("Mövcud proqram şəkli saxlanılacaq", color = Color.LightGray, fontSize = 11.sp)
                             Button(onClick = { saveProgram() }, enabled = !busy && name.isNotBlank() && category.isNotBlank(), modifier = Modifier.fillMaxWidth()) {
                                 if (busy) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
                                 else Text(if (editingId == null) "Proqramı əlavə et" else "Dəyişiklikləri yadda saxla")
@@ -179,7 +235,7 @@ fun TexnoTelekomApp() {
                             programs.forEach { p ->
                                 Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF21182E)), modifier = Modifier.fillMaxWidth()) {
                                     Row(Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                                        if (p.iconUrl.isNotBlank()) AsyncImage(p.iconUrl, p.name, Modifier.size(40.dp))
+                                        if (p.iconUrl.isNotBlank()) ProgramIcon(p.iconUrl, p.name, 40)
                                         Column(Modifier.weight(1f).padding(horizontal = 8.dp)) {
                                             Text(p.name, fontWeight = FontWeight.Bold)
                                             Text("${p.category} • ${p.version}", fontSize = 11.sp, color = Color.LightGray)
@@ -187,7 +243,7 @@ fun TexnoTelekomApp() {
                                         IconButton(onClick = {
                                             editingId = p.id; name = p.name; category = p.category; version = p.version
                                             description = p.description; link = p.downloadUrl; fileSize = p.fileSize
-                                            currentIcon = p.iconUrl; message = "Redaktə üçün seçildi."
+                                            currentIcon = p.iconUrl; pickedImage = null; message = "Redaktə üçün seçildi."
                                         }) { Icon(Icons.Default.Edit, null, tint = Color(0xFFD5B0FF)) }
                                         IconButton(onClick = {
                                             db.collection("programs").document(p.id).delete().addOnSuccessListener {
@@ -215,7 +271,7 @@ fun TexnoTelekomApp() {
                 Card(colors = CardDefaults.cardColors(containerColor = panel), modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp)) {
                     Column(Modifier.padding(14.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            if (p.iconUrl.isNotBlank()) AsyncImage(p.iconUrl, p.name, Modifier.size(46.dp))
+                            if (p.iconUrl.isNotBlank()) ProgramIcon(p.iconUrl, p.name, 46)
                             Column(Modifier.weight(1f).padding(start = 8.dp)) {
                                 Text(p.name, fontWeight = FontWeight.Bold, fontSize = 17.sp)
                                 Text("${p.category} • ${p.version}", color = Color.LightGray, fontSize = 12.sp)
