@@ -77,10 +77,10 @@ footer{text-align:center;color:#756a83;padding:25px;font-size:12px}
 <div class="field full"><label>Proqramın adı *</label><input id="name" placeholder="Məsələn: YouTube Music Premium"></div>
 <div class="field full"><label>Kateqoriya *</label><input id="category" placeholder="youtube_premium"><span class="hint">Kiçik latın hərfləri, rəqəm, _ və -</span></div>
 <div class="field"><label>Versiya</label><input id="version" placeholder="v1.0"></div>
-<div class="field"><label>Sıra</label><input id="order" type="number" value="1"></div>
+<div class="field"><label>Fayl ölçüsü</label><input id="fileSize" placeholder="Məsələn: 45 MB" value="0 MB"></div>
 <div class="field full"><label>Təsvir</label><textarea id="description" placeholder="Proqram haqqında qısa məlumat"></textarea></div>
 <div class="field full"><label>Yükləmə linki</label><input id="download" type="url" placeholder="https://..."></div>
-<div class="field full"><label>İkon şəkli — qalereyadan seç</label><input id="iconFile" type="file" accept="image/png,image/jpeg,image/webp"><img id="preview" class="preview" alt="İkon önizləməsi"><span class="hint">JPG, PNG və WEBP. Bu ilkin versiyada məlumat yalnız bu brauzerdə saxlanır.</span></div>
+<div class="field full"><label>İkon şəkli — qalereyadan seç</label><input id="iconFile" type="file" accept="image/png,image/jpeg,image/webp"><img id="preview" class="preview" alt="İkon önizləməsi"><span class="hint">JPG, PNG və WEBP. İkon və proqram məlumatları tətbiqlə eyni Firebase yaddaşında saxlanılır.</span></div>
 </div>
 <div class="actions" style="margin-top:14px"><button class="btn" id="save">Yadda saxla</button><button class="btn ghost" id="cancel">Təmizlə</button></div>
 <p class="hint" id="notice"></p>
@@ -98,42 +98,38 @@ footer{text-align:center;color:#756a83;padding:25px;font-size:12px}
 <div class="catalog-heading">✦ Proqramlar</div>
 <div class="toolbar"><input id="search" class="search" placeholder="Proqram axtar..."></div>
 <div id="apps" class="grid"></div>
-<p class="hint" style="text-align:center">İlkin sınaq versiyası — ümumi admin və server yaddaşı növbəti mərhələdə qoşulacaq.</p>
+<p class="hint" style="text-align:center">Proqram siyahısı və sayt yazıları TEXNO-TELEKOM tətbiqi ilə eyni Firebase bazasından yenilənir.</p>
 </main><footer>© TEXNO-TELEKOM</footer>
 <script>
 const $=id=>document.getElementById(id);
 const firebaseConfig={apiKey:"AIzaSyCuvSdI5dZxqhWc3PC-IXWMfvUhXTDPqSw",authDomain:"texno-telekom.firebaseapp.com",projectId:"texno-telekom"};
-firebase.initializeApp(firebaseConfig);
+if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const auth=firebase.auth(), db=firebase.firestore();
-const KEY='tt_apps_demo_v1', TEXT_KEY='tt_site_texts_v1'; let selectedImage='', editingId=null;
+const TEXT_KEY='tt_site_texts_v2';
+let selectedImage='', editingId=null, programs=[];
 const defaultTexts={heroTitle:'TEXNO-TELEKOM',welcome:'✅TEXNO-TELEKOM RƏSMİ SAYTINA XOŞ GƏLMİSİNİZ...',infoTitle:'TEXNO-TELEKOM RƏSMİ SAYT MƏRKƏZİ',line1:'1️⃣ TƏTBİQLƏRİN PREMİUM VƏ PRO VERSİYALARI 👨‍💻',line2:"2️⃣ GOOGLE PLAY'DA OLMAYAN TƏTBİQLƏRİ",line3:'3️⃣ ŞİKAYƏT VƏ REKLAM ÜÇÜN ƏLAQƏ',phone:'+994558053305'};
 function getTexts(){try{return {...defaultTexts,...JSON.parse(localStorage.getItem(TEXT_KEY)||'{}')}}catch{return {...defaultTexts}}}
-function applyTexts(){const t=getTexts();$('heroTitleText').textContent=t.heroTitle;$('welcomeText').textContent=t.welcome;$('infoTitleText').textContent=t.infoTitle;$('infoLine1').textContent=t.line1;$('infoLine2').textContent=t.line2;$('infoLine3').textContent=t.line3;$('contactText').textContent=t.phone;$('contactLink').href='https://wa.me/'+t.phone.replace(/\D/g,'');['heroTitle','welcome','infoTitle','line1','line2','line3','phone'].forEach(k=>$('edit'+k[0].toUpperCase()+k.slice(1)).value=t[k])}
-const starter=[
-{id:'1',name:'YouTube Music Premium',category:'youtube_premium',version:'v7.x',order:2,description:'Reklamsız musiqi və oflayn dinləmə.',download:'',icon:''},
-{id:'2',name:'Telegram',category:'messaging',version:'',order:1,description:'Mesajlaşma və fayl paylaşımı.',download:'https://telegram.org/',icon:''}
-];
-function load(){try{return JSON.parse(localStorage.getItem(KEY))||starter}catch{return starter}}
-function saveAll(a){localStorage.setItem(KEY,JSON.stringify(a))}
+function applyTexts(){const t=getTexts();$('heroTitleText').textContent=t.heroTitle;$('welcomeText').textContent=t.welcome;$('infoTitleText').textContent=t.infoTitle;$('infoLine1').textContent=t.line1;$('infoLine2').textContent=t.line2;$('infoLine3').textContent=t.line3;$('contactText').textContent=t.phone;$('contactLink').href='https://wa.me/'+t.phone.replace(/\D/g,'');$('editHeroTitle').value=t.heroTitle;$('editWelcome').value=t.welcome;$('editInfoTitle').value=t.infoTitle;$('editLine1').value=t.line1;$('editLine2').value=t.line2;$('editLine3').value=t.line3;$('editPhone').value=t.phone}
 function esc(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function iconSrc(v=''){if(!v)return '';if(v.startsWith('b64:'))return 'data:image/jpeg;base64,'+v.slice(4);return v}
 function render(){
- const q=$('search').value.toLowerCase();let data=load().sort((a,b)=>(+a.order||0)-(+b.order||0));
- data=data.filter(x=>(`${x.name} ${x.category} ${x.description}`).toLowerCase().includes(q));
- $('apps').innerHTML=data.length?data.map(x=>`<article class="app"><div class="app-top">${x.icon?`<img class="app-icon" src="${x.icon}" alt="">`:`<div class="app-icon fallback">✦</div>`}<div><h3>${esc(x.name)}</h3><div class="meta">${esc(x.category)} ${x.version?'• '+esc(x.version):''}</div></div></div><p class="desc">${esc(x.description||'')}</p><div class="card-actions">${x.download?`<a class="btn" href="${esc(x.download)}" target="_blank" rel="noopener">Yüklə</a>`:'<span class="meta">Link əlavə edilməyib</span>'}<button class="btn ghost" onclick="editApp('${x.id}')">Redaktə</button><button class="btn danger" onclick="deleteApp('${x.id}')">Sil</button></div></article>`).join(''):'<div class="empty">Axtarışa uyğun proqram tapılmadı</div>';
+ const q=$('search').value.toLowerCase();
+ const data=programs.filter(x=>(x.is_active!==false||auth.currentUser)&&(`${x.name||''} ${x.category||''} ${x.description||''}`).toLowerCase().includes(q)).sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+ $('apps').innerHTML=data.length?data.map(x=>{const icon=iconSrc(x.icon_url||'');return `<article class="app"><div class="app-top">${icon?`<img class="app-icon" src="${esc(icon)}" alt="">`:`<div class="app-icon fallback">✦</div>`}<div><h3>${esc(x.name||'')}</h3><div class="meta">${esc(x.category||'')} ${x.version?'• '+esc(x.version):''} ${x.file_size?'• '+esc(x.file_size):''}</div></div></div><p class="desc">${esc(x.description||'')}</p><div class="card-actions">${x.download_url?`<a class="btn" href="${esc(x.download_url)}" target="_blank" rel="noopener">Yüklə</a>`:'<span class="meta">Link əlavə edilməyib</span>'}${auth.currentUser?`<button class="btn ghost" onclick="editApp('${x.id}')">Redaktə</button><button class="btn danger" onclick="deleteApp('${x.id}')">Sil</button>`:''}</div></article>`}).join(''):'<div class="empty">Hələ proqram əlavə edilməyib</div>';
 }
-function clearForm(){['name','category','version','description','download'].forEach(id=>$(id).value='');$('order').value=1;$('iconFile').value='';$('preview').style.display='none';selectedImage='';editingId=null;$('notice').textContent=''}
+function clearForm(){['name','category','version','description','download','fileSize'].forEach(id=>$(id).value='');$('iconFile').value='';$('preview').style.display='none';selectedImage='';editingId=null;$('notice').textContent=''}
 $('adminBtn').onclick=()=>$('admin').classList.toggle('open');
 $('search').oninput=render;
 $('saveTexts').onclick=async()=>{const t={heroTitle:$('editHeroTitle').value.trim(),welcome:$('editWelcome').value.trim(),infoTitle:$('editInfoTitle').value.trim(),line1:$('editLine1').value.trim(),line2:$('editLine2').value.trim(),line3:$('editLine3').value.trim(),phone:$('editPhone').value.trim()};try{await db.collection('site_settings').doc('content').set({...t,updated_at:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});localStorage.setItem(TEXT_KEY,JSON.stringify(t));applyTexts();$('notice').textContent='Sayt yazıları yadda saxlanıldı.'}catch(e){$('notice').textContent='Xəta: '+e.message}};
-$('iconFile').onchange=e=>{const f=e.target.files[0];if(!f)return;if(!/^image\/(png|jpeg|webp)$/.test(f.type)){alert('Yalnız JPG, PNG və WEBP şəkli seçin.');e.target.value='';return}if(f.size>2*1024*1024){alert('Şəkil 2 MB-dan kiçik olmalıdır.');e.target.value='';return}const r=new FileReader();r.onload=()=>{selectedImage=r.result;$('preview').src=selectedImage;$('preview').style.display='block'};r.readAsDataURL(f)};
-$('save').onclick=()=>{const name=$('name').value.trim(),category=$('category').value.trim();if(!name||!category){$('notice').textContent='Proqramın adı və kateqoriya mütləqdir.';return}let all=load(),old=all.find(x=>x.id===editingId);const item={id:editingId||String(Date.now()),name,category,version:$('version').value.trim(),order:+$('order').value||1,description:$('description').value.trim(),download:$('download').value.trim(),icon:selectedImage||(old?.icon||'')};if(old)all=all.map(x=>x.id===editingId?item:x);else all.push(item);try{saveAll(all);clearForm();render();$('notice').textContent='Yadda saxlanıldı.'}catch(e){$('notice').textContent='Brauzer yaddaşı dolub. Daha kiçik ikon seçin.'}};
+$('iconFile').onchange=e=>{const f=e.target.files[0];if(!f)return;if(!/^image\/(png|jpeg|webp)$/.test(f.type)){alert('Yalnız JPG, PNG və WEBP şəkli seçin.');e.target.value='';return}if(f.size>2*1024*1024){alert('Şəkil 2 MB-dan kiçik olmalıdır.');e.target.value='';return}const r=new FileReader();r.onload=()=>{selectedImage='b64:'+String(r.result).split(',')[1];$('preview').src=r.result;$('preview').style.display='block'};r.readAsDataURL(f)};
+$('save').onclick=async()=>{const name=$('name').value.trim(),category=$('category').value.trim();if(!name||!category){$('notice').textContent='Proqramın adı və kateqoriya mütləqdir.';return}const old=programs.find(x=>x.id===editingId);const values={name,category,version:$('version').value.trim(),description:$('description').value.trim(),download_url:$('download').value.trim(),icon_url:selectedImage||(old?.icon_url||''),file_size:$('fileSize').value.trim()||'0 MB',is_active:old?.is_active??true,updated_at:firebase.firestore.FieldValue.serverTimestamp()};try{if(editingId)await db.collection('programs').doc(editingId).set(values,{merge:true});else await db.collection('programs').add({...values,created_at:firebase.firestore.FieldValue.serverTimestamp()});clearForm();$('notice').textContent='Proqram Firebase yaddaşında saxlanıldı.'}catch(e){$('notice').textContent='Xəta: '+e.message}};
 $('cancel').onclick=clearForm;
-window.editApp=id=>{const x=load().find(a=>a.id===id);if(!x)return;editingId=id;['name','category','version','description','download','order'].forEach(k=>$(k).value=x[k]??'');selectedImage=x.icon||'';if(selectedImage){$('preview').src=selectedImage;$('preview').style.display='block'}$('admin').classList.add('open');$('notice').textContent='Redaktə rejimi'};
-window.deleteApp=id=>{if(confirm('Bu proqramı silmək istəyirsiniz?')){saveAll(load().filter(x=>x.id!==id));render()}};
-applyTexts();
-auth.onAuthStateChanged(user=>{$('adminLogin').hidden=!!user;$('adminEditor').hidden=!user});
+window.editApp=id=>{const x=programs.find(a=>a.id===id);if(!x)return;editingId=id;['name','category','version','description'].forEach(k=>$(k).value=x[k]||'');$('download').value=x.download_url||'';$('fileSize').value=x.file_size||'0 MB';selectedImage=x.icon_url||'';const src=iconSrc(selectedImage);if(src){$('preview').src=src;$('preview').style.display='block'}$('admin').classList.add('open');$('notice').textContent='Redaktə rejimi'};
+window.deleteApp=async id=>{if(confirm('Bu proqramı silmək istəyirsiniz?')){try{await db.collection('programs').doc(id).delete()}catch(e){$('notice').textContent='Silmək alınmadı: '+e.message}}};
+auth.onAuthStateChanged(user=>{$('adminLogin').hidden=!!user;$('adminEditor').hidden=!user;render()});
 $('adminLoginBtn').onclick=async()=>{try{await auth.signInWithEmailAndPassword($('adminEmail').value.trim(),$('adminPassword').value);$('loginNotice').textContent='Giriş uğurludur.'}catch(e){$('loginNotice').textContent='Giriş alınmadı: '+e.message}};
 $('adminLogoutBtn').onclick=()=>auth.signOut();
 db.collection('site_settings').doc('content').onSnapshot(s=>{if(s.exists){const t={...defaultTexts,...s.data()};localStorage.setItem(TEXT_KEY,JSON.stringify(t));applyTexts()}});
-render();
+db.collection('programs').onSnapshot(s=>{programs=s.docs.map(d=>({id:d.id,...d.data()}));render()},e=>{$('apps').innerHTML='<div class="empty">Proqramları yükləmək alınmadı: '+esc(e.message)+'</div>'});
+applyTexts();
 </script></body></html>
