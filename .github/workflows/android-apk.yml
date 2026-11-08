@@ -60,7 +60,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          VERSION_CODE=$(grep -oE 'versionCode = [0-9]+' app/build.gradle.kts | awk '{print $3}')
+          VERSION_CODE=$((14 + GITHUB_RUN_NUMBER))
           gh release create "app-v${VERSION_CODE}" app/build/outputs/apk/release/app-release.apk#TEXNO-TELEKOM.apk \
             --repo "${GITHUB_REPOSITORY}" \
             --title "TEXNO-TELEKOM v${VERSION_CODE}" \
