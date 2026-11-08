@@ -1,6 +1,8 @@
 name: Build TEXNO-TELEKOM APK
 on:
   workflow_dispatch:
+permissions:
+  contents: write
   push:
     paths:
       - 'app/**'
@@ -48,9 +50,19 @@ jobs:
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: gradle assembleRelease
-      - name: Upload APK
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: TEXNO-TELEKOM-release-apk
           path: app/build/outputs/apk/release/app-release.apk
           retention-days: 30
+      - name: Publish update release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION_CODE=$(grep -oE 'versionCode = [0-9]+' app/build.gradle.kts | awk '{print $3}')
+          gh release create "app-v${VERSION_CODE}" app/build/outputs/apk/release/app-release.apk#TEXNO-TELEKOM.apk \
+            --repo "${GITHUB_REPOSITORY}" \
+            --title "TEXNO-TELEKOM v${VERSION_CODE}" \
+            --notes "TEXNO-TELEKOM tətbiqinin yeni versiyası." \
+            --latest
