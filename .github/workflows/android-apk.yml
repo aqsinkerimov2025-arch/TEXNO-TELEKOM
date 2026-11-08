@@ -56,12 +56,14 @@ jobs:
           name: TEXNO-TELEKOM-release-apk
           path: app/build/outputs/apk/release/app-release.apk
           retention-days: 30
+      - name: Prepare named update APK
+        run: cp app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/TEXNO-TELEKOM.apk
       - name: Publish update release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           VERSION_CODE=$((14 + GITHUB_RUN_NUMBER))
-          gh release create "app-v${VERSION_CODE}" app/build/outputs/apk/release/app-release.apk#TEXNO-TELEKOM.apk \
+          gh release create "app-v${VERSION_CODE}" app/build/outputs/apk/release/TEXNO-TELEKOM.apk \
             --repo "${GITHUB_REPOSITORY}" \
             --title "TEXNO-TELEKOM v${VERSION_CODE}" \
             --notes "TEXNO-TELEKOM tətbiqinin yeni versiyası." \
