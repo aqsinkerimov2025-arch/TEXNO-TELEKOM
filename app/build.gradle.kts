@@ -4,16 +4,46 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
     id("com.google.gms.google-services")
 }
+
+val signingStoreFile = System.getenv("ANDROID_KEYSTORE_FILE")
+val signingStorePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
+val signingKeyAlias = System.getenv("ANDROID_KEY_ALIAS")
+val signingKeyPassword = System.getenv("ANDROID_KEY_PASSWORD")
+
 android {
     namespace = "az.texnotelekom.app"
     compileSdk = 35
+
     defaultConfig {
         applicationId = "az.texnotelekom.app"
         minSdk = 24
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.1"
     }
+
+    signingConfigs {
+        create("release") {
+            if (
+                !signingStoreFile.isNullOrBlank() &&
+                !signingStorePassword.isNullOrBlank() &&
+                !signingKeyAlias.isNullOrBlank() &&
+                !signingKeyPassword.isNullOrBlank()
+            ) {
+                storeFile = file(signingStoreFile)
+                storePassword = signingStorePassword
+                keyAlias = signingKeyAlias
+                keyPassword = signingKeyPassword
+            }
+        }
+    }
+
+    buildTypes {
+        getByName("release") {
+            signingConfig = signingConfigs.getByName("release")
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -21,6 +51,7 @@ android {
     kotlinOptions { jvmTarget = "17" }
     buildFeatures { compose = true }
 }
+
 dependencies {
     implementation(platform("androidx.compose:compose-bom:2024.12.01"))
     implementation("androidx.activity:activity-compose:1.10.0")
