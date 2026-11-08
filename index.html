@@ -142,14 +142,14 @@ $('save').onclick=async()=>{const name=$('name').value.trim(),category=$('catego
 $('cancel').onclick=clearForm;
 function clearPostForm(){['postTitle','postVersion','postFileSize','postDescription','postFeatures','postDownload','postAndroid','postChannel'].forEach(id=>$(id).value='');$('postApkFile').value='';$('postAndroid').value='Android 5.0+';$('postVip').checked=false;editingPostId=null;$('savePost').textContent='Paylaşımı əlavə et'}
 function renderPosts(){
- $('posts').innerHTML=posts.map(p=>`<article class="post-card"><div class="post-title">${esc(p.title||'')}${p.is_vip?' <span class="vip-tag">👑 VIP PREMIUM</span>':''}</div>
+ $('posts').innerHTML=posts.length?posts.map(p=>`<article class="post-card"><div class="post-title">${esc(p.title||'')}${p.is_vip?' <span class="vip-tag">👑 VIP PREMIUM</span>':''}</div>
  ${p.version?`<div class="post-meta">🔔 Versiya: ${esc(p.version)}</div>`:''}<div>${esc(p.description||'')}</div>
  ${p.features?`<div class="post-features"><strong>▶ Xüsusiyyətlər və Mod:</strong><br>${esc(p.features)}</div>`:''}
  ${p.file_size?`<div class="post-meta">📦 Fayl ölçüsü: ${esc(p.file_size)}</div>`:''}
  ${p.android_requirement?`<div class="post-meta">📱 Android tələb edir: ${esc(p.android_requirement)}</div>`:''}
  <div class="post-actions">${p.download_url?`<a class="btn" href="${esc(p.download_url)}" target="_blank" rel="noopener">⬇ Birbaşa APK yüklə</a>`:''}
  ${p.channel_url?`<a class="btn ghost" href="${esc(p.channel_url)}" target="_blank" rel="noopener">➜ TEXNO-TELEKOM kanalına qoşul</a>`:''}
- ${auth.currentUser?`<button class="btn ghost" onclick="editPost('${p.id}')">Redaktə</button><button class="btn danger" onclick="deletePost('${p.id}')">Sil</button>`:''}</div></article>`).join('');
+ ${auth.currentUser?`<button class="btn ghost" onclick="editPost('${p.id}')">Redaktə</button><button class="btn danger" onclick="deletePost('${p.id}')">Sil</button>`:''}</div></article>`).join(''):'<div class="empty">Hələ kanal paylaşımı əlavə edilməyib</div>';
 }
 $('savePost').onclick=async()=>{const title=$('postTitle').value.trim();if(!title){$('postNotice').textContent='Paylaşımın adı mütləqdir.';return}
  const apk=$('postApkFile').files[0];let downloadUrl=$('postDownload').value.trim();
@@ -167,6 +167,6 @@ auth.onAuthStateChanged(user=>{$('adminLogin').hidden=!!user;$('adminEditor').hi
 $('adminLoginBtn').onclick=async()=>{try{await auth.signInWithEmailAndPassword($('adminEmail').value.trim(),$('adminPassword').value);$('loginNotice').textContent='Giriş uğurludur.'}catch(e){$('loginNotice').textContent='Giriş alınmadı: '+e.message}};
 $('adminLogoutBtn').onclick=()=>auth.signOut();
 db.collection('site_settings').doc('content').onSnapshot(s=>{if(s.exists){const t={...defaultTexts,...s.data()};localStorage.setItem(TEXT_KEY,JSON.stringify(t));applyTexts()}});
-db.collection('programs').onSnapshot(s=>{const all=s.docs.map(d=>({id:d.id,...d.data()}));programs=all.filter(x=>x.content_type!=='channel_post');posts=all.filter(x=>x.content_type==='channel_post');render();renderPosts()},e=>{$('apps').innerHTML='<div class="empty">Məlumatları yükləmək alınmadı: '+esc(e.message)+'</div>'});
+db.collection('programs').onSnapshot(s=>{const all=s.docs.map(d=>({id:d.id,...d.data()}));programs=all.filter(x=>x.content_type!=='channel_post');posts=all.filter(x=>x.content_type==='channel_post');render();renderPosts()},e=>{$('apps').innerHTML='<div class="empty">Məlumatları yükləmək alınmadı: '+esc(e.message)+'</div>'; $('posts').innerHTML='<div class="empty">Kanal paylaşımlarını yükləmək alınmadı: '+esc(e.message)+'</div>'; $('postNotice').textContent='Firebase xətası: '+e.message;});
 applyTexts();
 </script></body></html>
