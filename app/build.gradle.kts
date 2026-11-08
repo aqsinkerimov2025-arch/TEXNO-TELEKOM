@@ -1,3 +1,4 @@
+// Release signing configuration is stored in GitHub Actions repository secrets.
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
