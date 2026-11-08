@@ -23,7 +23,7 @@ fun TexnoTelekomLogo() {
         Image(
             bitmap = it,
             contentDescription = "TEXNO-TELEKOM official logo",
-            modifier = Modifier.size(220.dp),
+            modifier = Modifier.size(120.dp),
             contentScale = ContentScale.Fit
         )
     }
