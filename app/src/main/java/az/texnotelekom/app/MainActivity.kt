@@ -72,6 +72,49 @@ private fun remoteColor(hex: String, fallback: Color): Color = try {
     Color(android.graphics.Color.parseColor(if (hex.startsWith("#")) hex else "#$hex"))
 } catch (_: Exception) { fallback }
 
+private fun uploadPhoneImage(context: Context, uri: Uri, callback: (Result<String>) -> Unit) {
+    Thread {
+        try {
+            val boundary = "----TexnoTelekom" + UUID.randomUUID().toString().replace("-", "")
+            val connection = (URL("https://api.cloudinary.com/v1_1/$CLOUDINARY_CLOUD/image/upload").openConnection() as HttpURLConnection).apply {
+                requestMethod = "POST"
+                doOutput = true
+                connectTimeout = 30000
+                readTimeout = 120000
+                setRequestProperty("Content-Type", "multipart/form-data; boundary=$boundary")
+                setChunkedStreamingMode(65536)
+            }
+            connection.outputStream.use { output ->
+                fun field(name: String, value: String) {
+                    output.write("--$boundary\\r\\nContent-Disposition: form-data; name=\\"$name\\"\\r\\n\\r\\n$value\\r\\n".toByteArray(Charsets.UTF_8))
+                }
+                field("upload_preset", CLOUDINARY_PRESET)
+                output.write("--$boundary\\r\\nContent-Disposition: form-data; name=\\"file\\"; filename=\\"texno-melumat.jpg\\"\\r\\nContent-Type: image/jpeg\\r\\n\\r\\n".toByteArray(Charsets.UTF_8))
+                val input = context.contentResolver.openInputStream(uri) ?: throw Exception("Şəkil oxunmadı.")
+                input.use { stream ->
+                    val buffer = ByteArray(65536)
+                    while (true) {
+                        val count = stream.read(buffer)
+                        if (count < 0) break
+                        output.write(buffer, 0, count)
+                    }
+                }
+                output.write("\\r\\n--$boundary--\\r\\n".toByteArray(Charsets.UTF_8))
+                val code = connection.responseCode
+                val response = (if (code in 200..299) connection.inputStream else connection.errorStream)
+                    ?.bufferedReader()?.use { it.readText() } ?: ""
+                if (code !in 200..299) throw Exception("Cloudinary xətası ($code): $response")
+                val secureUrl = JSONObject(response).optString("secure_url")
+                if (secureUrl.isBlank()) throw Exception("Şəkil linki alınmadı.")
+                Handler(Looper.getMainLooper()).post { callback(Result.success(secureUrl)) }
+            }
+            connection.disconnect()
+        } catch (e: Exception) {
+            Handler(Looper.getMainLooper()).post { callback(Result.failure(e)) }
+        }
+    }.start()
+}
+
 private fun uploadApk(context: Context, uri: Uri, callback: (Result<Pair<String, Long>>) -> Unit) {
     Thread {
         try {
@@ -138,7 +181,7 @@ data class ChannelPost(
     val description: String, val features: String, val downloadUrl: String,
     val fileSize: String, val androidRequirement: String, val channelUrl: String
 )
-data class PhoneInfo(val id: String, val title: String, val body: String)
+data class PhoneInfo(val id: String, val title: String, val body: String, val imageUrl: String)
 
 
 @Composable
@@ -272,7 +315,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     var searchOpen by remember { mutableStateOf(false) }
     var showPhoneInfo by remember { mutableStateOf(false) }
     var phoneInfoTitle by remember { mutableStateOf("") }
-    var phoneInfoBody by remember { mutableStateOf("") }
+    var phoneInfoBody by remember { mutableStateOf("") }\n    var phoneInfoImage by remember { mutableStateOf<Uri?>(null) }\n    var phoneInfoBusy by remember { mutableStateOf(false) }
     var adminOpen by remember { mutableStateOf(false) }
     var showDeviceInfo by remember { mutableStateOf(false) }
     var revealDeviceCodeButton by remember { mutableStateOf(false) }
@@ -333,6 +376,11 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
         if (uri != null) message = "APK seçildi: $pickedPostApkName"
     }
 
+    val phoneInfoImagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        phoneInfoImage = uri
+        if (uri != null) message = "TEXNO-MƏLUMAT şəkli seçildi."
+    }
+
     val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         pickedImage = uri
         if (uri != null) message = "Şəkil qalereyadan seçildi."
@@ -343,7 +391,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
             .addSnapshotListener { snap, e ->
                 if (e == null && snap != null) {
                     phoneInfos.clear()
-                    snap.documents.forEach { d -> phoneInfos.add(PhoneInfo(d.id, d.getString("title") ?: "", d.getString("body") ?: "")) }
+                    snap.documents.forEach { d -> phoneInfos.add(PhoneInfo(d.id, d.getString("title") ?: "", d.getString("body") ?: "", d.getString("image_url") ?: "")) }
                 }
             }
         onDispose { phoneListener.remove() }
@@ -406,6 +454,50 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
         db.collection("site_settings").document("content").set(values, SetOptions.merge())
             .addOnSuccessListener { message = "Dizayn bütün istifadəçilər üçün yeniləndi." }
             .addOnFailureListener { error = "Dizayn yadda saxlanmadı: ${it.localizedMessage}" }
+    }
+
+    fun publishPhoneInfo(imageUrl: String) {
+        val values = hashMapOf<String, Any>(
+            "title" to phoneInfoTitle.trim(),
+            "body" to phoneInfoBody.trim(),
+            "image_url" to imageUrl,
+            "created_at" to FieldValue.serverTimestamp()
+        )
+        db.collection("phone_information").add(values)
+            .addOnSuccessListener {
+                phoneInfoTitle = ""
+                phoneInfoBody = ""
+                phoneInfoImage = null
+                phoneInfoBusy = false
+                message = "TEXNO-MƏLUMAT bölməsində paylaşıldı."
+            }
+            .addOnFailureListener {
+                phoneInfoBusy = false
+                error = "Paylaşmaq alınmadı: ${it.localizedMessage}"
+            }
+    }
+
+    fun savePhoneInfo() {
+        if (phoneInfoBusy) return
+        if (phoneInfoTitle.isBlank() || phoneInfoBody.isBlank()) {
+            error = "Başlıq və məlumatı yazın."
+            return
+        }
+        phoneInfoBusy = true
+        error = ""
+        val selectedImage = phoneInfoImage
+        if (selectedImage == null) {
+            publishPhoneInfo("")
+        } else {
+            message = "Şəkil yüklənir..."
+            uploadPhoneImage(context, selectedImage) { result ->
+                result.onSuccess { url -> publishPhoneInfo(url) }
+                    .onFailure {
+                        phoneInfoBusy = false
+                        error = "Şəkil yüklənmədi: ${it.localizedMessage}"
+                    }
+            }
+        }
     }
 
     fun saveSiteTexts() {
@@ -714,19 +806,21 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                             Text("TEXNO-MƏLUMAT paylaş", fontWeight = FontWeight.Bold, fontSize = 18.sp)
                             OutlinedTextField(phoneInfoTitle, { phoneInfoTitle = it }, label = { Text("Telefon modeli / başlıq") }, modifier = Modifier.fillMaxWidth())
                             OutlinedTextField(phoneInfoBody, { phoneInfoBody = it }, label = { Text("Telefon haqqında məlumat") }, modifier = Modifier.fillMaxWidth(), minLines = 4)
-                            Button(onClick = {
-                                if (phoneInfoTitle.isBlank() || phoneInfoBody.isBlank()) {
-                                    error = "Başlıq və məlumatı yazın."
-                                } else {
-                                    db.collection("phone_information").add(hashMapOf(
-                                        "title" to phoneInfoTitle.trim(),
-                                        "body" to phoneInfoBody.trim(),
-                                        "created_at" to FieldValue.serverTimestamp()
-                                    )).addOnSuccessListener {
-                                        phoneInfoTitle = ""; phoneInfoBody = ""; message = "TEXNO-MƏLUMAT bölməsində paylaşıldı."
-                                    }.addOnFailureListener { error = "Paylaşmaq alınmadı: ${it.localizedMessage}" }
-                                }
-                            }, modifier = Modifier.fillMaxWidth()) { Text("TEXNO-MƏLUMAT bölməsində paylaş") }
+                            OutlinedButton(onClick = { phoneInfoImagePicker.launch("image/*") }, modifier = Modifier.fillMaxWidth()) {
+                                Icon(Icons.Default.Image, null)
+                                Spacer(Modifier.width(8.dp))
+                                Text("Qalereyadan TEXNO-MƏLUMAT şəkli seç")
+                            }
+                            if (phoneInfoImage != null) {
+                                Text("Şəkil seçilib — paylaşım zamanı yüklənəcək", color = Color(0xFF8DE6A5), fontSize = 12.sp)
+                                AsyncImage(model = phoneInfoImage, contentDescription = "Seçilmiş TEXNO-MƏLUMAT şəkli",
+                                    modifier = Modifier.fillMaxWidth().heightIn(max = 180.dp), contentScale = ContentScale.Fit)
+                                TextButton(onClick = { phoneInfoImage = null }) { Text("Şəkli sil") }
+                            }
+                            Button(onClick = { savePhoneInfo() }, enabled = !phoneInfoBusy, modifier = Modifier.fillMaxWidth()) {
+                                if (phoneInfoBusy) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                                else Text("TEXNO-MƏLUMAT bölməsində paylaş")
+                            }
                             HorizontalDivider()
                             Text(if (editingId == null) "Proqram əlavə et" else "Proqramı redaktə et", fontWeight = FontWeight.Bold)
                             OutlinedTextField(name, { name = it }, label = { Text("Proqramın adı") }, modifier = Modifier.fillMaxWidth())
@@ -828,7 +922,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                     Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF151020)), modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text(info.title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                            Text(info.body, color = Color(0xFFD0C7DC), fontSize = 14.sp, lineHeight = 21.sp)
+                            Text(info.body, color = Color(0xFFD0C7DC), fontSize = 14.sp, lineHeight = 21.sp)\n                            if (info.imageUrl.isNotBlank()) AsyncImage(model = info.imageUrl, contentDescription = info.title, modifier = Modifier.fillMaxWidth().heightIn(max = 320.dp), contentScale = ContentScale.Fit)
                             if (loggedIn) TextButton(onClick = { db.collection("phone_information").document(info.id).delete() }) {
                                 Text("Sil", color = Color(0xFFFF7777))
                             }
