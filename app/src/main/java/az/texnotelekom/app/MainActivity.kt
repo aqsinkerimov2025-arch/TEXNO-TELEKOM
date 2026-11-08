@@ -5,8 +5,6 @@ import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -35,8 +33,6 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
-import com.google.firebase.storage.FirebaseStorage
-import java.util.UUID
 
 private val bg = Color(0xFF080610)
 private val panel = Color(0xFF151020)
@@ -61,7 +57,6 @@ class MainActivity : ComponentActivity() {
 fun TexnoTelekomApp() {
     val context = LocalContext.current
     val db = remember { FirebaseFirestore.getInstance() }
-    val storage = remember { FirebaseStorage.getInstance() }
     var query by remember { mutableStateOf("") }
     var adminOpen by remember { mutableStateOf(false) }
     var loggedIn by remember { mutableStateOf(false) }
@@ -77,14 +72,8 @@ fun TexnoTelekomApp() {
     var fileSize by remember { mutableStateOf("0 MB") }
     var editingId by remember { mutableStateOf<String?>(null) }
     var currentIcon by remember { mutableStateOf("") }
-    var pickedImage by remember { mutableStateOf<Uri?>(null) }
     var busy by remember { mutableStateOf(false) }
     val programs = remember { mutableStateListOf<AppItem>() }
-
-    val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        pickedImage = uri
-        if (uri != null) message = "Şəkil seçildi."
-    }
 
     DisposableEffect(db) {
         val listener = db.collection("programs").addSnapshotListener { snap, e ->
@@ -106,7 +95,7 @@ fun TexnoTelekomApp() {
 
     fun clearForm() {
         name = ""; category = ""; version = ""; description = ""; link = ""
-        fileSize = "0 MB"; editingId = null; currentIcon = ""; pickedImage = null
+        fileSize = "0 MB"; editingId = null; currentIcon = ""
     }
 
     fun writeProgram(iconUrl: String) {
@@ -130,16 +119,11 @@ fun TexnoTelekomApp() {
 
     fun saveProgram() {
         if (name.isBlank() || category.isBlank()) { error = "Ad və kateqoriya mütləqdir."; return }
-        error = ""; message = ""
-        val image = pickedImage
-        if (image == null) { writeProgram(currentIcon); return }
-        busy = true
-        val ref = storage.reference.child("program_icons/${UUID.randomUUID()}")
-        ref.putFile(image).continueWithTask { task ->
-            if (!task.isSuccessful) throw task.exception ?: Exception("Şəkil yüklənmədi")
-            ref.downloadUrl
-        }.addOnSuccessListener { writeProgram(it.toString()) }
-         .addOnFailureListener { error = "Storage xətası: ${it.localizedMessage}"; busy = false }
+        if (link.isNotBlank() && !link.startsWith("https://") && !link.startsWith("http://")) {
+            error = "Yükləmə linki http:// və ya https:// ilə başlamalıdır."; return
+        }
+        error = ""; message = ""; busy = true
+        writeProgram(currentIcon.trim())
     }
 
     val shown = programs.filter { (it.isActive || loggedIn) && "${it.name} ${it.category} ${it.description}".contains(query, true) }
@@ -183,10 +167,8 @@ fun TexnoTelekomApp() {
                             OutlinedTextField(description, { description = it }, label = { Text("Təsvir") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
                             OutlinedTextField(link, { link = it }, label = { Text("Yükləmə linki") }, modifier = Modifier.fillMaxWidth())
                             OutlinedTextField(fileSize, { fileSize = it }, label = { Text("Fayl ölçüsü") }, modifier = Modifier.fillMaxWidth())
-                            OutlinedButton(onClick = { imagePicker.launch("image/*") }, modifier = Modifier.fillMaxWidth()) {
-                                Icon(Icons.Default.Image, null); Spacer(Modifier.width(8.dp)); Text("Proqram şəkli seç")
-                            }
-                            if (pickedImage != null) Text("Yeni şəkil seçilib", color = Color(0xFF8DE6A5))
+                            OutlinedTextField(currentIcon, { currentIcon = it }, label = { Text("Proqram şəklinin URL linki") }, modifier = Modifier.fillMaxWidth())
+                            Text("Şəkil üçün internetdə yerləşdirilmiş birbaşa şəkil linkini yazın.", color = Color.LightGray, fontSize = 11.sp)
                             Button(onClick = { saveProgram() }, enabled = !busy && name.isNotBlank() && category.isNotBlank(), modifier = Modifier.fillMaxWidth()) {
                                 if (busy) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
                                 else Text(if (editingId == null) "Proqramı əlavə et" else "Dəyişiklikləri yadda saxla")
@@ -205,11 +187,10 @@ fun TexnoTelekomApp() {
                                         IconButton(onClick = {
                                             editingId = p.id; name = p.name; category = p.category; version = p.version
                                             description = p.description; link = p.downloadUrl; fileSize = p.fileSize
-                                            currentIcon = p.iconUrl; pickedImage = null; message = "Redaktə üçün seçildi."
+                                            currentIcon = p.iconUrl; message = "Redaktə üçün seçildi."
                                         }) { Icon(Icons.Default.Edit, null, tint = Color(0xFFD5B0FF)) }
                                         IconButton(onClick = {
                                             db.collection("programs").document(p.id).delete().addOnSuccessListener {
-                                                if (p.iconUrl.isNotBlank()) try { storage.getReferenceFromUrl(p.iconUrl).delete() } catch (_: Exception) {}
                                                 if (editingId == p.id) clearForm()
                                                 message = "Proqram silindi."
                                             }.addOnFailureListener { error = "Silmək alınmadı: ${it.localizedMessage}" }
