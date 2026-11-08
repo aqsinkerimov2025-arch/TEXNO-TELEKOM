@@ -19,7 +19,7 @@ input:focus,select:focus,textarea:focus{border-color:#b35bff;box-shadow:0 0 0 3p
 .btn.ghost{background:linear-gradient(110deg,#8a5b12,#f4d477,#a8751d);border:1px solid #f3d47b;color:#382507}.btn.danger{background:linear-gradient(110deg,#8a5b12,#f4d477,#a8751d);border:1px solid #f3d47b;color:#382507}
 .section-title{font-size:17px;margin:20px 0 12px;color:#e9ddff}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:13px}
-.app{background:linear-gradient(145deg,var(--panel),#0d0915);border:1px solid var(--line);border-radius:19px;padding:15px;box-shadow:0 8px 28px #0005;min-width:0}
+.btn:not(.ghost):not(.danger){background:linear-gradient(100deg,var(--accent),#a13df4,#ed35b2)}\n.app{background:linear-gradient(145deg,var(--panel),#0d0915);border:1px solid var(--line);border-radius:19px;padding:15px;box-shadow:0 8px 28px #0005;min-width:0}
 .app-top{display:flex;gap:12px;align-items:center}.app-icon{width:54px;height:54px;flex:0 0 54px;border-radius:15px;object-fit:cover;background:#21162f;border:1px solid #51356d}
 .app-icon.fallback{display:grid;place-items:center;font-size:23px;color:#d9baff}
 .app h3{font-size:16px;margin:0;overflow-wrap:anywhere}.meta{color:#aa9bbd;font-size:12px;margin-top:3px}
@@ -82,7 +82,7 @@ footer{text-align:center;color:#756a83;padding:25px;font-size:12px}\n.post-card{
 <div class="actions" style="margin-bottom:24px"><button class="btn" id="saveTexts">Yazıları yadda saxla</button></div>\n<h2>Canlı dizayn idarəetməsi</h2><p class="hint">Rəng və premium kart dəyişiklikləri tətbiqdə və saytda eyni vaxtda görünəcək.</p><div class="form-grid"><div class="field"><label>Arxa fon rəngi (#RRGGBB)</label><input id="designBg" value="#080610"></div><div class="field"><label>Kart rəngi (#RRGGBB)</label><input id="designPanel" value="#100b1b"></div><div class="field"><label>Əsas vurğu rəngi (#RRGGBB)</label><input id="designAccent" value="#9250ff"></div><div class="field"><label><input id="designGold" type="checkbox" style="width:auto" checked> Qızılı premium kart dizaynı</label></div></div><button class="btn" id="saveDesign" style="margin-top:12px">Dizaynı hamıda yenilə</button><p class="hint" id="designNotice"></p>
 <hr style="border-color:#352347;margin:18px 0">
 <hr style="border-color:#352347;margin:18px 0">
-<div id="channelPostAdmin" hidden>
+<div id="channelPostAdmin">
 <h2>Kanal paylaşımı əlavə et</h2>
 <div class="form-grid">
 <div class="field full"><label>Paylaşımın adı *</label><input id="postTitle" placeholder="Məsələn: Ghosty Gizli Profil Baxmaq"></div>
@@ -132,7 +132,7 @@ footer{text-align:center;color:#756a83;padding:25px;font-size:12px}\n.post-card{
 <p class="info-line" id="infoLine3">3️⃣ ŞİKAYƏT VƏ REKLAM ÜÇÜN ƏLAQƏ</p>
 
 </section>
-<section id="posts"><h2 class="catalog-heading">Kanal paylaşımları</h2></section>
+<section><h2 class="catalog-heading">Kanal paylaşımları</h2><div id="posts"></div></section>
 <section id="phoneInfoHome" style="margin:24px 0">
 <button class="phone-info-entry" id="openPhoneInfo"><span><strong>✦ TEXNO-MƏLUMAT</strong><small>Telefonlar haqqında məlumatları oxumaq üçün bölməyə daxil olun</small></span><span class="entry-icon">➜</span></button>
 </section>
