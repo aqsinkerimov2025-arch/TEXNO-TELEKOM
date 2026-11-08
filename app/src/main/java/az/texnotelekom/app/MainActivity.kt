@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -187,15 +188,48 @@ fun TexnoTelekomApp() {
             Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color(0xFF251039), bg, bg)))
                 .verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)
         ) {
-            Spacer(Modifier.height(24.dp))
-            Text("TEXNO-TELEKOM", color = Color(0xFFCA9BFF), fontSize = 29.sp, fontWeight = FontWeight.Black, modifier = Modifier.align(Alignment.CenterHorizontally))
-            Text("PREMIUM • PRO • TEXNOLOGİYA", color = Color.LightGray, fontSize = 11.sp, modifier = Modifier.align(Alignment.CenterHorizontally))
-            Spacer(Modifier.height(12.dp))
-            TexnoTelekomLogo()
-            Spacer(Modifier.height(18.dp))
-            OutlinedButton(onClick = { adminOpen = !adminOpen; error = ""; message = "" }, modifier = Modifier.fillMaxWidth()) {
-                Text(if (adminOpen) "Admin panelini bağla" else "Admin paneli")
+            Spacer(Modifier.height(28.dp))
+            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                TexnoTelekomLogo()
             }
+            Spacer(Modifier.height(30.dp))
+            OutlinedButton(
+                onClick = { adminOpen = !adminOpen; error = ""; message = "" },
+                modifier = Modifier.fillMaxWidth().height(92.dp),
+                shape = RoundedCornerShape(30.dp),
+                border = androidx.compose.foundation.BorderStroke(2.dp, accent),
+                contentPadding = PaddingValues(horizontal = 22.dp, vertical = 12.dp)
+            ) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        if (adminOpen) "Admin panelini bağla" else "Admin paneli",
+                        color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Text("+", color = accent, fontSize = 38.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+            Spacer(Modifier.height(42.dp))
+            Text(
+                "TEXNO-TELEKOM",
+                style = TextStyle(brush = Brush.horizontalGradient(listOf(Color(0xFF557CFF), Color(0xFFB63CDB)))),
+                fontSize = 31.sp, fontWeight = FontWeight.Black,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
+            Spacer(Modifier.height(36.dp))
+            Text(
+                "✅ TEXNO-TELEKOM RƏSMİ SAYTINA XOŞ GƏLMİSİNİZ...",
+                color = Color.White, fontSize = 19.sp, lineHeight = 27.sp,
+                fontWeight = FontWeight.ExtraBold
+            )
+            Spacer(Modifier.height(28.dp))
+            HorizontalDivider(color = Color(0xFF40334D), thickness = 1.dp)
+            Spacer(Modifier.height(28.dp))
+            Text(
+                "TEXNO-TELEKOM RƏSMİ SAYT MƏRKƏZİ",
+                color = Color.White, fontSize = 21.sp, lineHeight = 29.sp,
+                fontWeight = FontWeight.ExtraBold
+            )
 
             if (adminOpen) {
                 Card(colors = CardDefaults.cardColors(containerColor = panel), modifier = Modifier.fillMaxWidth()) {
