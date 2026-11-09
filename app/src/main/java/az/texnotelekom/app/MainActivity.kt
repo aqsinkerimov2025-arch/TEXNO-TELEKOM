@@ -117,6 +117,120 @@ private fun uploadPhoneImage(context: Context, uri: Uri, callback: (Result<Strin
     }.start()
 }
 
+
+private data class StickerUpload(val url: String, val mimeType: String, val fileName: String)
+
+private fun clipboardStickerUri(context: Context): Uri? {
+    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+    val clip = clipboard.primaryClip ?: return null
+    for (i in 0 until clip.itemCount) {
+        val item = clip.getItemAt(i)
+        if (item.uri != null) return item.uri
+        val text = item.text?.toString()?.trim().orEmpty()
+        if (text.startsWith("content://") || text.startsWith("https://") || text.startsWith("http://")) {
+            runCatching { Uri.parse(text) }.getOrNull()?.let { return it }
+        }
+    }
+    return null
+}
+
+private fun uploadStickerMedia(context: Context, uri: Uri, callback: (Result<StickerUpload>) -> Unit) {
+    Thread {
+        try {
+            var fileName = "telegram-sticker"
+            context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+                val index = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                if (cursor.moveToFirst() && index >= 0) fileName = cursor.getString(index) ?: fileName
+            }
+            val mime = context.contentResolver.getType(uri) ?: when {
+                fileName.endsWith(".tgs", true) -> "application/gzip"
+                fileName.endsWith(".webm", true) -> "video/webm"
+                fileName.endsWith(".gif", true) -> "image/gif"
+                fileName.endsWith(".webp", true) -> "image/webp"
+                else -> "application/octet-stream"
+            }
+            val extension = fileName.substringAfterLast('.', "").lowercase()
+            val resource = when {
+                extension == "tgs" || mime == "application/gzip" -> "raw"
+                extension == "webm" || mime.startsWith("video/") -> "video"
+                else -> "image"
+            }
+            val boundary = "----TexnoSticker" + UUID.randomUUID().toString().replace("-", "")
+            val connection = (URL("https://api.cloudinary.com/v1_1/$CLOUDINARY_CLOUD/$resource/upload").openConnection() as HttpURLConnection).apply {
+                requestMethod = "POST"; doOutput = true
+                connectTimeout = 30000; readTimeout = 180000
+                setRequestProperty("Content-Type", "multipart/form-data; boundary=$boundary")
+                setChunkedStreamingMode(65536)
+            }
+            connection.outputStream.use { output ->
+                fun field(name: String, value: String) {
+                    output.write("--$boundary\r\nContent-Disposition: form-data; name=\"$name\"\r\n\r\n$value\r\n".toByteArray(Charsets.UTF_8))
+                }
+                field("upload_preset", CLOUDINARY_PRESET)
+                output.write("--$boundary\r\nContent-Disposition: form-data; name=\"file\"; filename=\"$fileName\"\r\nContent-Type: $mime\r\n\r\n".toByteArray(Charsets.UTF_8))
+                val input = context.contentResolver.openInputStream(uri) ?: throw Exception("Stiker faylı oxunmadı.")
+                input.use { stream ->
+                    val buffer = ByteArray(65536)
+                    while (true) { val count = stream.read(buffer); if (count < 0) break; output.write(buffer, 0, count) }
+                }
+                output.write("\r\n--$boundary--\r\n".toByteArray(Charsets.UTF_8))
+                val code = connection.responseCode
+                val response = (if (code in 200..299) connection.inputStream else connection.errorStream)?.bufferedReader()?.use { it.readText() } ?: ""
+                if (code !in 200..299) throw Exception("Stiker yüklənmədi ($code): $response")
+                val json = JSONObject(response)
+                val secureUrl = json.optString("secure_url")
+                if (secureUrl.isBlank()) throw Exception("Stiker linki alınmadı.")
+                Handler(Looper.getMainLooper()).post { callback(Result.success(StickerUpload(secureUrl, mime, fileName))) }
+            }
+            connection.disconnect()
+        } catch (e: Exception) {
+            Handler(Looper.getMainLooper()).post { callback(Result.failure(e)) }
+        }
+    }.start()
+}
+
+@Composable
+private fun StickerPreview(url: String, mimeType: String, modifier: Modifier = Modifier) {
+    if (url.isBlank()) return
+    if (mimeType.startsWith("video/") || url.contains(".webm", true)) {
+        val context = LocalContext.current
+        val player = remember(url) {
+            androidx.media3.exoplayer.ExoPlayer.Builder(context).build().apply {
+                setMediaItem(androidx.media3.common.MediaItem.fromUri(url))
+                repeatMode = androidx.media3.common.Player.REPEAT_MODE_ONE
+                volume = 0f
+                prepare()
+                playWhenReady = true
+            }
+        }
+        DisposableEffect(player) { onDispose { player.release() } }
+        androidx.compose.ui.viewinterop.AndroidView(
+            factory = { viewContext ->
+                androidx.media3.ui.PlayerView(viewContext).apply {
+                    this.player = player
+                    useController = false
+                    setShutterBackgroundColor(android.graphics.Color.TRANSPARENT)
+                }
+            },
+            modifier = modifier
+        )
+    } else {
+        val context = LocalContext.current
+        val imageLoader = remember(context) {
+            coil.ImageLoader.Builder(context)
+                .components { add(coil.decode.GifDecoder.Factory()) }
+                .build()
+        }
+        AsyncImage(
+            model = url,
+            imageLoader = imageLoader,
+            contentDescription = "Hərəkətli stiker",
+            modifier = modifier,
+            contentScale = ContentScale.Fit
+        )
+    }
+}
+
 private fun uploadApk(context: Context, uri: Uri, callback: (Result<Pair<String, Long>>) -> Unit) {
     Thread {
         try {
@@ -183,7 +297,7 @@ data class ChannelPost(
     val description: String, val features: String, val downloadUrl: String,
     val fileSize: String, val androidRequirement: String, val channelUrl: String
 )
-data class PhoneInfo(val id: String, val title: String, val body: String, val imageUrl: String)
+data class PhoneInfo(val id: String, val title: String, val body: String, val imageUrl: String, val stickerUrl: String, val stickerMime: String)
 
 
 @Composable
@@ -318,7 +432,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     var showPhoneInfo by remember { mutableStateOf(false) }
     var phoneInfoTitle by remember { mutableStateOf("") }
     var phoneInfoBody by remember { mutableStateOf("") }
-    var phoneInfoImage by remember { mutableStateOf<Uri?>(null) }
+    var phoneInfoImage by remember { mutableStateOf<Uri?>(null) }\n    var phoneInfoSticker by remember { mutableStateOf<Uri?>(null) }\n    var phoneInfoStickerBusy by remember { mutableStateOf(false) }
     var phoneInfoBusy by remember { mutableStateOf(false) }
     var adminOpen by remember { mutableStateOf(false) }
     var designAdminOpen by remember { mutableStateOf(false) }
@@ -337,7 +451,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     var name by remember { mutableStateOf("") }
     var category by remember { mutableStateOf("") }
     var version by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
+    var description by remember { mutableStateOf("") }\n    var programSticker by remember { mutableStateOf<Uri?>(null) }\n    var programStickerBusy by remember { mutableStateOf(false) }\n    var currentProgramStickerUrl by remember { mutableStateOf("") }\n    var currentProgramStickerMime by remember { mutableStateOf("") }
     var link by remember { mutableStateOf("") }
     var fileSize by remember { mutableStateOf("0 MB") }
     var editingId by remember { mutableStateOf<String?>(null) }
@@ -386,7 +500,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
         if (uri != null) message = "TEXNO-MƏLUMAT şəkli seçildi."
     }
 
-    val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+    val phoneStickerPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri -> phoneInfoSticker = uri; if (uri != null) message = "TEXNO-MƏLUMAT stikeri seçildi." }\n    val programStickerPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri -> programSticker = uri; if (uri != null) message = "Proqram stikeri seçildi." }\n\n    val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         pickedImage = uri
         if (uri != null) message = "Şəkil qalereyadan seçildi."
     }
@@ -475,7 +589,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
             .addOnFailureListener { error = "Dizayn yadda saxlanmadı: ${it.localizedMessage}" }
     }
 
-    fun publishPhoneInfo(imageUrl: String) {
+    var phoneInfoStickerUrlPending by remember { mutableStateOf("") }\n    var phoneInfoStickerMimePending by remember { mutableStateOf("") }\n\n    fun publishPhoneInfo(imageUrl: String) {
         val values = hashMapOf<String, Any>(
             "title" to phoneInfoTitle.trim(),
             "body" to phoneInfoBody.trim(),
@@ -510,7 +624,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
         } else {
             message = "Şəkil yüklənir..."
             uploadPhoneImage(context, selectedImage) { result ->
-                result.onSuccess { url -> publishPhoneInfo(url) }
+                result.onSuccess { url -> finishWithImage(url) }
                     .onFailure {
                         phoneInfoBusy = false
                         error = "Şəkil yüklənmədi: ${it.localizedMessage}"
@@ -537,7 +651,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
 
     fun clearForm() {
         name = ""; category = ""; version = ""; description = ""; link = ""
-        fileSize = "0 MB"; editingId = null; currentIcon = ""; pickedImage = null
+        fileSize = "0 MB"; editingId = null; currentIcon = ""; pickedImage = null; programSticker = null; currentProgramStickerUrl = ""; currentProgramStickerMime = ""
     }
 
     fun clearPostForm() {
@@ -596,7 +710,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
         val values = hashMapOf<String, Any>(
             "name" to name.trim(), "category" to category.trim(), "version" to version.trim(),
             "description" to description.trim(), "download_url" to link.trim(),
-            "icon_url" to iconUrl, "is_active" to true, "file_size" to fileSize.trim(),
+            "icon_url" to iconUrl, "sticker_url" to currentProgramStickerUrl, "sticker_mime" to currentProgramStickerMime, "is_active" to true, "file_size" to fileSize.trim(),
             "updated_at" to FieldValue.serverTimestamp()
         )
         val id = editingId
@@ -792,7 +906,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                             HorizontalDivider()
                             Text("TEXNO-MƏLUMAT paylaş", fontWeight = FontWeight.Bold, fontSize = 18.sp)
                             OutlinedTextField(phoneInfoTitle, { phoneInfoTitle = it }, label = { Text("Telefon modeli / başlıq") }, modifier = Modifier.fillMaxWidth())
-                            OutlinedTextField(phoneInfoBody, { phoneInfoBody = it }, label = { Text("Telefon haqqında məlumat") }, modifier = Modifier.fillMaxWidth(), minLines = 4)
+                            OutlinedTextField(phoneInfoBody, { phoneInfoBody = it }, label = { Text("Telefon haqqında məlumat") }, modifier = Modifier.fillMaxWidth(), minLines = 4)\n                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {\n                                OutlinedButton(onClick = { clipboardStickerUri(context)?.let { phoneInfoSticker = it; message = "Clipboard-dan stiker götürüldü." } ?: run { error = "Clipboard-da media stiker tapılmadı. Telegram-dan faylı paylaşın və ya seçin." } }, modifier = Modifier.weight(1f)) { Text("YAPIŞDIR") }\n                                OutlinedButton(onClick = { phoneStickerPicker.launch("*/*") }, modifier = Modifier.weight(1f)) { Text("STİKER SEÇ") }\n                            }\n                            if (phoneInfoSticker != null) { Text("Stiker əlavə olunub", color = Color(0xFF8DE6A5)); TextButton(onClick = { phoneInfoSticker = null }) { Text("Stikeri sil") } }
                             OutlinedButton(onClick = { phoneInfoImagePicker.launch("image/*") }, modifier = Modifier.fillMaxWidth()) {
                                 Icon(Icons.Default.Image, null)
                                 Spacer(Modifier.width(8.dp))
@@ -813,7 +927,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                             OutlinedTextField(name, { name = it }, label = { Text("Proqramın adı") }, modifier = Modifier.fillMaxWidth())
                             OutlinedTextField(category, { category = it }, label = { Text("Kateqoriya") }, modifier = Modifier.fillMaxWidth())
                             OutlinedTextField(version, { version = it }, label = { Text("Versiya") }, modifier = Modifier.fillMaxWidth())
-                            OutlinedTextField(description, { description = it }, label = { Text("Təsvir") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
+                            OutlinedTextField(description, { description = it }, label = { Text("Təsvir") }, modifier = Modifier.fillMaxWidth(), minLines = 2)\n                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {\n                                OutlinedButton(onClick = { clipboardStickerUri(context)?.let { programSticker = it; message = "Clipboard-dan stiker götürüldü." } ?: run { error = "Clipboard-da media stiker tapılmadı. Telegram-dan faylı paylaşın və ya seçin." } }, modifier = Modifier.weight(1f)) { Text("YAPIŞDIR") }\n                                OutlinedButton(onClick = { programStickerPicker.launch("*/*") }, modifier = Modifier.weight(1f)) { Text("STİKER SEÇ") }\n                            }\n                            if (programSticker != null || currentProgramStickerUrl.isNotBlank()) { Text("Stiker əlavə olunub", color = Color(0xFF8DE6A5)); TextButton(onClick = { programSticker = null; currentProgramStickerUrl = ""; currentProgramStickerMime = "" }) { Text("Stikeri sil") } }
                             OutlinedTextField(link, { link = it }, label = { Text("Yükləmə linki") }, modifier = Modifier.fillMaxWidth())
                             OutlinedTextField(fileSize, { fileSize = it }, label = { Text("Fayl ölçüsü") }, modifier = Modifier.fillMaxWidth())
                             OutlinedButton(onClick = { imagePicker.launch("image/*") }, modifier = Modifier.fillMaxWidth()) {
@@ -928,7 +1042,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text(info.title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                             Text(info.body, color = Color(0xFFD0C7DC), fontSize = 14.sp, lineHeight = 21.sp)
-                            if (info.imageUrl.isNotBlank()) AsyncImage(model = info.imageUrl, contentDescription = info.title, modifier = Modifier.fillMaxWidth().heightIn(max = 320.dp), contentScale = ContentScale.Fit)
+                            if (info.imageUrl.isNotBlank()) AsyncImage(model = info.imageUrl, contentDescription = info.title, modifier = Modifier.fillMaxWidth().heightIn(max = 320.dp), contentScale = ContentScale.Fit)\n                            if (info.stickerUrl.isNotBlank()) StickerPreview(info.stickerUrl, info.stickerMime, Modifier.fillMaxWidth().height(220.dp))
                             if (loggedIn) TextButton(onClick = { db.collection("phone_information").document(info.id).delete() }) {
                                 Text("Sil", color = Color(0xFFFF7777))
                             }
@@ -1014,7 +1128,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                 )
                             }
                         }
-                        Text(p.description, color = if (isGoldBankCard) Color(0xFF4A310B) else Color(0xFFD0C7DC), fontSize = 14.sp, lineHeight = 20.sp)
+                        Text(p.description, color = if (isGoldBankCard) Color(0xFF4A310B) else Color(0xFFD0C7DC), fontSize = 14.sp, lineHeight = 20.sp)\n                        if (p.stickerUrl.isNotBlank()) StickerPreview(p.stickerUrl, p.stickerMime, Modifier.fillMaxWidth().height(220.dp))
                         Row(
                             Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically,
