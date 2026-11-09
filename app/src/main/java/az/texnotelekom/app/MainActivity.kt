@@ -36,6 +36,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
@@ -52,6 +53,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.Placeholder
+import androidx.compose.ui.text.PlaceholderVerticalAlign
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.appendInlineContent
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -187,6 +192,28 @@ private fun uploadStickerMedia(context: Context, uri: Uri, callback: (Result<Sti
             Handler(Looper.getMainLooper()).post { callback(Result.failure(e)) }
         }
     }.start()
+}
+
+private const val INLINE_STICKER_TOKEN = "[[STIKER]]"
+private const val INLINE_STICKER_ID = "texno_inline_sticker"
+
+@Composable
+private fun TextWithInlineSticker(value: String, stickerUrl: String, stickerMime: String, color: Color, fontSize: androidx.compose.ui.unit.TextUnit, lineHeight: androidx.compose.ui.unit.TextUnit) {
+    if (stickerUrl.isBlank() || !value.contains(INLINE_STICKER_TOKEN)) {
+        Text(value.replace(INLINE_STICKER_TOKEN, ""), color = color, fontSize = fontSize, lineHeight = lineHeight)
+        return
+    }
+    val annotated = buildAnnotatedString {
+        val parts = value.split(INLINE_STICKER_TOKEN)
+        parts.forEachIndexed { index, part ->
+            append(part)
+            if (index < parts.lastIndex) appendInlineContent(INLINE_STICKER_ID, "[stiker]")
+        }
+    }
+    val inline = mapOf(INLINE_STICKER_ID to InlineTextContent(Placeholder(1.6.em, 1.6.em, PlaceholderVerticalAlign.Center)) {
+        StickerPreview(stickerUrl, stickerMime, Modifier.fillMaxSize())
+    })
+    Text(annotated, inlineContent = inline, color = color, fontSize = fontSize, lineHeight = lineHeight)
 }
 
 @Composable
@@ -995,7 +1022,13 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                 OutlinedButton(onClick = { clipboardStickerUri(context)?.let { phoneInfoSticker = it; message = "Clipboard-dan stiker götürüldü." } ?: run { error = "Clipboard-da media stiker tapılmadı. Telegram-dan faylı paylaşın və ya seçin." } }, modifier = Modifier.weight(1f)) { Text("YAPIŞDIR") }
                                 OutlinedButton(onClick = { phoneStickerPicker.launch("*/*") }, modifier = Modifier.weight(1f)) { Text("STİKER SEÇ") }
                             }
-                            if (phoneInfoSticker != null) { Text("Stiker əlavə olunub", color = Color(0xFF8DE6A5)); TextButton(onClick = { phoneInfoSticker = null }) { Text("Stikeri sil") } }
+                            if (phoneInfoSticker != null) {
+                                Text("Stiker əlavə olunub", color = Color(0xFF8DE6A5))
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    TextButton(onClick = { phoneInfoBody += if (phoneInfoBody.isBlank()) INLINE_STICKER_TOKEN else " $INLINE_STICKER_TOKEN" }) { Text("MƏTNƏ YERLƏŞDİR") }
+                                    TextButton(onClick = { phoneInfoSticker = null; phoneInfoBody = phoneInfoBody.replace(INLINE_STICKER_TOKEN, "") }) { Text("Stikeri sil") }
+                                }
+                            }
                             OutlinedButton(onClick = { phoneInfoImagePicker.launch("image/*") }, modifier = Modifier.fillMaxWidth()) {
                                 Icon(Icons.Default.Image, null)
                                 Spacer(Modifier.width(8.dp))
@@ -1021,7 +1054,13 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                 OutlinedButton(onClick = { clipboardStickerUri(context)?.let { programSticker = it; message = "Clipboard-dan stiker götürüldü." } ?: run { error = "Clipboard-da media stiker tapılmadı. Telegram-dan faylı paylaşın və ya seçin." } }, modifier = Modifier.weight(1f)) { Text("YAPIŞDIR") }
                                 OutlinedButton(onClick = { programStickerPicker.launch("*/*") }, modifier = Modifier.weight(1f)) { Text("STİKER SEÇ") }
                             }
-                            if (programSticker != null || currentProgramStickerUrl.isNotBlank()) { Text("Stiker əlavə olunub", color = Color(0xFF8DE6A5)); TextButton(onClick = { programSticker = null; currentProgramStickerUrl = ""; currentProgramStickerMime = "" }) { Text("Stikeri sil") } }
+                            if (programSticker != null || currentProgramStickerUrl.isNotBlank()) {
+                                Text("Stiker əlavə olunub", color = Color(0xFF8DE6A5))
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    TextButton(onClick = { description += if (description.isBlank()) INLINE_STICKER_TOKEN else " $INLINE_STICKER_TOKEN" }) { Text("MƏTNƏ YERLƏŞDİR") }
+                                    TextButton(onClick = { programSticker = null; currentProgramStickerUrl = ""; currentProgramStickerMime = ""; description = description.replace(INLINE_STICKER_TOKEN, "") }) { Text("Stikeri sil") }
+                                }
+                            }
                             OutlinedTextField(link, { link = it }, label = { Text("Yükləmə linki") }, modifier = Modifier.fillMaxWidth())
                             OutlinedTextField(fileSize, { fileSize = it }, label = { Text("Fayl ölçüsü") }, modifier = Modifier.fillMaxWidth())
                             OutlinedButton(onClick = { imagePicker.launch("image/*") }, modifier = Modifier.fillMaxWidth()) {
@@ -1135,9 +1174,9 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                     Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF151020)), modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text(info.title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                            Text(info.body, color = Color(0xFFD0C7DC), fontSize = 14.sp, lineHeight = 21.sp)
+                            TextWithInlineSticker(info.body, info.stickerUrl, info.stickerMime, Color(0xFFD0C7DC), 14.sp, 21.sp)
                             if (info.imageUrl.isNotBlank()) AsyncImage(model = info.imageUrl, contentDescription = info.title, modifier = Modifier.fillMaxWidth().heightIn(max = 320.dp), contentScale = ContentScale.Fit)
-                            if (info.stickerUrl.isNotBlank()) StickerPreview(info.stickerUrl, info.stickerMime, Modifier.fillMaxWidth().height(220.dp))
+                            if (info.stickerUrl.isNotBlank() && !info.body.contains(INLINE_STICKER_TOKEN)) StickerPreview(info.stickerUrl, info.stickerMime, Modifier.fillMaxWidth().height(220.dp))
                             if (loggedIn) TextButton(onClick = { db.collection("phone_information").document(info.id).delete() }) {
                                 Text("Sil", color = Color(0xFFFF7777))
                             }
@@ -1223,8 +1262,8 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                 )
                             }
                         }
-                        Text(p.description, color = if (isGoldBankCard) Color(0xFF4A310B) else Color(0xFFD0C7DC), fontSize = 14.sp, lineHeight = 20.sp)
-                        if (p.stickerUrl.isNotBlank()) StickerPreview(p.stickerUrl, p.stickerMime, Modifier.fillMaxWidth().height(220.dp))
+                        TextWithInlineSticker(p.description, p.stickerUrl, p.stickerMime, if (isGoldBankCard) Color(0xFF4A310B) else Color(0xFFD0C7DC), 14.sp, 20.sp)
+                        if (p.stickerUrl.isNotBlank() && !p.description.contains(INLINE_STICKER_TOKEN)) StickerPreview(p.stickerUrl, p.stickerMime, Modifier.fillMaxWidth().height(220.dp))
                         Row(
                             Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically,
