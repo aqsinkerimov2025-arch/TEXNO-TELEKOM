@@ -76,7 +76,7 @@ footer{text-align:center;color:#756a83;padding:25px;font-size:12px}
 <div class="maintenance-notice" role="status" aria-live="polite"><strong>Hörmətli Əziz Dostlar</strong><span>Saytımızda təmir işləri getdiyinə görə saytımız müvəqqəti bağlanıb. Narahatçılığa görə üzr istəyirik.</span></div>
 <main>
 <section class="admin" id="admin">
-<div id="adminLogin" style="margin-bottom:18px"><h2>Admin girişi</h2><div class="form-grid"><div class="field full"><label>E-poçt</label><input id="adminEmail" type="email" value="aqsin.kerimov.2025@gmail.com"></div><div class="field full"><label>Şifrə</label><input id="adminPassword" type="password" placeholder="Admin şifrəsi"></div></div><button class="btn" id="adminLoginBtn" style="margin-top:12px">Daxil ol</button><p class="hint" id="loginNotice"></p></div><div id="adminEditor" hidden><button class="btn ghost" id="adminLogoutBtn" style="margin-bottom:14px">Admin hesabından çıxış</button><h2>Sayt yazılarını düzəlt</h2>
+<div id="adminLogin" style="margin-bottom:18px"><h2>Admin girişi</h2><div class="form-grid"><div class="field full"><label>E-poçt</label><input id="adminEmail" type="email" value="aqsin.kerimov.2025@gmail.com"></div><div class="field full"><label>Şifrə</label><input id="adminPassword" type="password" placeholder="Admin şifrəsi"></div></div><button class="btn" id="adminLoginBtn" style="margin-top:12px">Daxil ol</button><p class="hint" id="loginNotice"></p></div><div id="adminEditor" hidden><button class="btn ghost" id="adminLogoutBtn" style="margin-bottom:14px">Admin hesabından çıxış</button><button class="btn" id="openDesignAdmin" style="margin:0 0 18px">Canlı dizayn bölməsi</button><h2>Sayt yazılarını düzəlt</h2>
 <div class="form-grid" style="margin-bottom:22px">
 <div class="field full"><label>Əsas başlıq</label><input id="editHeroTitle"></div>
 <div class="field full"><label>Qarşılama yazısı</label><textarea id="editWelcome"></textarea></div>
@@ -87,7 +87,6 @@ footer{text-align:center;color:#756a83;padding:25px;font-size:12px}
 <div class="field full"><label>WhatsApp nömrəsi</label><input id="editPhone" placeholder="+994..."></div>
 </div>
 <div class="actions" style="margin-bottom:24px"><button class="btn" id="saveTexts">Yazıları yadda saxla</button></div>
-<h2>Canlı dizayn idarəetməsi</h2><p class="hint">Rəng və premium kart dəyişiklikləri tətbiqdə və saytda eyni vaxtda görünəcək.</p><div class="form-grid"><div class="field"><label>Arxa fon rəngi (#RRGGBB)</label><input id="designBg" value="#080610"></div><div class="field"><label>Kart rəngi (#RRGGBB)</label><input id="designPanel" value="#100b1b"></div><div class="field"><label>Əsas vurğu rəngi (#RRGGBB)</label><input id="designAccent" value="#9250ff"></div><div class="field"><label><input id="designGold" type="checkbox" style="width:auto" checked> Qızılı premium kart dizaynı</label></div></div><button class="btn" id="saveDesign" style="margin-top:12px">Dizaynı hamıda yenilə</button><p class="hint" id="designNotice"></p>
 <hr style="border-color:#352347;margin:18px 0">
 <hr style="border-color:#352347;margin:18px 0">
 <hr style="border-color:#352347;margin:18px 0">
@@ -113,6 +112,12 @@ footer{text-align:center;color:#756a83;padding:25px;font-size:12px}
 <div class="actions" style="margin-top:14px"><button class="btn" id="save">Yadda saxla</button><button class="btn ghost" id="cancel">Təmizlə</button></div>
 <p class="hint" id="notice"></p>
 </div>
+<div id="designAdminSection" hidden style="margin-top:18px;padding:16px;border:1px solid #69478a;border-radius:18px;background:#100b1b">
+<button class="btn ghost" id="closeDesignAdmin">← Admin panelinə qayıt</button>
+<h2>Canlı dizayn idarəetməsi</h2><p class="hint">Bu bölmə yalnız admin hesabında görünür. Rəng və premium kart dəyişiklikləri bütün istifadəçilərə tətbiq olunur.</p>
+<div class="form-grid"><div class="field"><label>Arxa fon rəngi (#RRGGBB)</label><input id="designBg" value="#080610"></div><div class="field"><label>Kart rəngi (#RRGGBB)</label><input id="designPanel" value="#100b1b"></div><div class="field"><label>Əsas vurğu rəngi (#RRGGBB)</label><input id="designAccent" value="#9250ff"></div><div class="field"><label><input id="designGold" type="checkbox" style="width:auto" checked> Qızılı premium kart dizaynı</label></div></div>
+<button class="btn" id="saveDesign" style="margin-top:12px">Dizaynı hamıda yenilə</button><p class="hint" id="designNotice"></p>
+</div></div>
 </section>
 <section class="hero" id="heroSection">
 <p class="welcome" id="welcomeText">✅TEXNO-TELEKOM RƏSMİ SAYTINA XOŞ GƏLMİSİNİZ...</p>
@@ -189,7 +194,7 @@ function renderPosts(){
 }
 window.editApp=id=>{const x=programs.find(a=>a.id===id);if(!x)return;editingId=id;['name','category','version','description'].forEach(k=>$(k).value=x[k]||'');$('download').value=x.download_url||'';$('fileSize').value=x.file_size||'0 MB';selectedImage=x.icon_url||'';const src=iconSrc(selectedImage);if(src){$('preview').src=src;$('preview').style.display='block'}$('admin').classList.add('open');$('notice').textContent='Redaktə rejimi'};
 window.deleteApp=async id=>{if(confirm('Bu proqramı silmək istəyirsiniz?')){try{await db.collection('programs').doc(id).delete()}catch(e){$('notice').textContent='Silmək alınmadı: '+e.message}}};
-auth.onAuthStateChanged(user=>{$('adminLogin').hidden=!!user;$('adminEditor').hidden=!user;render()});
+const ADMIN_UID='FflCErahavNIb8ZXsvHIyrxZYZH3';\nauth.onAuthStateChanged(user=>{const owner=!!user&&user.uid===ADMIN_UID;$('adminLogin').hidden=owner;$('adminEditor').hidden=!owner;$('designAdminSection').hidden=true;if(user&&!owner){auth.signOut();$('loginNotice').textContent='Bu bölməyə yalnız admin daxil ola bilər.'}render()});\n$('openDesignAdmin').onclick=()=>{$('adminEditor').hidden=true;$('designAdminSection').hidden=false};\n$('closeDesignAdmin').onclick=()=>{$('designAdminSection').hidden=true;$('adminEditor').hidden=false};
 $('adminLoginBtn').onclick=async()=>{try{await auth.signInWithEmailAndPassword($('adminEmail').value.trim(),$('adminPassword').value);$('loginNotice').textContent='Giriş uğurludur.'}catch(e){$('loginNotice').textContent='Giriş alınmadı: '+e.message}};
 $('adminLogoutBtn').onclick=()=>auth.signOut();
 db.collection('site_settings').doc('content').onSnapshot(s=>{if(s.exists){const data=s.data();const t={...defaultTexts,...data};localStorage.setItem(TEXT_KEY,JSON.stringify(t));applyTexts();applyLiveDesign(data)}});
