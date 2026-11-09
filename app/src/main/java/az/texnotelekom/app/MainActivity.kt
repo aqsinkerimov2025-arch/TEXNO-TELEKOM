@@ -192,7 +192,33 @@ private fun uploadStickerMedia(context: Context, uri: Uri, callback: (Result<Sti
 @Composable
 private fun StickerPreview(url: String, mimeType: String, modifier: Modifier = Modifier) {
     if (url.isBlank()) return
-    if (mimeType.startsWith("video/") || url.contains(".webm", true)) {
+    if (url.contains(".tgs", true) || mimeType == "application/gzip") {
+        var composition by remember(url) { mutableStateOf<com.airbnb.lottie.LottieComposition?>(null) }
+        var failed by remember(url) { mutableStateOf(false) }
+        LaunchedEffect(url) {
+            try {
+                val json = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    java.net.URL(url).openStream().use { stream ->
+                        java.util.zip.GZIPInputStream(stream).bufferedReader(Charsets.UTF_8).use { it.readText() }
+                    }
+                }
+                composition = com.airbnb.lottie.LottieCompositionFactory.fromJsonStringSync(json, url).value
+                if (composition == null) failed = true
+            } catch (_: Exception) { failed = true }
+        }
+        val current = composition
+        if (current != null) {
+            com.airbnb.lottie.compose.LottieAnimation(
+                composition = current,
+                iterations = com.airbnb.lottie.compose.LottieConstants.IterateForever,
+                modifier = modifier
+            )
+        } else if (failed) {
+            Text("TGS stikerini göstərmək mümkün olmadı", color = Color.LightGray, modifier = modifier)
+        } else {
+            Box(modifier, contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+        }
+    } else if (mimeType.startsWith("video/") || url.contains(".webm", true)) {
         val context = LocalContext.current
         val player = remember(url) {
             androidx.media3.exoplayer.ExoPlayer.Builder(context).build().apply {
