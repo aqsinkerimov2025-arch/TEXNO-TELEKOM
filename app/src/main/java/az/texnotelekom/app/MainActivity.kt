@@ -319,7 +319,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     var phoneInfoBody by remember { mutableStateOf("") }
     var phoneInfoImage by remember { mutableStateOf<Uri?>(null) }
     var phoneInfoBusy by remember { mutableStateOf(false) }
-    var adminOpen by remember { mutableStateOf(false) }
+    var adminOpen by remember { mutableStateOf(false) }\n    var designAdminOpen by remember { mutableStateOf(false) }
     var showDeviceInfo by remember { mutableStateOf(false) }
     var revealDeviceCodeButton by remember { mutableStateOf(false) }
     val deviceId = remember { Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID) ?: "Tapılmadı" }
@@ -776,18 +776,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                     }
                             }, enabled = email.isNotBlank() && password.isNotBlank()) { Text("Daxil ol") }
                         } else {
-                            Text("Canlı dizayn idarəetməsi", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                            Text("Bu dəyişikliklər APK yeniləmədən bütün istifadəçilərə çatır.", fontSize = 12.sp, color = Color.LightGray)
-                            OutlinedTextField(designBgHex, { designBgHex = it }, label = { Text("Arxa fon rəngi (#RRGGBB)") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-                            OutlinedTextField(designPanelHex, { designPanelHex = it }, label = { Text("Kart rəngi (#RRGGBB)") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-                            OutlinedTextField(designAccentHex, { designAccentHex = it }, label = { Text("Əsas vurğu rəngi (#RRGGBB)") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Checkbox(checked = designGoldCards, onCheckedChange = { designGoldCards = it })
-                                Text("Qızılı premium kart dizaynı")
-                            }
-                            Button(onClick = { saveLiveDesign() }, modifier = Modifier.fillMaxWidth()) { Text("Dizaynı hamıda yenilə") }
-                            HorizontalDivider()
-                            Text("Sayt yazılarını düzəlt", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                            OutlinedButton(onClick = { designAdminOpen = true }, modifier = Modifier.fillMaxWidth()) { Text("Canlı dizayn bölməsi") }\n                            Text("Sayt yazılarını düzəlt", fontWeight = FontWeight.Bold, fontSize = 18.sp)
                             OutlinedTextField(heroTitle, { heroTitle = it }, label = { Text("Əsas başlıq") }, modifier = Modifier.fillMaxWidth())
                             OutlinedTextField(welcomeText, { welcomeText = it }, label = { Text("Qarşılama yazısı") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
                             OutlinedTextField(infoTitle, { infoTitle = it }, label = { Text("Məlumat başlığı") }, modifier = Modifier.fillMaxWidth())
@@ -862,6 +851,24 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                         }
                         if (message.isNotBlank()) Text(message, color = Color(0xFF8DE6A5), fontSize = 12.sp)
                         if (error.isNotBlank()) Text(error, color = Color(0xFFFF7777), fontSize = 12.sp)
+                    }
+                }
+            }
+
+            if (designAdminOpen && isAuthorizedDevice && loggedIn) {
+                Card(colors = CardDefaults.cardColors(containerColor = livePanel), modifier = Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text("CANLI DİZAYN İDARƏETMƏSİ", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 19.sp)
+                        Text("Bu ayrıca bölmə yalnız admin cihazında və admin hesabında görünür. Dəyişikliklər bütün istifadəçilərə tətbiq olunur.", color = Color.LightGray, fontSize = 12.sp)
+                        OutlinedTextField(designBgHex, { designBgHex = it }, label = { Text("Arxa fon rəngi (#RRGGBB)") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                        OutlinedTextField(designPanelHex, { designPanelHex = it }, label = { Text("Kart rəngi (#RRGGBB)") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                        OutlinedTextField(designAccentHex, { designAccentHex = it }, label = { Text("Əsas vurğu rəngi (#RRGGBB)") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Checkbox(checked = designGoldCards, onCheckedChange = { designGoldCards = it })
+                            Text("Qızılı premium kart dizaynı")
+                        }
+                        Button(onClick = { saveLiveDesign() }, modifier = Modifier.fillMaxWidth()) { Text("Dizaynı hamıda yenilə") }
+                        OutlinedButton(onClick = { designAdminOpen = false }, modifier = Modifier.fillMaxWidth()) { Text("Admin panelinə qayıt") }
                     }
                 }
             }
