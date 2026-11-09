@@ -638,6 +638,8 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                 ) {
                     Text(
                         heroTitle,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                         style = TextStyle(brush = Brush.horizontalGradient(listOf(Color(0xFF557CFF), Color(0xFFB63CDB)))),
                         fontSize = 25.sp, fontWeight = FontWeight.Black
                     )
@@ -645,7 +647,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                         "✦ TELEFON MƏLUMATLARI  •  PREMIUM PROQRAMLARIN ÜNVANI  •  TEXNOLOGİYA DÜNYASI  •  TELEFON MƏLUMATLARI  •  PREMIUM PROQRAMLARIN ÜNVANI  ✦",
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 42.dp).basicMarquee(iterations = Int.MAX_VALUE),
                         color = Color.White,
-                        fontSize = 10.sp,
+                        fontSize = 8.sp,
                         fontWeight = FontWeight.SemiBold,
                         letterSpacing = 0.7.sp,
                         maxLines = 1
