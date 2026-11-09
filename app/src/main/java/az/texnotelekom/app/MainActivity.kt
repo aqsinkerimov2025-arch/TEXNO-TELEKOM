@@ -87,18 +87,10 @@ private fun uploadPhoneImage(context: Context, uri: Uri, callback: (Result<Strin
             }
             connection.outputStream.use { output ->
                 fun field(name: String, value: String) {
-                    output.write("--$boundary\r
-Content-Disposition: form-data; name=\"$name\"\r
-\r
-$value\r
-".toByteArray(Charsets.UTF_8))
+                    output.write("--$boundary\r\nContent-Disposition: form-data; name=\"$name\"\r\n\r\n$value\r\n".toByteArray(Charsets.UTF_8))
                 }
                 field("upload_preset", CLOUDINARY_PRESET)
-                output.write("--$boundary\r
-Content-Disposition: form-data; name=\"file\"; filename=\"texno-melumat.jpg\"\r
-Content-Type: image/jpeg\r
-\r
-".toByteArray(Charsets.UTF_8))
+                output.write("--$boundary\r\nContent-Disposition: form-data; name=\"file\"; filename=\"texno-melumat.jpg\"\r\nContent-Type: image/jpeg\r\n\r\n".toByteArray(Charsets.UTF_8))
                 val input = context.contentResolver.openInputStream(uri) ?: throw Exception("Şəkil oxunmadı.")
                 input.use { stream ->
                     val buffer = ByteArray(65536)
@@ -108,9 +100,7 @@ Content-Type: image/jpeg\r
                         output.write(buffer, 0, count)
                     }
                 }
-                output.write("\r
---$boundary--\r
-".toByteArray(Charsets.UTF_8))
+                output.write("\r\n--$boundary--\r\n".toByteArray(Charsets.UTF_8))
                 val code = connection.responseCode
                 val response = (if (code in 200..299) connection.inputStream else connection.errorStream)
                     ?.bufferedReader()?.use { it.readText() } ?: ""
@@ -146,18 +136,10 @@ private fun uploadApk(context: Context, uri: Uri, callback: (Result<Pair<String,
             }
             connection.outputStream.use { output ->
                 fun field(name: String, value: String) {
-                    output.write("--$boundary\r
-Content-Disposition: form-data; name=\"$name\"\r
-\r
-$value\r
-".toByteArray(Charsets.UTF_8))
+                    output.write("--$boundary\r\nContent-Disposition: form-data; name=\"$name\"\r\n\r\n$value\r\n".toByteArray(Charsets.UTF_8))
                 }
                 field("upload_preset", CLOUDINARY_PRESET)
-                output.write("--$boundary\r
-Content-Disposition: form-data; name=\"file\"; filename=\"$fileName\"\r
-Content-Type: application/vnd.android.package-archive\r
-\r
-".toByteArray(Charsets.UTF_8))
+                output.write("--$boundary\r\nContent-Disposition: form-data; name=\"file\"; filename=\"$fileName\"\r\nContent-Type: application/vnd.android.package-archive\r\n\r\n".toByteArray(Charsets.UTF_8))
                 val input = context.contentResolver.openInputStream(uri) ?: throw Exception("APK faylı oxunmadı.")
                 var bytes = 0L
                 input.use { stream ->
@@ -169,9 +151,7 @@ Content-Type: application/vnd.android.package-archive\r
                         bytes += count
                     }
                 }
-                output.write("\r
---$boundary--\r
-".toByteArray(Charsets.UTF_8))
+                output.write("\r\n--$boundary--\r\n".toByteArray(Charsets.UTF_8))
                 val code = connection.responseCode
                 val response = (if (code in 200..299) connection.inputStream else connection.errorStream)
                     ?.bufferedReader()?.use { it.readText() } ?: ""
