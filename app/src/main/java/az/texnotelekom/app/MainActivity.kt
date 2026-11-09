@@ -316,6 +316,7 @@ private data class ReleaseUpdate(val versionCode: Long, val versionName: String,
 data class AppItem(
     val id: String, val name: String, val category: String, val version: String,
     val description: String, val downloadUrl: String, val iconUrl: String,
+    val stickerUrl: String, val stickerMime: String,
     val isActive: Boolean, val fileSize: String
 )
 data class ChannelPost(
@@ -547,7 +548,8 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                 d.id,
                                 d.getString("title") ?: d.getString("name") ?: "",
                                 d.getString("body") ?: d.getString("description") ?: d.getString("content") ?: "",
-                                d.getString("image_url") ?: d.getString("imageUrl") ?: d.getString("photo_url") ?: ""
+                                d.getString("image_url") ?: d.getString("imageUrl") ?: d.getString("photo_url") ?: "",
+                                d.getString("sticker_url") ?: "", d.getString("sticker_mime") ?: ""
                             )
                         )
                     }
@@ -574,6 +576,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                         d.id, d.getString("name") ?: "", d.getString("category") ?: "",
                         d.getString("version") ?: "", d.getString("description") ?: "",
                         d.getString("download_url") ?: "", d.getString("icon_url") ?: "",
+                        d.getString("sticker_url") ?: "", d.getString("sticker_mime") ?: "",
                         d.getBoolean("is_active") ?: true, d.getString("file_size") ?: "0 MB"
                     ))
                 }
@@ -620,6 +623,8 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
             "title" to phoneInfoTitle.trim(),
             "body" to phoneInfoBody.trim(),
             "image_url" to imageUrl,
+            "sticker_url" to phoneInfoStickerUrlPending,
+            "sticker_mime" to phoneInfoStickerMimePending,
             "created_at" to FieldValue.serverTimestamp()
         )
         db.collection("phone_information").add(values)
@@ -627,6 +632,9 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                 phoneInfoTitle = ""
                 phoneInfoBody = ""
                 phoneInfoImage = null
+                phoneInfoSticker = null
+                phoneInfoStickerUrlPending = ""
+                phoneInfoStickerMimePending = ""
                 phoneInfoBusy = false
                 message = "TEXNO-MƏLUMAT bölməsində paylaşıldı."
             }
@@ -645,12 +653,32 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
         phoneInfoBusy = true
         error = ""
         val selectedImage = phoneInfoImage
+        val selectedSticker = phoneInfoSticker
+        fun uploadStickerThenPublish(imageUrl: String) {
+            if (selectedSticker == null) {
+                phoneInfoStickerUrlPending = ""
+                phoneInfoStickerMimePending = ""
+                publishPhoneInfo(imageUrl)
+            } else {
+                message = "Stiker yüklənir..."
+                uploadStickerMedia(context, selectedSticker) { stickerResult ->
+                    stickerResult.onSuccess { media ->
+                        phoneInfoStickerUrlPending = media.url
+                        phoneInfoStickerMimePending = media.mimeType
+                        publishPhoneInfo(imageUrl)
+                    }.onFailure {
+                        phoneInfoBusy = false
+                        error = "Stiker yüklənmədi: ${it.localizedMessage}"
+                    }
+                }
+            }
+        }
         if (selectedImage == null) {
-            publishPhoneInfo("")
+            uploadStickerThenPublish("")
         } else {
             message = "Şəkil yüklənir..."
             uploadPhoneImage(context, selectedImage) { result ->
-                result.onSuccess { url -> finishWithImage(url) }
+                result.onSuccess { url -> uploadStickerThenPublish(url) }
                     .onFailure {
                         phoneInfoBusy = false
                         error = "Şəkil yüklənmədi: ${it.localizedMessage}"
