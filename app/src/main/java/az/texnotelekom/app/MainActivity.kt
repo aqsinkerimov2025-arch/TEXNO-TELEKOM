@@ -797,37 +797,6 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                             OutlinedTextField(whatsappPhone, { whatsappPhone = it }, label = { Text("WhatsApp nömrəsi") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone), modifier = Modifier.fillMaxWidth())
                             Button(onClick = { saveSiteTexts() }, modifier = Modifier.fillMaxWidth()) { Text("Yazıları yadda saxla") }
                             HorizontalDivider()
-                            Text(if (editingPostId == null) "Kanal paylaşımı əlavə et" else "Kanal paylaşımını redaktə et", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                            OutlinedTextField(postTitle, { postTitle = it }, label = { Text("Paylaşımın adı") }, modifier = Modifier.fillMaxWidth())
-                            OutlinedTextField(postVersion, { postVersion = it }, label = { Text("Versiya") }, modifier = Modifier.fillMaxWidth())
-                            Row(verticalAlignment = Alignment.CenterVertically) { Checkbox(postVip, { postVip = it }); Text("VIP / Premium") }
-                            OutlinedTextField(postDescription, { postDescription = it }, label = { Text("Paylaşım mətni") }, modifier = Modifier.fillMaxWidth(), minLines = 3)
-                            OutlinedTextField(postFeatures, { postFeatures = it }, label = { Text("Xüsusiyyətlər və Mod") }, modifier = Modifier.fillMaxWidth(), minLines = 3)
-                            OutlinedButton(onClick = { apkPicker.launch("application/vnd.android.package-archive") }, modifier = Modifier.fillMaxWidth()) {
-                                Text("📦 APK faylını telefondan seç")
-                            }
-                            if (pickedPostApkName.isNotBlank()) Text(pickedPostApkName, color = Color(0xFF8DE6A5), fontSize = 12.sp)
-                            OutlinedTextField(postDownloadUrl, { postDownloadUrl = it }, label = { Text("APK linki (istəyə görə)") }, modifier = Modifier.fillMaxWidth())
-                            OutlinedTextField(postFileSize, { postFileSize = it }, label = { Text("Fayl ölçüsü") }, modifier = Modifier.fillMaxWidth())
-                            OutlinedTextField(postAndroid, { postAndroid = it }, label = { Text("Android tələbi") }, modifier = Modifier.fillMaxWidth())
-                            OutlinedTextField(postChannelUrl, { postChannelUrl = it }, label = { Text("Telegram kanal linki") }, modifier = Modifier.fillMaxWidth())
-                            Button(onClick = { savePost() }, enabled = !postBusy, modifier = Modifier.fillMaxWidth()) {
-                                if (postBusy) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
-                                else Text(if (editingPostId == null) "Paylaşımı əlavə et" else "Paylaşımı yadda saxla")
-                            }
-                            if (editingPostId != null) TextButton(onClick = { clearPostForm() }) { Text("Redaktəni ləğv et") }
-                            posts.forEach { p ->
-                                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                                    Text(p.title, Modifier.weight(1f), maxLines = 1)
-                                    IconButton(onClick = {
-                                        editingPostId = p.id; postTitle = p.title; postVersion = p.version
-                                        postVip = p.isVip; postDescription = p.description; postFeatures = p.features
-                                        postDownloadUrl = p.downloadUrl; postFileSize = p.fileSize
-                                        postAndroid = p.androidRequirement; postChannelUrl = p.channelUrl
-                                    }) { Icon(Icons.Default.Edit, null, tint = Color(0xFFD5B0FF)) }
-                                    IconButton(onClick = { db.collection("programs").document(p.id).delete() }) { Icon(Icons.Default.Delete, null, tint = Color(0xFFFF7777)) }
-                                }
-                            }
                             HorizontalDivider()
                             Text("TEXNO-MƏLUMAT paylaş", fontWeight = FontWeight.Bold, fontSize = 18.sp)
                             OutlinedTextField(phoneInfoTitle, { phoneInfoTitle = it }, label = { Text("Telefon modeli / başlıq") }, modifier = Modifier.fillMaxWidth())
@@ -973,8 +942,6 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                             if (post.downloadUrl.isNotBlank()) Button(onClick = { try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(post.downloadUrl))) } catch (_: Exception) { error = "APK linki açıla bilmədi." } }) { Text("APK yüklə") }
                             if (post.channelUrl.isNotBlank()) OutlinedButton(onClick = { try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(post.channelUrl))) } catch (_: Exception) { error = "Kanal linki açıla bilmədi." } }) { Text("Telegram kanalına qoşul") }
                             if (loggedIn) Row {
-                                TextButton(onClick = { editingPostId = post.id; postTitle = post.title; postVersion = post.version; postVip = post.isVip; postDescription = post.description; postFeatures = post.features; postDownloadUrl = post.downloadUrl; postFileSize = post.fileSize; postAndroid = post.androidRequirement; postChannelUrl = post.channelUrl; adminOpen = true }) { Text("Redaktə") }
-                                TextButton(onClick = { db.collection("programs").document(post.id).delete() }) { Text("Sil", color = Color(0xFFFF7777)) }
                             }
                         }
                     }
