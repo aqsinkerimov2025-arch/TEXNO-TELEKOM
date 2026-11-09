@@ -785,9 +785,27 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
             error = "Yükləmə linki http:// və ya https:// ilə başlamalıdır."; return
         }
         error = ""; message = ""; busy = true
+        fun uploadStickerThenWrite(iconValue: String) {
+            val selectedSticker = programSticker
+            if (selectedSticker == null) {
+                writeProgram(iconValue)
+            } else {
+                message = "Proqram stikeri yüklənir..."
+                uploadStickerMedia(context, selectedSticker) { result ->
+                    result.onSuccess { media ->
+                        currentProgramStickerUrl = media.url
+                        currentProgramStickerMime = media.mimeType
+                        writeProgram(iconValue)
+                    }.onFailure {
+                        busy = false
+                        error = "Stiker yüklənmədi: ${it.localizedMessage}"
+                    }
+                }
+            }
+        }
         val uri = pickedImage
         if (uri == null) {
-            writeProgram(currentIcon)
+            uploadStickerThenWrite(currentIcon)
             return
         }
         try {
@@ -799,7 +817,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
             val encoded = "b64:" + Base64.encodeToString(output.toByteArray(), Base64.NO_WRAP)
             if (scaled !== original) scaled.recycle()
             original.recycle()
-            writeProgram(encoded)
+            uploadStickerThenWrite(encoded)
         } catch (e: Exception) {
             error = "Şəkli hazırlamaq alınmadı: " + (e.localizedMessage ?: "naməlum xəta")
             busy = false
@@ -1007,7 +1025,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                         IconButton(onClick = {
                                             editingId = p.id; name = p.name; category = p.category; version = p.version
                                             description = p.description; link = p.downloadUrl; fileSize = p.fileSize
-                                            currentIcon = p.iconUrl; pickedImage = null; message = "Redaktə üçün seçildi."
+                                            currentIcon = p.iconUrl; pickedImage = null; currentProgramStickerUrl = p.stickerUrl; currentProgramStickerMime = p.stickerMime; programSticker = null; message = "Redaktə üçün seçildi."
                                         }) { Icon(Icons.Default.Edit, null, tint = Color(0xFFD5B0FF)) }
                                         IconButton(onClick = {
                                             db.collection("programs").document(p.id).delete().addOnSuccessListener {
