@@ -390,11 +390,25 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     }
 
     DisposableEffect(db) {
-        val phoneListener = db.collection("phone_information").orderBy("created_at", com.google.firebase.firestore.Query.Direction.DESCENDING)
+        val phoneListener = db.collection("phone_information")
             .addSnapshotListener { snap, e ->
-                if (e == null && snap != null) {
+                if (e != null) {
+                    error = "TEXNO-MƏLUMAT yüklənmədi: ${e.localizedMessage}"
+                } else if (snap != null) {
                     phoneInfos.clear()
-                    snap.documents.forEach { d -> phoneInfos.add(PhoneInfo(d.id, d.getString("title") ?: "", d.getString("body") ?: "", d.getString("image_url") ?: "")) }
+                    val sortedDocs = snap.documents.sortedByDescending { d ->
+                        d.getTimestamp("created_at")?.toDate()?.time ?: 0L
+                    }
+                    sortedDocs.forEach { d ->
+                        phoneInfos.add(
+                            PhoneInfo(
+                                d.id,
+                                d.getString("title") ?: d.getString("name") ?: "",
+                                d.getString("body") ?: d.getString("description") ?: d.getString("content") ?: "",
+                                d.getString("image_url") ?: d.getString("imageUrl") ?: d.getString("photo_url") ?: ""
+                            )
+                        )
+                    }
                 }
             }
         onDispose { phoneListener.remove() }
