@@ -534,7 +534,8 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     }
 
     val phoneStickerPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri -> phoneInfoSticker = uri; if (uri != null) message = "TEXNO-MƏLUMAT stikeri seçildi." }
-    val programStickerPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri -> programSticker = uri; if (uri != null) message = "Proqram stikeri seçildi." }\n
+    val programStickerPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri -> programSticker = uri; if (uri != null) message = "Proqram stikeri seçildi." }
+
     val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         pickedImage = uri
         if (uri != null) message = "Şəkil qalereyadan seçildi."
@@ -627,7 +628,8 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     }
 
     var phoneInfoStickerUrlPending by remember { mutableStateOf("") }
-    var phoneInfoStickerMimePending by remember { mutableStateOf("") }\n
+    var phoneInfoStickerMimePending by remember { mutableStateOf("") }
+
     fun publishPhoneInfo(imageUrl: String) {
         val values = hashMapOf<String, Any>(
             "title" to phoneInfoTitle.trim(),
@@ -989,7 +991,11 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                             Text("TEXNO-MƏLUMAT paylaş", fontWeight = FontWeight.Bold, fontSize = 18.sp)
                             OutlinedTextField(phoneInfoTitle, { phoneInfoTitle = it }, label = { Text("Telefon modeli / başlıq") }, modifier = Modifier.fillMaxWidth())
                             OutlinedTextField(phoneInfoBody, { phoneInfoBody = it }, label = { Text("Telefon haqqında məlumat") }, modifier = Modifier.fillMaxWidth(), minLines = 4)
-                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {\n                                OutlinedButton(onClick = { clipboardStickerUri(context)?.let { phoneInfoSticker = it; message = "Clipboard-dan stiker götürüldü." } ?: run { error = "Clipboard-da media stiker tapılmadı. Telegram-dan faylı paylaşın və ya seçin." } }, modifier = Modifier.weight(1f)) { Text("YAPIŞDIR") }\n                                OutlinedButton(onClick = { phoneStickerPicker.launch("*/*") }, modifier = Modifier.weight(1f)) { Text("STİKER SEÇ") }\n                            }\n                            if (phoneInfoSticker != null) { Text("Stiker əlavə olunub", color = Color(0xFF8DE6A5)); TextButton(onClick = { phoneInfoSticker = null }) { Text("Stikeri sil") } }
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                OutlinedButton(onClick = { clipboardStickerUri(context)?.let { phoneInfoSticker = it; message = "Clipboard-dan stiker götürüldü." } ?: run { error = "Clipboard-da media stiker tapılmadı. Telegram-dan faylı paylaşın və ya seçin." } }, modifier = Modifier.weight(1f)) { Text("YAPIŞDIR") }
+                                OutlinedButton(onClick = { phoneStickerPicker.launch("*/*") }, modifier = Modifier.weight(1f)) { Text("STİKER SEÇ") }
+                            }
+                            if (phoneInfoSticker != null) { Text("Stiker əlavə olunub", color = Color(0xFF8DE6A5)); TextButton(onClick = { phoneInfoSticker = null }) { Text("Stikeri sil") } }
                             OutlinedButton(onClick = { phoneInfoImagePicker.launch("image/*") }, modifier = Modifier.fillMaxWidth()) {
                                 Icon(Icons.Default.Image, null)
                                 Spacer(Modifier.width(8.dp))
@@ -1011,7 +1017,11 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                             OutlinedTextField(category, { category = it }, label = { Text("Kateqoriya") }, modifier = Modifier.fillMaxWidth())
                             OutlinedTextField(version, { version = it }, label = { Text("Versiya") }, modifier = Modifier.fillMaxWidth())
                             OutlinedTextField(description, { description = it }, label = { Text("Təsvir") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
-                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {\n                                OutlinedButton(onClick = { clipboardStickerUri(context)?.let { programSticker = it; message = "Clipboard-dan stiker götürüldü." } ?: run { error = "Clipboard-da media stiker tapılmadı. Telegram-dan faylı paylaşın və ya seçin." } }, modifier = Modifier.weight(1f)) { Text("YAPIŞDIR") }\n                                OutlinedButton(onClick = { programStickerPicker.launch("*/*") }, modifier = Modifier.weight(1f)) { Text("STİKER SEÇ") }\n                            }\n                            if (programSticker != null || currentProgramStickerUrl.isNotBlank()) { Text("Stiker əlavə olunub", color = Color(0xFF8DE6A5)); TextButton(onClick = { programSticker = null; currentProgramStickerUrl = ""; currentProgramStickerMime = "" }) { Text("Stikeri sil") } }
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                OutlinedButton(onClick = { clipboardStickerUri(context)?.let { programSticker = it; message = "Clipboard-dan stiker götürüldü." } ?: run { error = "Clipboard-da media stiker tapılmadı. Telegram-dan faylı paylaşın və ya seçin." } }, modifier = Modifier.weight(1f)) { Text("YAPIŞDIR") }
+                                OutlinedButton(onClick = { programStickerPicker.launch("*/*") }, modifier = Modifier.weight(1f)) { Text("STİKER SEÇ") }
+                            }
+                            if (programSticker != null || currentProgramStickerUrl.isNotBlank()) { Text("Stiker əlavə olunub", color = Color(0xFF8DE6A5)); TextButton(onClick = { programSticker = null; currentProgramStickerUrl = ""; currentProgramStickerMime = "" }) { Text("Stikeri sil") } }
                             OutlinedTextField(link, { link = it }, label = { Text("Yükləmə linki") }, modifier = Modifier.fillMaxWidth())
                             OutlinedTextField(fileSize, { fileSize = it }, label = { Text("Fayl ölçüsü") }, modifier = Modifier.fillMaxWidth())
                             OutlinedButton(onClick = { imagePicker.launch("image/*") }, modifier = Modifier.fillMaxWidth()) {
@@ -1126,7 +1136,8 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text(info.title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                             Text(info.body, color = Color(0xFFD0C7DC), fontSize = 14.sp, lineHeight = 21.sp)
-                            if (info.imageUrl.isNotBlank()) AsyncImage(model = info.imageUrl, contentDescription = info.title, modifier = Modifier.fillMaxWidth().heightIn(max = 320.dp), contentScale = ContentScale.Fit)\n                            if (info.stickerUrl.isNotBlank()) StickerPreview(info.stickerUrl, info.stickerMime, Modifier.fillMaxWidth().height(220.dp))
+                            if (info.imageUrl.isNotBlank()) AsyncImage(model = info.imageUrl, contentDescription = info.title, modifier = Modifier.fillMaxWidth().heightIn(max = 320.dp), contentScale = ContentScale.Fit)
+                            if (info.stickerUrl.isNotBlank()) StickerPreview(info.stickerUrl, info.stickerMime, Modifier.fillMaxWidth().height(220.dp))
                             if (loggedIn) TextButton(onClick = { db.collection("phone_information").document(info.id).delete() }) {
                                 Text("Sil", color = Color(0xFFFF7777))
                             }
@@ -1212,7 +1223,8 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                 )
                             }
                         }
-                        Text(p.description, color = if (isGoldBankCard) Color(0xFF4A310B) else Color(0xFFD0C7DC), fontSize = 14.sp, lineHeight = 20.sp)\n                        if (p.stickerUrl.isNotBlank()) StickerPreview(p.stickerUrl, p.stickerMime, Modifier.fillMaxWidth().height(220.dp))
+                        Text(p.description, color = if (isGoldBankCard) Color(0xFF4A310B) else Color(0xFFD0C7DC), fontSize = 14.sp, lineHeight = 20.sp)
+                        if (p.stickerUrl.isNotBlank()) StickerPreview(p.stickerUrl, p.stickerMime, Modifier.fillMaxWidth().height(220.dp))
                         Row(
                             Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically,
