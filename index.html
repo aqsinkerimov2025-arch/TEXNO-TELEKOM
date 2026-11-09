@@ -117,7 +117,7 @@ footer{text-align:center;color:#756a83;padding:25px;font-size:12px}
 <h2>Canlı dizayn idarəetməsi</h2><p class="hint">Bu bölmə yalnız admin hesabında görünür. Rəng və premium kart dəyişiklikləri bütün istifadəçilərə tətbiq olunur.</p>
 <div class="form-grid"><div class="field"><label>Arxa fon rəngi (#RRGGBB)</label><input id="designBg" value="#080610"></div><div class="field"><label>Kart rəngi (#RRGGBB)</label><input id="designPanel" value="#100b1b"></div><div class="field"><label>Əsas vurğu rəngi (#RRGGBB)</label><input id="designAccent" value="#9250ff"></div><div class="field"><label><input id="designGold" type="checkbox" style="width:auto" checked> Qızılı premium kart dizaynı</label></div></div>
 <button class="btn" id="saveDesign" style="margin-top:12px">Dizaynı hamıda yenilə</button><p class="hint" id="designNotice"></p>
-</div></div>
+</div>
 </section>
 <section class="hero" id="heroSection">
 <p class="welcome" id="welcomeText">✅TEXNO-TELEKOM RƏSMİ SAYTINA XOŞ GƏLMİSİNİZ...</p>
@@ -194,7 +194,9 @@ function renderPosts(){
 }
 window.editApp=id=>{const x=programs.find(a=>a.id===id);if(!x)return;editingId=id;['name','category','version','description'].forEach(k=>$(k).value=x[k]||'');$('download').value=x.download_url||'';$('fileSize').value=x.file_size||'0 MB';selectedImage=x.icon_url||'';const src=iconSrc(selectedImage);if(src){$('preview').src=src;$('preview').style.display='block'}$('admin').classList.add('open');$('notice').textContent='Redaktə rejimi'};
 window.deleteApp=async id=>{if(confirm('Bu proqramı silmək istəyirsiniz?')){try{await db.collection('programs').doc(id).delete()}catch(e){$('notice').textContent='Silmək alınmadı: '+e.message}}};
-const ADMIN_UID='FflCErahavNIb8ZXsvHIyrxZYZH3';\nauth.onAuthStateChanged(user=>{const owner=!!user&&user.uid===ADMIN_UID;$('adminLogin').hidden=owner;$('adminEditor').hidden=!owner;$('designAdminSection').hidden=true;if(user&&!owner){auth.signOut();$('loginNotice').textContent='Bu bölməyə yalnız admin daxil ola bilər.'}render()});\n$('openDesignAdmin').onclick=()=>{$('adminEditor').hidden=true;$('designAdminSection').hidden=false};\n$('closeDesignAdmin').onclick=()=>{$('designAdminSection').hidden=true;$('adminEditor').hidden=false};
+const ADMIN_UID='FflCErahavNIb8ZXsvHIyrxZYZH3';\nauth.onAuthStateChanged(user=>{const owner=!!user&&user.uid===ADMIN_UID;$('adminLogin').hidden=owner;$('adminEditor').hidden=!owner;$('designAdminSection').hidden=true;if(user&&!owner){auth.signOut();$('loginNotice').textContent='Bu bölməyə yalnız admin daxil ola bilər.'}render()});
+$('openDesignAdmin').onclick=()=>{$('adminEditor').hidden=true;$('designAdminSection').hidden=false};
+$('closeDesignAdmin').onclick=()=>{$('designAdminSection').hidden=true;$('adminEditor').hidden=false};
 $('adminLoginBtn').onclick=async()=>{try{await auth.signInWithEmailAndPassword($('adminEmail').value.trim(),$('adminPassword').value);$('loginNotice').textContent='Giriş uğurludur.'}catch(e){$('loginNotice').textContent='Giriş alınmadı: '+e.message}};
 $('adminLogoutBtn').onclick=()=>auth.signOut();
 db.collection('site_settings').doc('content').onSnapshot(s=>{if(s.exists){const data=s.data();const t={...defaultTexts,...data};localStorage.setItem(TEXT_KEY,JSON.stringify(t));applyTexts();applyLiveDesign(data)}});
