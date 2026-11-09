@@ -459,7 +459,9 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     var showPhoneInfo by remember { mutableStateOf(false) }
     var phoneInfoTitle by remember { mutableStateOf("") }
     var phoneInfoBody by remember { mutableStateOf("") }
-    var phoneInfoImage by remember { mutableStateOf<Uri?>(null) }\n    var phoneInfoSticker by remember { mutableStateOf<Uri?>(null) }\n    var phoneInfoStickerBusy by remember { mutableStateOf(false) }
+    var phoneInfoImage by remember { mutableStateOf<Uri?>(null) }
+    var phoneInfoSticker by remember { mutableStateOf<Uri?>(null) }
+    var phoneInfoStickerBusy by remember { mutableStateOf(false) }
     var phoneInfoBusy by remember { mutableStateOf(false) }
     var adminOpen by remember { mutableStateOf(false) }
     var designAdminOpen by remember { mutableStateOf(false) }
@@ -478,7 +480,11 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     var name by remember { mutableStateOf("") }
     var category by remember { mutableStateOf("") }
     var version by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }\n    var programSticker by remember { mutableStateOf<Uri?>(null) }\n    var programStickerBusy by remember { mutableStateOf(false) }\n    var currentProgramStickerUrl by remember { mutableStateOf("") }\n    var currentProgramStickerMime by remember { mutableStateOf("") }
+    var description by remember { mutableStateOf("") }
+    var programSticker by remember { mutableStateOf<Uri?>(null) }
+    var programStickerBusy by remember { mutableStateOf(false) }
+    var currentProgramStickerUrl by remember { mutableStateOf("") }
+    var currentProgramStickerMime by remember { mutableStateOf("") }
     var link by remember { mutableStateOf("") }
     var fileSize by remember { mutableStateOf("0 MB") }
     var editingId by remember { mutableStateOf<String?>(null) }
@@ -527,7 +533,9 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
         if (uri != null) message = "TEXNO-MƏLUMAT şəkli seçildi."
     }
 
-    val phoneStickerPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri -> phoneInfoSticker = uri; if (uri != null) message = "TEXNO-MƏLUMAT stikeri seçildi." }\n    val programStickerPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri -> programSticker = uri; if (uri != null) message = "Proqram stikeri seçildi." }\n\n    val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+    val phoneStickerPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri -> phoneInfoSticker = uri; if (uri != null) message = "TEXNO-MƏLUMAT stikeri seçildi." }
+    val programStickerPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri -> programSticker = uri; if (uri != null) message = "Proqram stikeri seçildi." }\n
+    val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         pickedImage = uri
         if (uri != null) message = "Şəkil qalereyadan seçildi."
     }
@@ -618,7 +626,9 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
             .addOnFailureListener { error = "Dizayn yadda saxlanmadı: ${it.localizedMessage}" }
     }
 
-    var phoneInfoStickerUrlPending by remember { mutableStateOf("") }\n    var phoneInfoStickerMimePending by remember { mutableStateOf("") }\n\n    fun publishPhoneInfo(imageUrl: String) {
+    var phoneInfoStickerUrlPending by remember { mutableStateOf("") }
+    var phoneInfoStickerMimePending by remember { mutableStateOf("") }\n
+    fun publishPhoneInfo(imageUrl: String) {
         val values = hashMapOf<String, Any>(
             "title" to phoneInfoTitle.trim(),
             "body" to phoneInfoBody.trim(),
@@ -978,7 +988,8 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                             HorizontalDivider()
                             Text("TEXNO-MƏLUMAT paylaş", fontWeight = FontWeight.Bold, fontSize = 18.sp)
                             OutlinedTextField(phoneInfoTitle, { phoneInfoTitle = it }, label = { Text("Telefon modeli / başlıq") }, modifier = Modifier.fillMaxWidth())
-                            OutlinedTextField(phoneInfoBody, { phoneInfoBody = it }, label = { Text("Telefon haqqında məlumat") }, modifier = Modifier.fillMaxWidth(), minLines = 4)\n                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {\n                                OutlinedButton(onClick = { clipboardStickerUri(context)?.let { phoneInfoSticker = it; message = "Clipboard-dan stiker götürüldü." } ?: run { error = "Clipboard-da media stiker tapılmadı. Telegram-dan faylı paylaşın və ya seçin." } }, modifier = Modifier.weight(1f)) { Text("YAPIŞDIR") }\n                                OutlinedButton(onClick = { phoneStickerPicker.launch("*/*") }, modifier = Modifier.weight(1f)) { Text("STİKER SEÇ") }\n                            }\n                            if (phoneInfoSticker != null) { Text("Stiker əlavə olunub", color = Color(0xFF8DE6A5)); TextButton(onClick = { phoneInfoSticker = null }) { Text("Stikeri sil") } }
+                            OutlinedTextField(phoneInfoBody, { phoneInfoBody = it }, label = { Text("Telefon haqqında məlumat") }, modifier = Modifier.fillMaxWidth(), minLines = 4)
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {\n                                OutlinedButton(onClick = { clipboardStickerUri(context)?.let { phoneInfoSticker = it; message = "Clipboard-dan stiker götürüldü." } ?: run { error = "Clipboard-da media stiker tapılmadı. Telegram-dan faylı paylaşın və ya seçin." } }, modifier = Modifier.weight(1f)) { Text("YAPIŞDIR") }\n                                OutlinedButton(onClick = { phoneStickerPicker.launch("*/*") }, modifier = Modifier.weight(1f)) { Text("STİKER SEÇ") }\n                            }\n                            if (phoneInfoSticker != null) { Text("Stiker əlavə olunub", color = Color(0xFF8DE6A5)); TextButton(onClick = { phoneInfoSticker = null }) { Text("Stikeri sil") } }
                             OutlinedButton(onClick = { phoneInfoImagePicker.launch("image/*") }, modifier = Modifier.fillMaxWidth()) {
                                 Icon(Icons.Default.Image, null)
                                 Spacer(Modifier.width(8.dp))
@@ -999,7 +1010,8 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                             OutlinedTextField(name, { name = it }, label = { Text("Proqramın adı") }, modifier = Modifier.fillMaxWidth())
                             OutlinedTextField(category, { category = it }, label = { Text("Kateqoriya") }, modifier = Modifier.fillMaxWidth())
                             OutlinedTextField(version, { version = it }, label = { Text("Versiya") }, modifier = Modifier.fillMaxWidth())
-                            OutlinedTextField(description, { description = it }, label = { Text("Təsvir") }, modifier = Modifier.fillMaxWidth(), minLines = 2)\n                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {\n                                OutlinedButton(onClick = { clipboardStickerUri(context)?.let { programSticker = it; message = "Clipboard-dan stiker götürüldü." } ?: run { error = "Clipboard-da media stiker tapılmadı. Telegram-dan faylı paylaşın və ya seçin." } }, modifier = Modifier.weight(1f)) { Text("YAPIŞDIR") }\n                                OutlinedButton(onClick = { programStickerPicker.launch("*/*") }, modifier = Modifier.weight(1f)) { Text("STİKER SEÇ") }\n                            }\n                            if (programSticker != null || currentProgramStickerUrl.isNotBlank()) { Text("Stiker əlavə olunub", color = Color(0xFF8DE6A5)); TextButton(onClick = { programSticker = null; currentProgramStickerUrl = ""; currentProgramStickerMime = "" }) { Text("Stikeri sil") } }
+                            OutlinedTextField(description, { description = it }, label = { Text("Təsvir") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {\n                                OutlinedButton(onClick = { clipboardStickerUri(context)?.let { programSticker = it; message = "Clipboard-dan stiker götürüldü." } ?: run { error = "Clipboard-da media stiker tapılmadı. Telegram-dan faylı paylaşın və ya seçin." } }, modifier = Modifier.weight(1f)) { Text("YAPIŞDIR") }\n                                OutlinedButton(onClick = { programStickerPicker.launch("*/*") }, modifier = Modifier.weight(1f)) { Text("STİKER SEÇ") }\n                            }\n                            if (programSticker != null || currentProgramStickerUrl.isNotBlank()) { Text("Stiker əlavə olunub", color = Color(0xFF8DE6A5)); TextButton(onClick = { programSticker = null; currentProgramStickerUrl = ""; currentProgramStickerMime = "" }) { Text("Stikeri sil") } }
                             OutlinedTextField(link, { link = it }, label = { Text("Yükləmə linki") }, modifier = Modifier.fillMaxWidth())
                             OutlinedTextField(fileSize, { fileSize = it }, label = { Text("Fayl ölçüsü") }, modifier = Modifier.fillMaxWidth())
                             OutlinedButton(onClick = { imagePicker.launch("image/*") }, modifier = Modifier.fillMaxWidth()) {
