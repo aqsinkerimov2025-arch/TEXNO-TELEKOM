@@ -27,6 +27,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -639,6 +640,15 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                         heroTitle,
                         style = TextStyle(brush = Brush.horizontalGradient(listOf(Color(0xFF557CFF), Color(0xFFB63CDB)))),
                         fontSize = 25.sp, fontWeight = FontWeight.Black
+                    )
+                    Text(
+                        "✦ TELEFON MƏLUMATLARI  •  PREMIUM PROQRAMLARIN ÜNVANI  •  TEXNOLOGİYA DÜNYASI  •  TELEFON MƏLUMATLARI  •  PREMIUM PROQRAMLARIN ÜNVANI  ✦",
+                        modifier = Modifier.fillMaxWidth().basicMarquee(iterations = Int.MAX_VALUE),
+                        color = Color(0xFFD6C1F2),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = 0.7.sp,
+                        maxLines = 1
                     )
                     Spacer(Modifier.height(6.dp))
                     Box(
