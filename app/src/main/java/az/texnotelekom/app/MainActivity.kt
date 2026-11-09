@@ -590,6 +590,8 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                             )
                         )
                     }
+                    // Automatically open TEXNO-MƏLUMAT when posts arrive from the admin panel.
+                    if (phoneInfos.isNotEmpty()) showPhoneInfo = true
                 }
             }
         onDispose { phoneListener.remove() }
