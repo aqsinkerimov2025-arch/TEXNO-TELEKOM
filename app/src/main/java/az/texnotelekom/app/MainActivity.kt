@@ -643,8 +643,8 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                     )
                     Text(
                         "✦ TELEFON MƏLUMATLARI  •  PREMIUM PROQRAMLARIN ÜNVANI  •  TEXNOLOGİYA DÜNYASI  •  TELEFON MƏLUMATLARI  •  PREMIUM PROQRAMLARIN ÜNVANI  ✦",
-                        modifier = Modifier.fillMaxWidth().basicMarquee(iterations = Int.MAX_VALUE),
-                        color = Color(0xFFD6C1F2),
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 42.dp).basicMarquee(iterations = Int.MAX_VALUE),
+                        color = Color.White,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.SemiBold,
                         letterSpacing = 0.7.sp,
