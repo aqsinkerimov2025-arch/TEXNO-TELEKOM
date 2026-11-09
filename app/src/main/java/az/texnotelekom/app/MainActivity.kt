@@ -662,7 +662,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
 
     fun publishPhoneInfo(imageUrl: String) {
         val values = hashMapOf<String, Any>(
-            "title" to phoneInfoTitle.trim(),
+            "title" to phoneInfoTitle.trim().ifBlank { "TEXNO-MƏLUMAT" },
             "body" to phoneInfoBody.trim(),
             "image_url" to imageUrl,
             "sticker_url" to phoneInfoStickerUrlPending,
@@ -688,8 +688,8 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
 
     fun savePhoneInfo() {
         if (phoneInfoBusy) return
-        if (phoneInfoTitle.isBlank() || phoneInfoBody.isBlank()) {
-            error = "Başlıq və məlumatı yazın."
+        if (phoneInfoBody.isBlank() && phoneInfoImage == null && phoneInfoSticker == null) {
+            error = "Məlumat yazın və ya şəkil/stiker əlavə edin."
             return
         }
         phoneInfoBusy = true
