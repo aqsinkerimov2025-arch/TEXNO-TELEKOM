@@ -31,6 +31,7 @@ import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -314,6 +315,17 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     }
     var query by remember { mutableStateOf("") }
     var searchOpen by remember { mutableStateOf(false) }
+    var stickerPickerOpen by remember { mutableStateOf(false) }
+    var stickerSearch by remember { mutableStateOf("") }
+    var stickerCategory by remember { mutableStateOf("Hamısı") }
+    val selectedStickers = remember { mutableStateListOf<String>() }
+    val favoriteStickers = remember { mutableStateListOf<String>() }
+    val stickerCatalog = listOf(
+        "😀" to "Üzlər", "😂" to "Üzlər", "🥰" to "Üzlər", "😎" to "Üzlər", "😭" to "Üzlər", "🤔" to "Üzlər", "😡" to "Üzlər", "🥳" to "Üzlər",
+        "❤️" to "Sevgi", "💛" to "Sevgi", "💖" to "Sevgi", "😍" to "Sevgi", "😘" to "Sevgi", "💍" to "Sevgi",
+        "🔥" to "Reaksiya", "👏" to "Reaksiya", "👍" to "Reaksiya", "👎" to "Reaksiya", "💯" to "Reaksiya", "🙏" to "Reaksiya", "🤝" to "Reaksiya", "🎉" to "Reaksiya",
+        "🚀" to "Texno", "💻" to "Texno", "📱" to "Texno", "⚡" to "Texno", "🤖" to "Texno", "🎮" to "Texno", "💎" to "Texno", "👑" to "Texno"
+    )
     var showPhoneInfo by remember { mutableStateOf(false) }
     var phoneInfoTitle by remember { mutableStateOf("") }
     var phoneInfoBody by remember { mutableStateOf("") }
@@ -1070,6 +1082,105 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                 }
             }
             if (shown.isEmpty()) Text("Proqram tapılmadı.", color = Color.LightGray)
+            Spacer(Modifier.height(18.dp))
+            Card(
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF17111F)),
+                shape = RoundedCornerShape(22.dp),
+                modifier = Modifier.fillMaxWidth().clickable { stickerPickerOpen = true }
+            ) {
+                Row(Modifier.fillMaxWidth().padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text("✨", fontSize = 30.sp)
+                    Column(Modifier.weight(1f).padding(start = 12.dp)) {
+                        Text("STICKER MƏRKƏZİ", color = Color(0xFFFFD76B), fontWeight = FontWeight.Black, fontSize = 17.sp)
+                        Text("Sticker seç, sevimlilərə əlavə et və paylaşmaq üçün kopyala", color = Color(0xFFD0C7DC), fontSize = 12.sp)
+                    }
+                    Text("➜", color = Color(0xFFFFD76B), fontSize = 24.sp)
+                }
+            }
+            if (stickerPickerOpen) {
+                val visibleStickers = stickerCatalog.filter { (emoji, categoryName) ->
+                    (stickerCategory == "Hamısı" || categoryName == stickerCategory || (stickerCategory == "Sevimlilər" && emoji in favoriteStickers)) &&
+                    (stickerSearch.isBlank() || emoji.contains(stickerSearch) || categoryName.contains(stickerSearch, true))
+                }
+                AlertDialog(
+                    onDismissRequest = { stickerPickerOpen = false },
+                    containerColor = Color(0xFF100C16),
+                    title = {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text("✦ STICKERLƏR", color = Color(0xFFFFD76B), fontWeight = FontWeight.Black)
+                            OutlinedTextField(
+                                value = stickerSearch,
+                                onValueChange = { stickerSearch = it },
+                                modifier = Modifier.fillMaxWidth(),
+                                singleLine = true,
+                                placeholder = { Text("Sticker axtar...") }
+                            )
+                        }
+                    },
+                    text = {
+                        Column(
+                            Modifier.fillMaxWidth().heightIn(max = 390.dp).verticalScroll(rememberScrollState()),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            listOf("Hamısı", "Üzlər", "Sevgi", "Reaksiya", "Texno", "Sevimlilər").chunked(3).forEach { rowCategories ->
+                                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                                    rowCategories.forEach { categoryName ->
+                                        FilterChip(
+                                            selected = stickerCategory == categoryName,
+                                            onClick = { stickerCategory = categoryName },
+                                            label = { Text(categoryName, fontSize = 10.sp) }
+                                        )
+                                    }
+                                }
+                            }
+                            Text("Seçilən: ${selectedStickers.size}", color = Color(0xFFFFD76B), fontSize = 12.sp)
+                            visibleStickers.chunked(4).forEach { stickerRow ->
+                                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                                    stickerRow.forEach { (emoji, _) ->
+                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                            Box(
+                                                Modifier.size(58.dp)
+                                                    .background(
+                                                        if (emoji in selectedStickers) Color(0xFF5B431B) else Color(0xFF211A2B),
+                                                        RoundedCornerShape(16.dp)
+                                                    )
+                                                    .clickable {
+                                                        if (emoji in selectedStickers) selectedStickers.remove(emoji)
+                                                        else selectedStickers.add(emoji)
+                                                    },
+                                                contentAlignment = Alignment.Center
+                                            ) { Text(emoji, fontSize = 29.sp) }
+                                            TextButton(onClick = {
+                                                if (emoji in favoriteStickers) favoriteStickers.remove(emoji)
+                                                else favoriteStickers.add(emoji)
+                                            }, contentPadding = PaddingValues(0.dp)) {
+                                                Text(if (emoji in favoriteStickers) "★" else "☆", color = Color(0xFFFFD76B), fontSize = 14.sp)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            if (visibleStickers.isEmpty()) Text("Sticker tapılmadı.", color = Color.LightGray)
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            if (selectedStickers.isNotEmpty()) {
+                                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                clipboard.setPrimaryClip(ClipData.newPlainText("TEXNO-TELEKOM stickerləri", selectedStickers.joinToString(" ")))
+                                message = "${selectedStickers.size} sticker kopyalandı. İstədiyin söhbətə yapışdıra bilərsən."
+                                selectedStickers.clear()
+                            }
+                            stickerPickerOpen = false
+                        }) { Text("KOPYALA", color = Color(0xFFFFD76B)) }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { selectedStickers.clear(); stickerPickerOpen = false }) {
+                            Text("BAĞLA", color = Color.LightGray)
+                        }
+                    }
+                )
+            }
             Spacer(Modifier.height(28.dp))
             Column(
                 modifier = Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 18.dp),
