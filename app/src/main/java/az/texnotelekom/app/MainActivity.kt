@@ -87,10 +87,18 @@ private fun uploadPhoneImage(context: Context, uri: Uri, callback: (Result<Strin
             }
             connection.outputStream.use { output ->
                 fun field(name: String, value: String) {
-                    output.write("--$boundary\r\nContent-Disposition: form-data; name=\"$name\"\r\n\r\n$value\r\n".toByteArray(Charsets.UTF_8))
+                    output.write("--$boundary\r
+Content-Disposition: form-data; name=\"$name\"\r
+\r
+$value\r
+".toByteArray(Charsets.UTF_8))
                 }
                 field("upload_preset", CLOUDINARY_PRESET)
-                output.write("--$boundary\r\nContent-Disposition: form-data; name=\"file\"; filename=\"texno-melumat.jpg\"\r\nContent-Type: image/jpeg\r\n\r\n".toByteArray(Charsets.UTF_8))
+                output.write("--$boundary\r
+Content-Disposition: form-data; name=\"file\"; filename=\"texno-melumat.jpg\"\r
+Content-Type: image/jpeg\r
+\r
+".toByteArray(Charsets.UTF_8))
                 val input = context.contentResolver.openInputStream(uri) ?: throw Exception("Şəkil oxunmadı.")
                 input.use { stream ->
                     val buffer = ByteArray(65536)
@@ -100,7 +108,9 @@ private fun uploadPhoneImage(context: Context, uri: Uri, callback: (Result<Strin
                         output.write(buffer, 0, count)
                     }
                 }
-                output.write("\r\n--$boundary--\r\n".toByteArray(Charsets.UTF_8))
+                output.write("\r
+--$boundary--\r
+".toByteArray(Charsets.UTF_8))
                 val code = connection.responseCode
                 val response = (if (code in 200..299) connection.inputStream else connection.errorStream)
                     ?.bufferedReader()?.use { it.readText() } ?: ""
@@ -136,10 +146,18 @@ private fun uploadApk(context: Context, uri: Uri, callback: (Result<Pair<String,
             }
             connection.outputStream.use { output ->
                 fun field(name: String, value: String) {
-                    output.write("--$boundary\r\nContent-Disposition: form-data; name=\"$name\"\r\n\r\n$value\r\n".toByteArray(Charsets.UTF_8))
+                    output.write("--$boundary\r
+Content-Disposition: form-data; name=\"$name\"\r
+\r
+$value\r
+".toByteArray(Charsets.UTF_8))
                 }
                 field("upload_preset", CLOUDINARY_PRESET)
-                output.write("--$boundary\r\nContent-Disposition: form-data; name=\"file\"; filename=\"$fileName\"\r\nContent-Type: application/vnd.android.package-archive\r\n\r\n".toByteArray(Charsets.UTF_8))
+                output.write("--$boundary\r
+Content-Disposition: form-data; name=\"file\"; filename=\"$fileName\"\r
+Content-Type: application/vnd.android.package-archive\r
+\r
+".toByteArray(Charsets.UTF_8))
                 val input = context.contentResolver.openInputStream(uri) ?: throw Exception("APK faylı oxunmadı.")
                 var bytes = 0L
                 input.use { stream ->
@@ -151,7 +169,9 @@ private fun uploadApk(context: Context, uri: Uri, callback: (Result<Pair<String,
                         bytes += count
                     }
                 }
-                output.write("\r\n--$boundary--\r\n".toByteArray(Charsets.UTF_8))
+                output.write("\r
+--$boundary--\r
+".toByteArray(Charsets.UTF_8))
                 val code = connection.responseCode
                 val response = (if (code in 200..299) connection.inputStream else connection.errorStream)
                     ?.bufferedReader()?.use { it.readText() } ?: ""
@@ -319,7 +339,8 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     var phoneInfoBody by remember { mutableStateOf("") }
     var phoneInfoImage by remember { mutableStateOf<Uri?>(null) }
     var phoneInfoBusy by remember { mutableStateOf(false) }
-    var adminOpen by remember { mutableStateOf(false) }\n    var designAdminOpen by remember { mutableStateOf(false) }
+    var adminOpen by remember { mutableStateOf(false) }
+    var designAdminOpen by remember { mutableStateOf(false) }
     var showDeviceInfo by remember { mutableStateOf(false) }
     var revealDeviceCodeButton by remember { mutableStateOf(false) }
     val deviceId = remember { Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID) ?: "Tapılmadı" }
@@ -776,7 +797,8 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                     }
                             }, enabled = email.isNotBlank() && password.isNotBlank()) { Text("Daxil ol") }
                         } else {
-                            OutlinedButton(onClick = { designAdminOpen = true }, modifier = Modifier.fillMaxWidth()) { Text("Canlı dizayn bölməsi") }\n                            Text("Sayt yazılarını düzəlt", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                            OutlinedButton(onClick = { designAdminOpen = true }, modifier = Modifier.fillMaxWidth()) { Text("Canlı dizayn bölməsi") }
+                            Text("Sayt yazılarını düzəlt", fontWeight = FontWeight.Bold, fontSize = 18.sp)
                             OutlinedTextField(heroTitle, { heroTitle = it }, label = { Text("Əsas başlıq") }, modifier = Modifier.fillMaxWidth())
                             OutlinedTextField(welcomeText, { welcomeText = it }, label = { Text("Qarşılama yazısı") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
                             OutlinedTextField(infoTitle, { infoTitle = it }, label = { Text("Məlumat başlığı") }, modifier = Modifier.fillMaxWidth())
