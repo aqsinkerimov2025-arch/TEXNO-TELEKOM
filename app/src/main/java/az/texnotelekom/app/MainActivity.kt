@@ -485,6 +485,10 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     var query by remember { mutableStateOf("") }
     var searchOpen by remember { mutableStateOf(false) }
     var showPhoneInfo by remember { mutableStateOf(false) }
+    val texnoInfoLogo = remember {
+        val bytes = Base64.decode(TEXNO_INFO_LOGO_BASE64, Base64.DEFAULT)
+        BitmapFactory.decodeByteArray(bytes, 0, bytes.size).asImageBitmap()
+    }
     var showGames by remember { mutableStateOf(false) }
     var phoneInfoTitle by remember { mutableStateOf("") }
     var phoneInfoBody by remember { mutableStateOf("") }
@@ -1261,14 +1265,17 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                     Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 22.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column(Modifier.weight(1f)) {
-                        Text("✦ TEXNO-MƏLUMAT", color = Color(0xFFEEDCFF), fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                        Spacer(Modifier.height(7.dp))
-                        Text(
+                    Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Image(bitmap = texnoInfoLogo, contentDescription = "TEXNO-MƏLUMAT loqosu", modifier = Modifier.size(82.dp), contentScale = ContentScale.Fit)
+                        Column(Modifier.weight(1f)) {
+                            Text("TEXNO-MƏLUMAT", color = Color(0xFFEEDCFF), fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                            Spacer(Modifier.height(7.dp))
+                            Text(
                             if (showPhoneInfo) "Telefon məlumatları bölməsini bağlamaq üçün toxunun"
                             else "Telefonlar haqqında məlumatları oxumaq üçün bölməyə daxil olun",
-                            color = Color(0xFFBBAACB), fontSize = 13.sp, lineHeight = 19.sp
-                        )
+                                color = Color(0xFFBBAACB), fontSize = 13.sp, lineHeight = 19.sp
+                            )
+                        }
                     }
                     Text(if (showPhoneInfo) "↑" else "➜", color = Color(0xFFD9B5FF), fontSize = 30.sp, fontWeight = FontWeight.Bold)
                 }
