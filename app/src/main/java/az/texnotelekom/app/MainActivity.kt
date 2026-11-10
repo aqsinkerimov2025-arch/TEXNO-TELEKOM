@@ -200,7 +200,7 @@ private const val INLINE_STICKER_ID = "texno_inline_sticker"
 
 @Composable
 private fun TextWithInlineSticker(value: String, stickerUrl: String, stickerMime: String, color: Color, fontSize: androidx.compose.ui.unit.TextUnit, lineHeight: androidx.compose.ui.unit.TextUnit) {
-    val displayValue = value.replace("-", "\u2060-\u2060")
+    val displayValue = value.replace("-", " ")
     if (stickerUrl.isBlank() || !displayValue.contains(INLINE_STICKER_TOKEN)) {
         Text(displayValue.replace(INLINE_STICKER_TOKEN, ""), color = color, fontSize = fontSize, lineHeight = lineHeight)
         return
@@ -1305,7 +1305,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                     if (info.imageUrl.isNotBlank()) AsyncImage(model = info.imageUrl, contentDescription = info.title, modifier = Modifier.fillMaxWidth().heightIn(max = 320.dp), contentScale = ContentScale.Fit)
                                     if (info.stickerUrl.isNotBlank() && !info.body.contains(INLINE_STICKER_TOKEN)) StickerPreview(info.stickerUrl, info.stickerMime, Modifier.fillMaxWidth().height(220.dp))
-                                    Text(info.title.ifBlank { "TEXNO-MƏLUMAT" }.replace("-", "\u2060-\u2060"), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                                    Text(info.title.ifBlank { "TEXNO-MƏLUMAT" }.replace("-", " "), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                                     if (info.body.isNotBlank()) TextWithInlineSticker(info.body, info.stickerUrl, info.stickerMime, Color(0xFFD0C7DC), 14.sp, 21.sp)
                                     if (loggedIn) TextButton(onClick = { db.collection("phone_information").document(info.id).delete() }) {
                                         Text("Sil", color = Color(0xFFFF7777))
