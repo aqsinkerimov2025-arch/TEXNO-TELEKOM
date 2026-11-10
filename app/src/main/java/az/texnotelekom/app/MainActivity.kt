@@ -52,7 +52,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.Placeholder
@@ -71,7 +70,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 
 private val bg = Color(0xFF101010)
-private val panel = Color(0xFF292929)
+private val panel = Color(0xFF454545)
 private val accent = Color(0xFFFFB900)
 private const val ADMIN_EMAIL = "aqsin.kerimov.2025@gmail.com"
 private const val CLOUDINARY_CLOUD = "at4nuvsd"
@@ -446,7 +445,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
 
     // Server-managed design values update live without publishing a new APK.
     var designBgHex by remember { mutableStateOf("#101010") }
-    var designPanelHex by remember { mutableStateOf("#292929") }
+    var designPanelHex by remember { mutableStateOf("#454545") }
     var designAccentHex by remember { mutableStateOf("#FFB900") }
     var designGoldCards by remember { mutableStateOf(false) }
     val liveBg = remoteColor(designBgHex, bg)
