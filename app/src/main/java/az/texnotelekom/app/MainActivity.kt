@@ -28,6 +28,11 @@ import androidx.activity.compose.setContent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.basicMarquee
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateColor
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -448,9 +453,19 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     var designPanelHex by remember { mutableStateOf("#454545") }
     var designAccentHex by remember { mutableStateOf("#FFB900") }
     var designGoldCards by remember { mutableStateOf(false) }
-    val liveBg = remoteColor(designBgHex, bg)
-    val livePanel = remoteColor(designPanelHex, panel)
-    val liveAccent = remoteColor(designAccentHex, accent)
+    val chameleon = rememberInfiniteTransition(label = "chameleon_theme")
+    val liveBg by chameleon.animateColor(
+        initialValue = Color(0xFF101010), targetValue = Color(0xFF17102A),
+        animationSpec = infiniteRepeatable(tween(9000), RepeatMode.Reverse), label = "background_color"
+    )
+    val livePanel by chameleon.animateColor(
+        initialValue = Color(0xFF454545), targetValue = Color(0xFF34304A),
+        animationSpec = infiniteRepeatable(tween(7000), RepeatMode.Reverse), label = "panel_color"
+    )
+    val liveAccent by chameleon.animateColor(
+        initialValue = Color(0xFFFFB900), targetValue = Color(0xFF43D9FF),
+        animationSpec = infiniteRepeatable(tween(5000), RepeatMode.Reverse), label = "accent_color"
+    )
 
     var availableUpdate by remember { mutableStateOf<ReleaseUpdate?>(null) }
     LaunchedEffect(Unit) {
