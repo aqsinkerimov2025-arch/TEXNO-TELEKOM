@@ -1268,7 +1268,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                     Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         Image(bitmap = texnoInfoLogo, contentDescription = "TEXNO-MƏLUMAT loqosu", modifier = Modifier.size(82.dp), contentScale = ContentScale.Fit)
                         Column(Modifier.weight(1f)) {
-                            Text("TEXNO-MƏLUMAT", color = Color(0xFFEEDCFF), fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                            Text("TEXNO-MƏLUMAT", color = Color(0xFFEEDCFF), fontSize = 17.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
                             Spacer(Modifier.height(7.dp))
                             Text(
                             if (showPhoneInfo) "Telefon məlumatları bölməsini bağlamaq üçün toxunun"
