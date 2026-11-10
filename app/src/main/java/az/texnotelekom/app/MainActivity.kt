@@ -52,6 +52,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.Placeholder
@@ -447,7 +448,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     var designBgHex by remember { mutableStateOf("#101010") }
     var designPanelHex by remember { mutableStateOf("#292929") }
     var designAccentHex by remember { mutableStateOf("#FFB900") }
-    var designGoldCards by remember { mutableStateOf(true) }
+    var designGoldCards by remember { mutableStateOf(false) }
     val liveBg = remoteColor(designBgHex, bg)
     val livePanel = remoteColor(designPanelHex, panel)
     val liveAccent = remoteColor(designAccentHex, accent)
@@ -941,7 +942,25 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     val shown = programs.filter { (it.isActive || loggedIn) && "${it.name} ${it.category} ${it.description}".contains(query, true) }
 
 
-    MaterialTheme(colorScheme = darkColorScheme(background = liveBg, surface = livePanel, primary = liveAccent, onBackground = Color.White, onSurface = Color.White)) {
+    MaterialTheme(
+        colorScheme = darkColorScheme(
+            background = liveBg,
+            surface = livePanel,
+            surfaceVariant = Color(0xFF383838),
+            primary = liveAccent,
+            secondary = Color(0xFFFFD166),
+            tertiary = Color(0xFFFFC928),
+            onPrimary = Color(0xFF17130A),
+            onSecondary = Color(0xFF17130A),
+            onBackground = Color.White,
+            onSurface = Color.White
+        ),
+        shapes = Shapes(
+            small = RoundedCornerShape(14.dp),
+            medium = RoundedCornerShape(20.dp),
+            large = RoundedCornerShape(28.dp)
+        )
+    ) {
         Column(
             Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(livePanel, liveBg, liveBg)))
                 .statusBarsPadding().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)
@@ -1068,7 +1087,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                 Spacer(Modifier.height(12.dp))
                 Text(
                     "WhatsApp: $whatsappPhone",
-                    color = Color(0xFF67D6FF), fontSize = 17.sp, fontWeight = FontWeight.Bold,
+                    color = Color(0xFFFFD166), fontSize = 17.sp, fontWeight = FontWeight.Bold,
                     modifier = Modifier.clickable {
                         val number = whatsappPhone.filter { it.isDigit() }
                         val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://wa.me/$number"))
@@ -1392,7 +1411,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
             shown.forEach { p ->
                 val isGoldBankCard = designGoldCards
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = if (isGoldBankCard) Color(0xFF6B4B16) else Color(0xFF252525)),
+                    colors = CardDefaults.cardColors(containerColor = if (isGoldBankCard) Color(0xFF6B4B16) else Color(0xFF303030)),
                     shape = RoundedCornerShape(30.dp),
                     modifier = Modifier.fillMaxWidth().padding(vertical = 7.dp)
                 ) {
@@ -1401,7 +1420,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                             .background(
                                 if (isGoldBankCard) Brush.linearGradient(
                                     listOf(Color(0xFFFFE8A3), Color(0xFFD5A63D), Color(0xFF805516), Color(0xFFE8C66D))
-                                ) else Brush.linearGradient(listOf(Color(0xFF252525), Color(0xFF252525))),
+                                ) else Brush.linearGradient(listOf(Color(0xFF303030), Color(0xFF303030))),
                                 RoundedCornerShape(28.dp)
                             )
                             .padding(18.dp),
@@ -1454,7 +1473,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                 Box(
                                     Modifier.weight(1f).height(54.dp)
                                         .background(
-                                            if (isGoldBankCard) Brush.horizontalGradient(listOf(Color(0xFF8A5B12), Color(0xFFFFD76B), Color(0xFF9A6A18))) else Brush.horizontalGradient(listOf(Color(0xFF278CFF), Color(0xFFE12BC8))),
+                                            if (isGoldBankCard) Brush.horizontalGradient(listOf(Color(0xFF8A5B12), Color(0xFFFFD76B), Color(0xFF9A6A18))) else Brush.horizontalGradient(listOf(Color(0xFFFFC928), Color(0xFFFFA000))),
                                             RoundedCornerShape(18.dp)
                                         )
                                         .clickable {
