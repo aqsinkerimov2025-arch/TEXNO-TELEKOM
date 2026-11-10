@@ -628,6 +628,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
             if (e != null) error = "Firebase xətası: ${e.localizedMessage}"
             else if (snap != null) {
                 programs.clear()
+                games.clear()
                 posts.clear()
                 snap.documents.filter { it.getString("content_type") == "channel_post" }.forEach { d ->
                     posts.add(ChannelPost(d.id, d.getString("title") ?: "", d.getString("version") ?: "",
@@ -1133,6 +1134,20 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                 else if (gameImageUrl.isNotBlank()) ProgramIcon(gameImageUrl, gameName, 64)
                                 Button(onClick = { saveGame() }, enabled = !busy && gameName.isNotBlank(), modifier = Modifier.fillMaxWidth()) { if (busy) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp) else Text(if (editingGameId == null) "Oyunu əlavə et" else "Dəyişiklikləri yadda saxla") }
                                 TextButton(onClick = { clearGameForm() }) { Text("Bağla") }
+                            }
+                            Text("Oyunlar: ${games.size}", fontWeight = FontWeight.Bold)
+                            games.forEach { g ->
+                                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF21182E)), modifier = Modifier.fillMaxWidth()) {
+                                    Row(Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                                        if (g.iconUrl.isNotBlank()) ProgramIcon(g.iconUrl, g.name, 40)
+                                        Column(Modifier.weight(1f).padding(horizontal = 8.dp)) {
+                                            Text(g.name, fontWeight = FontWeight.Bold)
+                                            Text("OYUN • ${g.version}", fontSize = 11.sp, color = Color.LightGray)
+                                        }
+                                        IconButton(onClick = { editingGameId = g.id; gameName = g.name; gameVersion = g.version; gameDescription = g.description; gameLink = g.downloadUrl; gameImageUrl = g.iconUrl; gameImage = null; showGameForm = true }) { Icon(Icons.Default.Edit, null, tint = Color(0xFFD5B0FF)) }
+                                        IconButton(onClick = { db.collection("programs").document(g.id).delete().addOnSuccessListener { message = "Oyun silindi." }.addOnFailureListener { error = "Oyun silinmədi: ${it.localizedMessage}" } }) { Icon(Icons.Default.Delete, null, tint = Color(0xFFFF7777)) }
+                                    }
+                                }
                             }
                             HorizontalDivider()
                             Text(if (editingId == null) "Proqram əlavə et" else "Proqramı redaktə et", fontWeight = FontWeight.Bold)
