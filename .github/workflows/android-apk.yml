@@ -1,4 +1,5 @@
 name: Build TEXNO-TELEKOM APK
+# Rebuild for TEXNO-MƏLUMAT grouped section UI
 # Rebuild APK after TEXNO-MƏLUMAT publishing fix
 on:
   workflow_dispatch:
