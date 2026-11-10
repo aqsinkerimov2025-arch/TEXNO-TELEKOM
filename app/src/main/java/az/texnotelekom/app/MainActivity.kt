@@ -904,6 +904,15 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                         style = TextStyle(brush = Brush.horizontalGradient(listOf(Color(0xFF557CFF), Color(0xFFB63CDB)))),
                         fontSize = 19.sp, fontWeight = FontWeight.Black
                     )
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+                        Text(
+                            "✦ TEXNO-MƏLUMAT",
+                            style = TextStyle(brush = Brush.horizontalGradient(listOf(Color(0xFF557CFF), Color(0xFFB63CDB)))),
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Black
+                        )
+                        if (newPhoneInfoNotice) Text("  🔔 YENİ", color = Color(0xFFFFD166), fontSize = 10.sp, fontWeight = FontWeight.Black)
+                    }
                     Text(
                         "✦ TELEFON MƏLUMATLARI  •  PREMIUM PROQRAMLARIN ÜNVANI  •  TEXNOLOGİYA DÜNYASI  •  TELEFON MƏLUMATLARI  •  PREMIUM PROQRAMLARIN ÜNVANI  ✦",
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 42.dp).basicMarquee(iterations = Int.MAX_VALUE),
@@ -918,15 +927,6 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                         Modifier.clickable { revealDeviceCodeButton = !revealDeviceCodeButton },
                         contentAlignment = Alignment.Center
                     ) { TexnoTelekomLogo(size = 78.dp) }
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
-                        Text(
-                            "✦ TEXNO-MƏLUMAT",
-                            style = TextStyle(brush = Brush.horizontalGradient(listOf(Color(0xFF557CFF), Color(0xFFB63CDB)))),
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Black
-                        )
-                        if (newPhoneInfoNotice) Text("  🔔 YENİ", color = Color(0xFFFFD166), fontSize = 10.sp, fontWeight = FontWeight.Black)
-                    }
                 }
                 if (isAuthorizedDevice) {
                     IconButton(
