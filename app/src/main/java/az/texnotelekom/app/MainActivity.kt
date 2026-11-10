@@ -1262,13 +1262,13 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                 modifier = Modifier.fillMaxWidth().clickable { showPhoneInfo = !showPhoneInfo; newPhoneInfoNotice = false }
             ) {
                 Row(
-                    Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 22.dp),
+                    Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 22.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Image(bitmap = texnoInfoLogo, contentDescription = "TEXNO-MƏLUMAT loqosu", modifier = Modifier.size(82.dp), contentScale = ContentScale.Fit)
+                    Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                        Image(bitmap = texnoInfoLogo, contentDescription = "TEXNO-MƏLUMAT loqosu", modifier = Modifier.size(78.dp), contentScale = ContentScale.Fit)
                         Column(Modifier.weight(1f)) {
-                            Text("TEXNO-MƏLUMAT", color = Color(0xFFEEDCFF), fontSize = 17.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
+                            Text("TEXNO-MƏLUMAT", color = Color(0xFFEEDCFF), fontSize = 16.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
                             Spacer(Modifier.height(7.dp))
                             Text(
                             if (showPhoneInfo) "Telefon məlumatları bölməsini bağlamaq üçün toxunun"
