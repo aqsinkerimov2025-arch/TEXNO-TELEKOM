@@ -28,12 +28,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.basicMarquee
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.animateColor
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.keyframes
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -454,45 +448,9 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     var designPanelHex by remember { mutableStateOf("#454545") }
     var designAccentHex by remember { mutableStateOf("#FFB900") }
     var designGoldCards by remember { mutableStateOf(false) }
-    val chameleon = rememberInfiniteTransition(label = "chameleon_theme")
-    val liveBg by chameleon.animateColor(
-        initialValue = Color(0xFF101010), targetValue = Color(0xFF101010),
-        animationSpec = infiniteRepeatable(keyframes {
-            durationMillis = 9000
-            Color(0xFF101010) at 0
-            Color(0xFF17102A) at 1500
-            Color(0xFF101D24) at 3000
-            Color(0xFF241018) at 4500
-            Color(0xFF102018) at 6000
-            Color(0xFF101010) at 9000
-        }), label = "background_color"
-    )
-    val livePanel by chameleon.animateColor(
-        initialValue = Color(0xFF454545), targetValue = Color(0xFF454545),
-        animationSpec = infiniteRepeatable(keyframes {
-            durationMillis = 8000
-            Color(0xFF454545) at 0
-            Color(0xFF49345A) at 1600
-            Color(0xFF31515A) at 3200
-            Color(0xFF5A3438) at 4800
-            Color(0xFF34513B) at 6400
-            Color(0xFF454545) at 8000
-        }), label = "panel_color"
-    )
-    val liveAccent by chameleon.animateColor(
-        initialValue = Color(0xFFFFB900), targetValue = Color(0xFFFFB900),
-        animationSpec = infiniteRepeatable(keyframes {
-            durationMillis = 7000
-            Color(0xFFFFB900) at 0
-            Color(0xFFFF3B30) at 1000
-            Color(0xFFB7E600) at 2000
-            Color(0xFF00D7A0) at 3000
-            Color(0xFF00B7FF) at 4000
-            Color(0xFF7657FF) at 5000
-            Color(0xFFFF42B8) at 6000
-            Color(0xFFFFB900) at 7000
-        }), label = "accent_color"
-    )
+    val liveBg = remoteColor(designBgHex, bg)
+    val livePanel = remoteColor(designPanelHex, panel)
+    val liveAccent = remoteColor(designAccentHex, accent)
 
     var availableUpdate by remember { mutableStateOf<ReleaseUpdate?>(null) }
     LaunchedEffect(Unit) {
