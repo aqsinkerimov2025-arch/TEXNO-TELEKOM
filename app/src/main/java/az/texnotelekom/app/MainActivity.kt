@@ -1107,8 +1107,6 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                             OutlinedTextField(phoneInfoTitle, { phoneInfoTitle = it }, label = { Text("Telefon modeli / başlıq") }, modifier = Modifier.fillMaxWidth())
                             OutlinedTextField(phoneInfoBody, { phoneInfoBody = it }, label = { Text("Telefon haqqında məlumat") }, modifier = Modifier.fillMaxWidth(), minLines = 4)
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                OutlinedButton(onClick = { clipboardStickerUri(context)?.let { phoneInfoSticker = it; message = "Clipboard-dan stiker götürüldü." } ?: run { error = "Clipboard-da media stiker tapılmadı. Telegram-dan faylı paylaşın və ya seçin." } }, modifier = Modifier.weight(1f)) { Text("YAPIŞDIR") }
-                                OutlinedButton(onClick = { phoneStickerPicker.launch("*/*") }, modifier = Modifier.weight(1f)) { Text("STİKER SEÇ") }
                             }
                             if (phoneInfoSticker != null) {
                                 Text("Stiker əlavə olunub", color = Color(0xFF8DE6A5))
@@ -1167,8 +1165,6 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                             OutlinedTextField(version, { version = it }, label = { Text("Versiya") }, modifier = Modifier.fillMaxWidth())
                             OutlinedTextField(description, { description = it }, label = { Text("Təsvir") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                OutlinedButton(onClick = { clipboardStickerUri(context)?.let { programSticker = it; message = "Clipboard-dan stiker götürüldü." } ?: run { error = "Clipboard-da media stiker tapılmadı. Telegram-dan faylı paylaşın və ya seçin." } }, modifier = Modifier.weight(1f)) { Text("YAPIŞDIR") }
-                                OutlinedButton(onClick = { programStickerPicker.launch("*/*") }, modifier = Modifier.weight(1f)) { Text("STİKER SEÇ") }
                             }
                             if (programSticker != null || currentProgramStickerUrl.isNotBlank()) {
                                 Text("Stiker əlavə olunub", color = Color(0xFF8DE6A5))
