@@ -918,6 +918,15 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                         Modifier.clickable { revealDeviceCodeButton = !revealDeviceCodeButton },
                         contentAlignment = Alignment.Center
                     ) { TexnoTelekomLogo(size = 78.dp) }
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+                        Text(
+                            "✦ TEXNO-MƏLUMAT",
+                            style = TextStyle(brush = Brush.horizontalGradient(listOf(Color(0xFF557CFF), Color(0xFFB63CDB)))),
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Black
+                        )
+                        if (newPhoneInfoNotice) Text("  🔔 YENİ", color = Color(0xFFFFD166), fontSize = 10.sp, fontWeight = FontWeight.Black)
+                    }
                 }
                 if (isAuthorizedDevice) {
                     IconButton(
@@ -1176,10 +1185,6 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(Modifier.weight(1f)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("✦ TEXNO-MƏLUMAT", color = Color(0xFFEEDCFF), fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                            if (newPhoneInfoNotice) Text("  🔔 YENİ", color = Color(0xFFFFD166), fontSize = 11.sp, fontWeight = FontWeight.Black)
-                        }
                         Spacer(Modifier.height(7.dp))
                         Text(
                             if (showPhoneInfo) "Telefon məlumatları bölməsini bağlamaq üçün toxunun"
