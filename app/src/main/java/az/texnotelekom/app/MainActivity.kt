@@ -977,14 +977,14 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                     ) {
                         Text(
                             heroTitle,
-                            style = TextStyle(brush = Brush.horizontalGradient(listOf(Color(0xFF6F8DFF), Color(0xFFE18BFF)))),
+                            style = TextStyle(brush = Brush.horizontalGradient(listOf(Color(0xFFFFE8A3), Color(0xFFD5A63D), Color(0xFF9A6A18)))),
                             fontSize = 19.sp,
                             fontWeight = FontWeight.Black,
                             maxLines = 1
                         )
                         Text(
                             "TEXNO-MƏLUMAT",
-                            style = TextStyle(brush = Brush.horizontalGradient(listOf(Color(0xFFFFD54F), Color(0xFFFFA000)))),
+                            style = TextStyle(brush = Brush.horizontalGradient(listOf(Color(0xFFFFE8A3), Color(0xFFD5A63D), Color(0xFF9A6A18)))),
                             fontSize = 19.sp,
                             fontWeight = FontWeight.Black,
                             maxLines = 1
@@ -1096,10 +1096,10 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
             }
 
             if (adminOpen && isAuthorizedDevice) {
-                Card(colors = CardDefaults.cardColors(containerColor = livePanel), modifier = Modifier.fillMaxWidth()) {
+                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF493411)), modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         if (!loggedIn) {
-                            Text("Admin girişi", fontWeight = FontWeight.Bold)
+                            Text("ADMIN GİRİŞİ", color = Color(0xFFFFD76B), fontWeight = FontWeight.Bold)
                             OutlinedTextField(email, { email = it }, label = { Text("E-poçt") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email), modifier = Modifier.fillMaxWidth())
                             OutlinedTextField(password, { password = it }, label = { Text("Şifrə") }, visualTransformation = PasswordVisualTransformation(), modifier = Modifier.fillMaxWidth())
                             Button(onClick = {
@@ -1121,7 +1121,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                             if (showSiteTextEditor) {
                                 Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF25213B)), modifier = Modifier.fillMaxWidth()) {
                                     Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                        Text("SAYT YAZILARI", fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                                        Text("SAYT YAZILARI", color = Color(0xFFFFD76B), fontWeight = FontWeight.Bold, fontSize = 17.sp)
                                         OutlinedTextField(heroTitle, { heroTitle = it }, label = { Text("Əsas başlıq") }, modifier = Modifier.fillMaxWidth())
                                         OutlinedTextField(welcomeText, { welcomeText = it }, label = { Text("Qarşılama yazısı") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
                                         OutlinedTextField(infoTitle, { infoTitle = it }, label = { Text("Məlumat başlığı") }, modifier = Modifier.fillMaxWidth())
@@ -1135,7 +1135,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                             }
                             HorizontalDivider()
                             HorizontalDivider()
-                            Text("TEXNO-MƏLUMAT paylaş", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                            Text("TEXNO-MƏLUMAT PAYLAŞ", color = Color(0xFFFFD76B), fontWeight = FontWeight.Bold, fontSize = 18.sp)
                             OutlinedTextField(phoneInfoTitle, { phoneInfoTitle = it }, label = { Text("Telefon modeli / başlıq") }, modifier = Modifier.fillMaxWidth())
                             OutlinedTextField(phoneInfoBody, { phoneInfoBody = it }, label = { Text("Telefon haqqında məlumat") }, modifier = Modifier.fillMaxWidth(), minLines = 4)
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -1176,7 +1176,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                 Button(onClick = { saveGame() }, enabled = !busy && gameName.isNotBlank(), modifier = Modifier.fillMaxWidth()) { if (busy) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp) else Text(if (editingGameId == null) "Oyunu əlavə et" else "Dəyişiklikləri yadda saxla") }
                                 TextButton(onClick = { clearGameForm() }) { Text("Bağla") }
                             }
-                            Text("Oyunlar: ${games.size}", fontWeight = FontWeight.Bold)
+                            Text("Oyunlar: ${games.size}", color = Color(0xFFFFD76B), fontWeight = FontWeight.Bold)
                             games.forEach { g ->
                                 Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF303030)), modifier = Modifier.fillMaxWidth()) {
                                     Row(Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -1191,7 +1191,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                 }
                             }
                             HorizontalDivider()
-                            Text(if (editingId == null) "Proqram əlavə et" else "Proqramı redaktə et", fontWeight = FontWeight.Bold)
+                            Text(if (editingId == null) "Proqram əlavə et" else "Proqramı redaktə et", color = Color(0xFFFFD76B), fontWeight = FontWeight.Bold)
                             OutlinedTextField(name, { name = it }, label = { Text("Proqramın adı") }, modifier = Modifier.fillMaxWidth())
                             OutlinedTextField(category, { category = it }, label = { Text("Kateqoriya") }, modifier = Modifier.fillMaxWidth())
                             OutlinedTextField(version, { version = it }, label = { Text("Versiya") }, modifier = Modifier.fillMaxWidth())
@@ -1218,7 +1218,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                             }
                             if (editingId != null) TextButton(onClick = { clearForm() }) { Text("Redaktəni ləğv et") }
                             HorizontalDivider()
-                            Text("Proqramlar: ${programs.size}", fontWeight = FontWeight.Bold)
+                            Text("Proqramlar: ${programs.size}", color = Color(0xFFFFD76B), fontWeight = FontWeight.Bold)
                             programs.forEach { p ->
                                 Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF303030)), modifier = Modifier.fillMaxWidth()) {
                                     Row(Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -1252,14 +1252,14 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
             if (designAdminOpen && isAuthorizedDevice && loggedIn) {
                 Card(colors = CardDefaults.cardColors(containerColor = livePanel), modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text("CANLI DİZAYN İDARƏETMƏSİ", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 19.sp)
+                        Text("CANLI DİZAYN İDARƏETMƏSİ", color = Color(0xFFFFD76B), fontWeight = FontWeight.Bold, fontSize = 19.sp)
                         Text("Bu ayrıca bölmə yalnız admin cihazında və admin hesabında görünür. Dəyişikliklər bütün istifadəçilərə tətbiq olunur.", color = Color.LightGray, fontSize = 12.sp)
                         OutlinedTextField(designBgHex, { designBgHex = it }, label = { Text("Arxa fon rəngi (#RRGGBB)") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
                         OutlinedTextField(designPanelHex, { designPanelHex = it }, label = { Text("Kart rəngi (#RRGGBB)") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
                         OutlinedTextField(designAccentHex, { designAccentHex = it }, label = { Text("Əsas vurğu rəngi (#RRGGBB)") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Checkbox(checked = designGoldCards, onCheckedChange = { designGoldCards = it })
-                            Text("Qızılı premium kart dizaynı")
+                            Text("Qızılı premium kart dizaynı", color = Color(0xFFFFD76B))
                         }
                         Button(onClick = { saveLiveDesign() }, modifier = Modifier.fillMaxWidth()) { Text("Dizaynı hamıda yenilə") }
                         OutlinedButton(onClick = { designAdminOpen = false }, modifier = Modifier.fillMaxWidth()) { Text("Admin panelinə qayıt") }
