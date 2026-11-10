@@ -1181,7 +1181,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                         Modifier.fillMaxWidth().padding(14.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        Text("PAYLAŞIMLARIM", color = Color(0xFFEEDCFF), fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                        Text("PAYLAŞIMLAR", color = Color(0xFFEEDCFF), fontWeight = FontWeight.Bold, fontSize = 17.sp)
                         if (phoneInfos.isEmpty()) {
                             Text("Hələ telefon məlumatı paylaşılmayıb.", color = Color.LightGray)
                         }
