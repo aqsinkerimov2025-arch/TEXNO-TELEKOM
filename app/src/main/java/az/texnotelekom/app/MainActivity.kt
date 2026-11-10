@@ -1185,6 +1185,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(Modifier.weight(1f)) {
+                        Text("TEXNO-MƏLUMAT", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                         Spacer(Modifier.height(7.dp))
                         Text(
                             if (showPhoneInfo) "Telefon məlumatları bölməsini bağlamaq üçün toxunun"
