@@ -989,12 +989,16 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                     ) { TexnoTelekomLogo(size = 78.dp) }
                 }
                 if (isAuthorizedDevice) {
-                    IconButton(
-                        onClick = { adminOpen = !adminOpen; error = ""; message = "" },
-                        modifier = Modifier.align(Alignment.TopStart).size(48.dp)
-                    ) {
-                        ProgramIcon("b64:$ADMIN_ICON_BASE64", "Admin paneli", 40)
-                    }
+                    Text(
+                        "ADMİN",
+                        modifier = Modifier.align(Alignment.TopStart)
+                            .padding(start = 8.dp, top = 10.dp)
+                            .clickable { adminOpen = !adminOpen; error = ""; message = "" },
+                        color = Color(0xFFFFD76B),
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Black,
+                        letterSpacing = 1.sp
+                    )
                 }
                 Row(
                     modifier = Modifier.align(Alignment.TopEnd),
