@@ -906,9 +906,9 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                     )
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
                         Text(
-                            "✦ TEXNO-MƏLUMAT",
+                            "TEXNO-MƏLUMAT",
                             style = TextStyle(brush = Brush.horizontalGradient(listOf(Color(0xFF557CFF), Color(0xFFB63CDB)))),
-                            fontSize = 16.sp,
+                            fontSize = 19.sp,
                             fontWeight = FontWeight.Black
                         )
                         if (newPhoneInfoNotice) Text("  🔔 YENİ", color = Color(0xFFFFD166), fontSize = 10.sp, fontWeight = FontWeight.Black)
