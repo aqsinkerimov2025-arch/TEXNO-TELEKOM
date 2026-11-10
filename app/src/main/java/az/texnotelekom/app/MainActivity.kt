@@ -972,6 +972,15 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                         )
                         if (newPhoneInfoNotice) Text("🔔 YENİ", color = Color(0xFFFFD166), fontSize = 10.sp, fontWeight = FontWeight.Black, maxLines = 1)
                     }
+                    Text(
+                        "✦ TELEFON MƏLUMATLARI  •  PREMIUM PROQRAMLARIN ÜNVANI  •  TEXNOLOGİYA DÜNYASI  •  TELEFON MƏLUMATLARI  •  PREMIUM PROQRAMLARIN ÜNVANI  ✦",
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 42.dp).basicMarquee(iterations = Int.MAX_VALUE),
+                        color = Color.White,
+                        fontSize = 7.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = 0.7.sp,
+                        maxLines = 1
+                    )
                     Spacer(Modifier.height(6.dp))
                     Box(
                         Modifier.clickable { revealDeviceCodeButton = !revealDeviceCodeButton },
