@@ -1172,16 +1172,34 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
             }
             if (showPhoneInfo) {
                 Spacer(Modifier.height(12.dp))
-                if (phoneInfos.isEmpty()) Text("Hələ telefon məlumatı paylaşılmayıb.", color = Color.LightGray)
-                phoneInfos.forEach { info ->
-                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF151020)), modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
-                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text(info.title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                            TextWithInlineSticker(info.body, info.stickerUrl, info.stickerMime, Color(0xFFD0C7DC), 14.sp, 21.sp)
-                            if (info.imageUrl.isNotBlank()) AsyncImage(model = info.imageUrl, contentDescription = info.title, modifier = Modifier.fillMaxWidth().heightIn(max = 320.dp), contentScale = ContentScale.Fit)
-                            if (info.stickerUrl.isNotBlank() && !info.body.contains(INLINE_STICKER_TOKEN)) StickerPreview(info.stickerUrl, info.stickerMime, Modifier.fillMaxWidth().height(220.dp))
-                            if (loggedIn) TextButton(onClick = { db.collection("phone_information").document(info.id).delete() }) {
-                                Text("Sil", color = Color(0xFFFF7777))
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF120C1C)),
+                    shape = RoundedCornerShape(22.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        Modifier.fillMaxWidth().padding(14.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Text("PAYLAŞIMLARIM", color = Color(0xFFEEDCFF), fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                        if (phoneInfos.isEmpty()) {
+                            Text("Hələ telefon məlumatı paylaşılmayıb.", color = Color.LightGray)
+                        }
+                        phoneInfos.forEach { info ->
+                            Card(
+                                colors = CardDefaults.cardColors(containerColor = Color(0xFF1A1325)),
+                                shape = RoundedCornerShape(16.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    Text(info.title.ifBlank { "TEXNO-MƏLUMAT" }, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                                    if (info.body.isNotBlank()) TextWithInlineSticker(info.body, info.stickerUrl, info.stickerMime, Color(0xFFD0C7DC), 14.sp, 21.sp)
+                                    if (info.imageUrl.isNotBlank()) AsyncImage(model = info.imageUrl, contentDescription = info.title, modifier = Modifier.fillMaxWidth().heightIn(max = 320.dp), contentScale = ContentScale.Fit)
+                                    if (info.stickerUrl.isNotBlank() && !info.body.contains(INLINE_STICKER_TOKEN)) StickerPreview(info.stickerUrl, info.stickerMime, Modifier.fillMaxWidth().height(220.dp))
+                                    if (loggedIn) TextButton(onClick = { db.collection("phone_information").document(info.id).delete() }) {
+                                        Text("Sil", color = Color(0xFFFF7777))
+                                    }
+                                }
                             }
                         }
                     }
