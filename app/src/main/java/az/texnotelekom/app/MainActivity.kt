@@ -498,6 +498,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     var phoneInfoStickerBusy by remember { mutableStateOf(false) }
     var phoneInfoBusy by remember { mutableStateOf(false) }
     var adminOpen by remember { mutableStateOf(false) }
+    var showSiteTextEditor by remember { mutableStateOf(false) }
     var designAdminOpen by remember { mutableStateOf(false) }
     var showDeviceInfo by remember { mutableStateOf(false) }
     var revealDeviceCodeButton by remember { mutableStateOf(false) }
@@ -1092,15 +1093,24 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                             }, enabled = email.isNotBlank() && password.isNotBlank()) { Text("Daxil ol") }
                         } else {
                             OutlinedButton(onClick = { designAdminOpen = true }, modifier = Modifier.fillMaxWidth()) { Text("Canlı dizayn bölməsi") }
-                            Text("Sayt yazılarını düzəlt", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                            OutlinedTextField(heroTitle, { heroTitle = it }, label = { Text("Əsas başlıq") }, modifier = Modifier.fillMaxWidth())
-                            OutlinedTextField(welcomeText, { welcomeText = it }, label = { Text("Qarşılama yazısı") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
-                            OutlinedTextField(infoTitle, { infoTitle = it }, label = { Text("Məlumat başlığı") }, modifier = Modifier.fillMaxWidth())
-                            OutlinedTextField(infoLine1, { infoLine1 = it }, label = { Text("1-ci məlumat sətri") }, modifier = Modifier.fillMaxWidth())
-                            OutlinedTextField(infoLine2, { infoLine2 = it }, label = { Text("2-ci məlumat sətri") }, modifier = Modifier.fillMaxWidth())
-                            OutlinedTextField(infoLine3, { infoLine3 = it }, label = { Text("3-cü məlumat sətri") }, modifier = Modifier.fillMaxWidth())
-                            OutlinedTextField(whatsappPhone, { whatsappPhone = it }, label = { Text("WhatsApp nömrəsi") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone), modifier = Modifier.fillMaxWidth())
-                            Button(onClick = { saveSiteTexts() }, modifier = Modifier.fillMaxWidth()) { Text("Yazıları yadda saxla") }
+                            OutlinedButton(onClick = { showSiteTextEditor = !showSiteTextEditor }, modifier = Modifier.fillMaxWidth()) {
+                                Text(if (showSiteTextEditor) "SAYT YAZILARINI BAĞLA ▲" else "SAYT YAZILARINI DÜZƏLT ▼", fontWeight = FontWeight.Bold)
+                            }
+                            if (showSiteTextEditor) {
+                                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF21182E)), modifier = Modifier.fillMaxWidth()) {
+                                    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                        Text("SAYT YAZILARI", fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                                        OutlinedTextField(heroTitle, { heroTitle = it }, label = { Text("Əsas başlıq") }, modifier = Modifier.fillMaxWidth())
+                                        OutlinedTextField(welcomeText, { welcomeText = it }, label = { Text("Qarşılama yazısı") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
+                                        OutlinedTextField(infoTitle, { infoTitle = it }, label = { Text("Məlumat başlığı") }, modifier = Modifier.fillMaxWidth())
+                                        OutlinedTextField(infoLine1, { infoLine1 = it }, label = { Text("1-ci məlumat sətri") }, modifier = Modifier.fillMaxWidth())
+                                        OutlinedTextField(infoLine2, { infoLine2 = it }, label = { Text("2-ci məlumat sətri") }, modifier = Modifier.fillMaxWidth())
+                                        OutlinedTextField(infoLine3, { infoLine3 = it }, label = { Text("3-cü məlumat sətri") }, modifier = Modifier.fillMaxWidth())
+                                        OutlinedTextField(whatsappPhone, { whatsappPhone = it }, label = { Text("WhatsApp nömrəsi") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone), modifier = Modifier.fillMaxWidth())
+                                        Button(onClick = { saveSiteTexts() }, modifier = Modifier.fillMaxWidth()) { Text("Yazıları yadda saxla") }
+                                    }
+                                }
+                            }
                             HorizontalDivider()
                             HorizontalDivider()
                             Text("TEXNO-MƏLUMAT paylaş", fontWeight = FontWeight.Bold, fontSize = 18.sp)
