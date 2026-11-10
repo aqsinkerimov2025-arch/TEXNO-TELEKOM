@@ -69,9 +69,9 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 
-private val bg = Color(0xFF080610)
-private val panel = Color(0xFF151020)
-private val accent = Color(0xFFAA4CFF)
+private val bg = Color(0xFF101010)
+private val panel = Color(0xFF292929)
+private val accent = Color(0xFFFFB900)
 private const val ADMIN_EMAIL = "aqsin.kerimov.2025@gmail.com"
 private const val CLOUDINARY_CLOUD = "at4nuvsd"
 private const val CLOUDINARY_PRESET = "texno_telekom_upload"
@@ -444,9 +444,9 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     val db = remember { FirebaseFirestore.getInstance() }
 
     // Server-managed design values update live without publishing a new APK.
-    var designBgHex by remember { mutableStateOf("#080610") }
-    var designPanelHex by remember { mutableStateOf("#151020") }
-    var designAccentHex by remember { mutableStateOf("#AA4CFF") }
+    var designBgHex by remember { mutableStateOf("#101010") }
+    var designPanelHex by remember { mutableStateOf("#292929") }
+    var designAccentHex by remember { mutableStateOf("#FFB900") }
     var designGoldCards by remember { mutableStateOf(true) }
     val liveBg = remoteColor(designBgHex, bg)
     val livePanel = remoteColor(designPanelHex, panel)
@@ -959,14 +959,14 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                     ) {
                         Text(
                             heroTitle,
-                            style = TextStyle(brush = Brush.horizontalGradient(listOf(Color(0xFF557CFF), Color(0xFFB63CDB)))),
+                            style = TextStyle(brush = Brush.horizontalGradient(listOf(Color(0xFFFFD54F), Color(0xFFFFA000)))),
                             fontSize = 19.sp,
                             fontWeight = FontWeight.Black,
                             maxLines = 1
                         )
                         Text(
                             "TEXNO-MƏLUMAT",
-                            style = TextStyle(brush = Brush.horizontalGradient(listOf(Color(0xFF557CFF), Color(0xFFB63CDB)))),
+                            style = TextStyle(brush = Brush.horizontalGradient(listOf(Color(0xFFFFD54F), Color(0xFFFFA000)))),
                             fontSize = 19.sp,
                             fontWeight = FontWeight.Black,
                             maxLines = 1
@@ -1010,15 +1010,15 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                             value = query,
                             onValueChange = { query = it },
                             modifier = Modifier.width(170.dp).height(54.dp),
-                            placeholder = { Text("Axtar...", color = Color(0xFFBBAACB)) },
+                            placeholder = { Text("Axtar...", color = Color(0xFFBDBDBD)) },
                             singleLine = true,
                             shape = RoundedCornerShape(14.dp),
                             textStyle = TextStyle(color = Color.White, fontSize = 14.sp),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedTextColor = Color.White,
                                 unfocusedTextColor = Color.White,
-                                focusedBorderColor = Color(0xFF69478A),
-                                unfocusedBorderColor = Color(0xFF69478A),
+                                focusedBorderColor = Color(0xFFFFB900),
+                                unfocusedBorderColor = Color(0xFFFFB900),
                                 cursorColor = Color.White
                             )
                         )
@@ -1026,12 +1026,12 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                     IconButton(
                         onClick = { searchOpen = !searchOpen; if (!searchOpen) query = "" },
                         modifier = Modifier.size(48.dp)
-                    ) { Icon(Icons.Default.Search, contentDescription = "Axtarış", tint = Color(0xFFE7D5FF)) }
+                    ) { Icon(Icons.Default.Search, contentDescription = "Axtarış", tint = Color(0xFFFFD76B)) }
                 }
             }
             if (revealDeviceCodeButton) {
                 TextButton(onClick = { showDeviceInfo = true }, modifier = Modifier.align(Alignment.CenterHorizontally)) {
-                    Text("Cihaz kodunu göstər", color = Color(0xFFBBAACB), fontSize = 13.sp)
+                    Text("Cihaz kodunu göstər", color = Color(0xFFBDBDBD), fontSize = 13.sp)
                 }
             }
             Spacer(Modifier.height(24.dp))
@@ -1043,7 +1043,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                 )
             }
             Spacer(Modifier.height(28.dp))
-            HorizontalDivider(color = Color(0xFF40334D), thickness = 1.dp)
+            HorizontalDivider(color = Color(0xFF555555), thickness = 1.dp)
             Spacer(Modifier.height(28.dp))
             if (infoTitle.isNotBlank()) {
                 Text(
@@ -1101,7 +1101,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                 Text(if (showSiteTextEditor) "SAYT YAZILARINI BAĞLA ▲" else "SAYT YAZILARINI DÜZƏLT ▼", fontWeight = FontWeight.Bold)
                             }
                             if (showSiteTextEditor) {
-                                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF21182E)), modifier = Modifier.fillMaxWidth()) {
+                                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF303030)), modifier = Modifier.fillMaxWidth()) {
                                     Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                         Text("SAYT YAZILARI", fontWeight = FontWeight.Bold, fontSize = 17.sp)
                                         OutlinedTextField(heroTitle, { heroTitle = it }, label = { Text("Əsas başlıq") }, modifier = Modifier.fillMaxWidth())
@@ -1160,14 +1160,14 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                             }
                             Text("Oyunlar: ${games.size}", fontWeight = FontWeight.Bold)
                             games.forEach { g ->
-                                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF21182E)), modifier = Modifier.fillMaxWidth()) {
+                                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF303030)), modifier = Modifier.fillMaxWidth()) {
                                     Row(Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
                                         if (g.iconUrl.isNotBlank()) ProgramIcon(g.iconUrl, g.name, 40)
                                         Column(Modifier.weight(1f).padding(horizontal = 8.dp)) {
                                             Text(g.name, fontWeight = FontWeight.Bold)
                                             Text("OYUN • ${g.version}", fontSize = 11.sp, color = Color.LightGray)
                                         }
-                                        IconButton(onClick = { editingGameId = g.id; gameName = g.name; gameVersion = g.version; gameDescription = g.description; gameLink = g.downloadUrl; gameImageUrl = g.iconUrl; gameImage = null; showGameForm = true }) { Icon(Icons.Default.Edit, null, tint = Color(0xFFD5B0FF)) }
+                                        IconButton(onClick = { editingGameId = g.id; gameName = g.name; gameVersion = g.version; gameDescription = g.description; gameLink = g.downloadUrl; gameImageUrl = g.iconUrl; gameImage = null; showGameForm = true }) { Icon(Icons.Default.Edit, null, tint = Color(0xFFFFC928)) }
                                         IconButton(onClick = { db.collection("programs").document(g.id).delete().addOnSuccessListener { message = "Oyun silindi." }.addOnFailureListener { error = "Oyun silinmədi: ${it.localizedMessage}" } }) { Icon(Icons.Default.Delete, null, tint = Color(0xFFFF7777)) }
                                     }
                                 }
@@ -1202,7 +1202,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                             HorizontalDivider()
                             Text("Proqramlar: ${programs.size}", fontWeight = FontWeight.Bold)
                             programs.forEach { p ->
-                                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF21182E)), modifier = Modifier.fillMaxWidth()) {
+                                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF303030)), modifier = Modifier.fillMaxWidth()) {
                                     Row(Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
                                         if (p.iconUrl.isNotBlank()) ProgramIcon(p.iconUrl, p.name, 40)
                                         Column(Modifier.weight(1f).padding(horizontal = 8.dp)) {
@@ -1213,7 +1213,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                             editingId = p.id; name = p.name; category = p.category; version = p.version
                                             description = p.description; link = p.downloadUrl; fileSize = p.fileSize
                                             currentIcon = p.iconUrl; pickedImage = null; currentProgramStickerUrl = p.stickerUrl; currentProgramStickerMime = p.stickerMime; programSticker = null; message = "Redaktə üçün seçildi."
-                                        }) { Icon(Icons.Default.Edit, null, tint = Color(0xFFD5B0FF)) }
+                                        }) { Icon(Icons.Default.Edit, null, tint = Color(0xFFFFC928)) }
                                         IconButton(onClick = {
                                             db.collection("programs").document(p.id).delete().addOnSuccessListener {
                                                 if (editingId == p.id) clearForm()
@@ -1273,7 +1273,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
 
             Spacer(Modifier.height(22.dp))
             Card(
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF1A1025)),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF303030)),
                 shape = RoundedCornerShape(28.dp),
                 modifier = Modifier.fillMaxWidth().clickable { showPhoneInfo = !showPhoneInfo; newPhoneInfoNotice = false }
             ) {
@@ -1284,22 +1284,22 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                     Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(9.dp)) {
                         Image(bitmap = texnoInfoLogo, contentDescription = "TEXNO-MƏLUMAT loqosu", modifier = Modifier.size(78.dp), contentScale = ContentScale.Fit)
                         Column(Modifier.weight(1f)) {
-                            Text("TEXNO-MƏLUMAT", color = Color(0xFFEEDCFF), fontSize = 16.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
+                            Text("TEXNO-MƏLUMAT", color = Color(0xFFFFD76B), fontSize = 16.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
                             Spacer(Modifier.height(7.dp))
                             Text(
                             if (showPhoneInfo) "Telefon məlumatları bölməsini bağlamaq üçün toxunun"
                             else "Telefonlar haqqında məlumatları oxumaq üçün bölməyə daxil olun",
-                                color = Color(0xFFBBAACB), fontSize = 13.sp, lineHeight = 19.sp
+                                color = Color(0xFFBDBDBD), fontSize = 13.sp, lineHeight = 19.sp
                             )
                         }
                     }
-                    Text(if (showPhoneInfo) "↑" else "➜", color = Color(0xFFD9B5FF), fontSize = 30.sp, fontWeight = FontWeight.Bold)
+                    Text(if (showPhoneInfo) "↑" else "➜", color = Color(0xFFFFC928), fontSize = 30.sp, fontWeight = FontWeight.Bold)
                 }
             }
             if (showPhoneInfo) {
                 Spacer(Modifier.height(12.dp))
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF120C1C)),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF242424)),
                     shape = RoundedCornerShape(22.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -1307,13 +1307,13 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                         Modifier.fillMaxWidth().padding(14.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        Text("PAYLAŞIMLAR", color = Color(0xFFEEDCFF), fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                        Text("PAYLAŞIMLAR", color = Color(0xFFFFD76B), fontWeight = FontWeight.Bold, fontSize = 17.sp)
                         if (phoneInfos.isEmpty()) {
                             Text("Hələ telefon məlumatı paylaşılmayıb.", color = Color.LightGray)
                         }
                         phoneInfos.forEach { info ->
                             Card(
-                                colors = CardDefaults.cardColors(containerColor = Color(0xFF1A1325)),
+                                colors = CardDefaults.cardColors(containerColor = Color(0xFF383838)),
                                 shape = RoundedCornerShape(16.dp),
                                 modifier = Modifier.fillMaxWidth()
                             ) {
@@ -1321,7 +1321,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                     if (info.imageUrl.isNotBlank()) AsyncImage(model = info.imageUrl, contentDescription = info.title, modifier = Modifier.fillMaxWidth().heightIn(max = 320.dp), contentScale = ContentScale.Fit)
                                     if (info.stickerUrl.isNotBlank() && !info.body.contains(INLINE_STICKER_TOKEN)) StickerPreview(info.stickerUrl, info.stickerMime, Modifier.fillMaxWidth().height(220.dp))
                                     Text(info.title.ifBlank { "TEXNO-MƏLUMAT" }, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                                    if (info.body.isNotBlank()) TextWithInlineSticker(info.body, info.stickerUrl, info.stickerMime, Color(0xFFD0C7DC), 14.sp, 21.sp)
+                                    if (info.body.isNotBlank()) TextWithInlineSticker(info.body, info.stickerUrl, info.stickerMime, Color(0xFFE0E0E0), 14.sp, 21.sp)
                                     if (loggedIn) TextButton(onClick = { db.collection("phone_information").document(info.id).delete() }) {
                                         Text("Sil", color = Color(0xFFFF7777))
                                     }
@@ -1334,15 +1334,15 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
             if (!showPhoneInfo) {
             Spacer(Modifier.height(18.dp))
             if (!showGames && posts.isNotEmpty()) {
-                Text("Kanal paylaşımları", color = Color(0xFFE7D5FF), fontSize = 23.sp, fontWeight = FontWeight.Bold)
+                Text("Kanal paylaşımları", color = Color(0xFFFFD76B), fontSize = 23.sp, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(10.dp))
                 posts.forEach { post ->
-                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF151020)), modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
+                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF292929)), modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text(post.title + if (post.isVip) "  👑 VIP PREMIUM" else "", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                            if (post.version.isNotBlank()) Text("Versiya: ${post.version}", color = Color(0xFFD5B0FF), fontSize = 12.sp)
-                            Text(post.description, color = Color(0xFFD0C7DC), fontSize = 14.sp)
-                            if (post.features.isNotBlank()) Text(post.features, color = Color(0xFFD0C7DC), fontSize = 13.sp)
+                            if (post.version.isNotBlank()) Text("Versiya: ${post.version}", color = Color(0xFFFFC928), fontSize = 12.sp)
+                            Text(post.description, color = Color(0xFFE0E0E0), fontSize = 14.sp)
+                            if (post.features.isNotBlank()) Text(post.features, color = Color(0xFFE0E0E0), fontSize = 13.sp)
                             if (post.fileSize.isNotBlank()) Text("Fayl ölçüsü: ${post.fileSize}", color = Color.LightGray, fontSize = 12.sp)
                             if (post.androidRequirement.isNotBlank()) Text("Android: ${post.androidRequirement}", color = Color.LightGray, fontSize = 12.sp)
                             if (post.downloadUrl.isNotBlank()) Button(onClick = { try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(post.downloadUrl))) } catch (_: Exception) { error = "APK linki açıla bilmədi." } }) { Text("APK yüklə") }
@@ -1354,30 +1354,30 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                 }
                 Spacer(Modifier.height(14.dp))
             }
-            Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF1A1025)), shape = RoundedCornerShape(26.dp), modifier = Modifier.fillMaxWidth().clickable { showGames = !showGames }) {
+            Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF303030)), shape = RoundedCornerShape(26.dp), modifier = Modifier.fillMaxWidth().clickable { showGames = !showGames }) {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 20.dp), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
-                        Text("🎮 OYUNLAR", color = Color(0xFFEEDCFF), fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                        Text("🎮 OYUNLAR", color = Color(0xFFFFD76B), fontSize = 20.sp, fontWeight = FontWeight.Bold)
                         Spacer(Modifier.height(5.dp))
-                        Text(if (showGames) "Oyunlar bölməsini bağlamaq üçün toxunun" else "Oyunların APK versiyalarına baxmaq üçün daxil olun", color = Color(0xFFBBAACB), fontSize = 13.sp)
+                        Text(if (showGames) "Oyunlar bölməsini bağlamaq üçün toxunun" else "Oyunların APK versiyalarına baxmaq üçün daxil olun", color = Color(0xFFBDBDBD), fontSize = 13.sp)
                     }
-                    Text(if (showGames) "↑" else "➜", color = Color(0xFFD9B5FF), fontSize = 30.sp, fontWeight = FontWeight.Bold)
+                    Text(if (showGames) "↑" else "➜", color = Color(0xFFFFC928), fontSize = 30.sp, fontWeight = FontWeight.Bold)
                 }
             }
             if (showGames) {
                 Spacer(Modifier.height(10.dp))
                 if (games.isEmpty()) Text("Hələ oyun əlavə edilməyib.", color = Color.LightGray)
                 games.filter { it.isActive || loggedIn }.forEach { g ->
-                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF151020)), modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
+                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF292929)), modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 if (g.iconUrl.isNotBlank()) ProgramIcon(g.iconUrl, g.name, 64)
                                 Column(Modifier.weight(1f).padding(start = 12.dp)) {
                                     Text(g.name, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                                    if (g.version.isNotBlank()) Text("Versiya: ${g.version}", color = Color(0xFFD5B0FF), fontSize = 12.sp)
+                                    if (g.version.isNotBlank()) Text("Versiya: ${g.version}", color = Color(0xFFFFC928), fontSize = 12.sp)
                                 }
                             }
-                            if (g.description.isNotBlank()) Text(g.description, color = Color(0xFFD0C7DC), fontSize = 14.sp)
+                            if (g.description.isNotBlank()) Text(g.description, color = Color(0xFFE0E0E0), fontSize = 14.sp)
                             if (g.downloadUrl.isNotBlank()) Button(onClick = { try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(g.downloadUrl))) } catch (_: Exception) { error = "Oyun APK linki açıla bilmədi." } }) { Text("OYUNU YÜKLƏ (APK)") }
                         }
                     }
@@ -1385,14 +1385,14 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
             }
             if (!showGames) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Proqramlar", color = Color(0xFFE7D5FF), fontSize = 25.sp, fontWeight = FontWeight.Bold)
+                Text("Proqramlar", color = Color(0xFFFFD76B), fontSize = 25.sp, fontWeight = FontWeight.Bold)
                 if (newProgramNotice) Text("  🔔 YENİ", color = Color(0xFFFFD166), fontSize = 12.sp, fontWeight = FontWeight.Black)
             }
             Spacer(Modifier.height(18.dp))
             shown.forEach { p ->
                 val isGoldBankCard = designGoldCards
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = if (isGoldBankCard) Color(0xFF6B4B16) else Color(0xFF100B19)),
+                    colors = CardDefaults.cardColors(containerColor = if (isGoldBankCard) Color(0xFF6B4B16) else Color(0xFF252525)),
                     shape = RoundedCornerShape(30.dp),
                     modifier = Modifier.fillMaxWidth().padding(vertical = 7.dp)
                 ) {
@@ -1401,7 +1401,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                             .background(
                                 if (isGoldBankCard) Brush.linearGradient(
                                     listOf(Color(0xFFFFE8A3), Color(0xFFD5A63D), Color(0xFF805516), Color(0xFFE8C66D))
-                                ) else Brush.linearGradient(listOf(Color(0xFF100B19), Color(0xFF100B19))),
+                                ) else Brush.linearGradient(listOf(Color(0xFF252525), Color(0xFF252525))),
                                 RoundedCornerShape(28.dp)
                             )
                             .padding(18.dp),
@@ -1428,22 +1428,22 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                         }
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Box(
-                                Modifier.size(74.dp).background(Color(0xFF21152E), RoundedCornerShape(23.dp)),
+                                Modifier.size(74.dp).background(Color(0xFF383838), RoundedCornerShape(23.dp)),
                                 contentAlignment = Alignment.Center
                             ) {
                                 if (p.iconUrl.isNotBlank()) ProgramIcon(p.iconUrl, p.name, 58)
-                                else Text("✦", color = Color(0xFFD9B5FF), fontSize = 38.sp)
+                                else Text("✦", color = Color(0xFFFFC928), fontSize = 38.sp)
                             }
                             Column(Modifier.weight(1f).padding(start = 14.dp)) {
                                 Text(p.name, fontWeight = FontWeight.Bold, fontSize = 19.sp, color = if (isGoldBankCard) Color(0xFF382507) else Color.White)
                                 Spacer(Modifier.height(5.dp))
                                 Text(
                                     if (p.version.isNotBlank()) "${p.category} • ${p.version}" else p.category,
-                                    color = if (isGoldBankCard) Color(0xFF5B3E0D) else Color(0xFFBBAACB), fontSize = 13.sp
+                                    color = if (isGoldBankCard) Color(0xFF5B3E0D) else Color(0xFFBDBDBD), fontSize = 13.sp
                                 )
                             }
                         }
-                        TextWithInlineSticker(p.description, p.stickerUrl, p.stickerMime, if (isGoldBankCard) Color(0xFF4A310B) else Color(0xFFD0C7DC), 14.sp, 20.sp)
+                        TextWithInlineSticker(p.description, p.stickerUrl, p.stickerMime, if (isGoldBankCard) Color(0xFF4A310B) else Color(0xFFE0E0E0), 14.sp, 20.sp)
                         if (p.stickerUrl.isNotBlank() && !p.description.contains(INLINE_STICKER_TOKEN)) StickerPreview(p.stickerUrl, p.stickerMime, Modifier.fillMaxWidth().height(220.dp))
                         Row(
                             Modifier.fillMaxWidth(),
@@ -1466,7 +1466,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                     Text("Yüklə", color = if (isGoldBankCard) Color(0xFF382507) else Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                                 }
                             } else {
-                                Text("Link əlavə edilməyib", color = Color(0xFFBBAACB), modifier = Modifier.weight(1f), fontSize = 12.sp)
+                                Text("Link əlavə edilməyib", color = Color(0xFFBDBDBD), modifier = Modifier.weight(1f), fontSize = 12.sp)
                             }
                             if (loggedIn) {
                                 OutlinedButton(
@@ -1519,7 +1519,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                 )
                 Text(
                     "PROQRAMİST { !*ОПТИМИСТ*! }",
-                    color = Color(0xFFBBAACB),
+                    color = Color(0xFFBDBDBD),
                     fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold,
                     letterSpacing = 0.5.sp
