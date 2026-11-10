@@ -1096,12 +1096,12 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
             }
 
             if (adminOpen && isAuthorizedDevice) {
-                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF493411)), modifier = Modifier.fillMaxWidth()) {
+                Card(colors = CardDefaults.cardColors(containerColor = Color.Black), modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         if (!loggedIn) {
                             Text("ADMIN GİRİŞİ", color = Color(0xFFFFFFFF), fontWeight = FontWeight.Bold)
-                            OutlinedTextField(email, { email = it }, label = { Text("E-poçt") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email), modifier = Modifier.fillMaxWidth())
-                            OutlinedTextField(password, { password = it }, label = { Text("Şifrə") }, visualTransformation = PasswordVisualTransformation(), modifier = Modifier.fillMaxWidth())
+                            OutlinedTextField(email, { email = it }, label = { Text("E-poçt") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email), modifier = Modifier.fillMaxWidth(), colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White, focusedLabelColor = Color.White, unfocusedLabelColor = Color.LightGray, focusedBorderColor = Color.White, unfocusedBorderColor = Color.Gray, cursorColor = Color.White))
+                            OutlinedTextField(password, { password = it }, label = { Text("Şifrə") }, visualTransformation = PasswordVisualTransformation(), modifier = Modifier.fillMaxWidth(), colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White, focusedLabelColor = Color.White, unfocusedLabelColor = Color.LightGray, focusedBorderColor = Color.White, unfocusedBorderColor = Color.Gray, cursorColor = Color.White))
                             Button(onClick = {
                                 FirebaseAuth.getInstance().signInWithEmailAndPassword(email.trim(), password)
                                     .addOnCompleteListener { task ->
@@ -1114,12 +1114,12 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                     }
                             }, enabled = email.isNotBlank() && password.isNotBlank()) { Text("Daxil ol") }
                         } else {
-                            OutlinedButton(onClick = { designAdminOpen = true }, modifier = Modifier.fillMaxWidth()) { Text("Canlı dizayn bölməsi") }
-                            OutlinedButton(onClick = { showSiteTextEditor = !showSiteTextEditor }, modifier = Modifier.fillMaxWidth()) {
+                            OutlinedButton(onClick = { designAdminOpen = true }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)) { Text("Canlı dizayn bölməsi") }
+                            OutlinedButton(onClick = { showSiteTextEditor = !showSiteTextEditor }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)) {
                                 Text(if (showSiteTextEditor) "SAYT YAZILARINI BAĞLA ▲" else "SAYT YAZILARINI DÜZƏLT ▼", fontWeight = FontWeight.Bold)
                             }
                             if (showSiteTextEditor) {
-                                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF202020)), modifier = Modifier.fillMaxWidth()) {
+                                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF101010)), modifier = Modifier.fillMaxWidth()) {
                                     Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                         Text("SAYT YAZILARI", color = Color(0xFFFFFFFF), fontWeight = FontWeight.Bold, fontSize = 17.sp)
                                         OutlinedTextField(heroTitle, { heroTitle = it }, label = { Text("Əsas başlıq") }, modifier = Modifier.fillMaxWidth())
@@ -1136,8 +1136,8 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                             HorizontalDivider()
                             HorizontalDivider()
                             Text("TEXNO-MƏLUMAT PAYLAŞ", color = Color(0xFFFFFFFF), fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                            OutlinedTextField(phoneInfoTitle, { phoneInfoTitle = it }, label = { Text("Telefon modeli / başlıq") }, modifier = Modifier.fillMaxWidth())
-                            OutlinedTextField(phoneInfoBody, { phoneInfoBody = it }, label = { Text("Telefon haqqında məlumat") }, modifier = Modifier.fillMaxWidth(), minLines = 4)
+                            OutlinedTextField(phoneInfoTitle, { phoneInfoTitle = it }, label = { Text("Telefon modeli / başlıq") }, modifier = Modifier.fillMaxWidth(), colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White, focusedLabelColor = Color.White, unfocusedLabelColor = Color.LightGray, focusedBorderColor = Color.White, unfocusedBorderColor = Color.Gray, cursorColor = Color.White))
+                            OutlinedTextField(phoneInfoBody, { phoneInfoBody = it }, label = { Text("Telefon haqqında məlumat") }, modifier = Modifier.fillMaxWidth(), minLines = 4, colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White, focusedLabelColor = Color.White, unfocusedLabelColor = Color.LightGray, focusedBorderColor = Color.White, unfocusedBorderColor = Color.Gray, cursorColor = Color.White))
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             }
                             if (phoneInfoSticker != null) {
@@ -1147,7 +1147,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                     TextButton(onClick = { phoneInfoSticker = null; phoneInfoBody = phoneInfoBody.replace(INLINE_STICKER_TOKEN, "") }) { Text("Stikeri sil") }
                                 }
                             }
-                            OutlinedButton(onClick = { phoneInfoImagePicker.launch("image/*") }, modifier = Modifier.fillMaxWidth()) {
+                            OutlinedButton(onClick = { phoneInfoImagePicker.launch("image/*") }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)) {
                                 Icon(Icons.Default.Image, null)
                                 Spacer(Modifier.width(8.dp))
                                 Text("Qalereyadan TEXNO-MƏLUMAT şəkli seç")
@@ -1170,7 +1170,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                 OutlinedTextField(gameVersion, { gameVersion = it }, label = { Text("Versiya") }, modifier = Modifier.fillMaxWidth())
                                 OutlinedTextField(gameDescription, { gameDescription = it }, label = { Text("Təsvir") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
                                 OutlinedTextField(gameLink, { gameLink = it }, label = { Text("APK yükləmə linki") }, modifier = Modifier.fillMaxWidth())
-                                OutlinedButton(onClick = { gameImagePicker.launch("image/*") }, modifier = Modifier.fillMaxWidth()) { Icon(Icons.Default.Image, null); Spacer(Modifier.width(8.dp)); Text("Qalereyadan oyun şəkli seç") }
+                                OutlinedButton(onClick = { gameImagePicker.launch("image/*") }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)) { Icon(Icons.Default.Image, null); Spacer(Modifier.width(8.dp)); Text("Qalereyadan oyun şəkli seç") }
                                 if (gameImage != null) AsyncImage(model = gameImage, contentDescription = "Oyun şəkli", modifier = Modifier.fillMaxWidth().heightIn(max = 180.dp), contentScale = ContentScale.Fit)
                                 else if (gameImageUrl.isNotBlank()) ProgramIcon(gameImageUrl, gameName, 64)
                                 Button(onClick = { saveGame() }, enabled = !busy && gameName.isNotBlank(), modifier = Modifier.fillMaxWidth()) { if (busy) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp) else Text(if (editingGameId == null) "Oyunu əlavə et" else "Dəyişiklikləri yadda saxla") }
@@ -1207,7 +1207,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                             }
                             OutlinedTextField(link, { link = it }, label = { Text("Yükləmə linki") }, modifier = Modifier.fillMaxWidth())
                             OutlinedTextField(fileSize, { fileSize = it }, label = { Text("Fayl ölçüsü") }, modifier = Modifier.fillMaxWidth())
-                            OutlinedButton(onClick = { imagePicker.launch("image/*") }, modifier = Modifier.fillMaxWidth()) {
+                            OutlinedButton(onClick = { imagePicker.launch("image/*") }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)) {
                                 Icon(Icons.Default.Image, null); Spacer(Modifier.width(8.dp)); Text("Qalereyadan proqram şəkli seç")
                             }
                             if (pickedImage != null) Text("Yeni şəkil seçilib", color = Color(0xFFFFFFFF))
@@ -1262,7 +1262,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                             Text("Qızılı premium kart dizaynı", color = Color(0xFFFFFFFF))
                         }
                         Button(onClick = { saveLiveDesign() }, modifier = Modifier.fillMaxWidth()) { Text("Dizaynı hamıda yenilə") }
-                        OutlinedButton(onClick = { designAdminOpen = false }, modifier = Modifier.fillMaxWidth()) { Text("Admin panelinə qayıt") }
+                        OutlinedButton(onClick = { designAdminOpen = false }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)) { Text("Admin panelinə qayıt") }
                     }
                 }
             }
