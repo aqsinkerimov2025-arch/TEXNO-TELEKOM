@@ -485,6 +485,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     var query by remember { mutableStateOf("") }
     var searchOpen by remember { mutableStateOf(false) }
     var showPhoneInfo by remember { mutableStateOf(false) }
+    var showGames by remember { mutableStateOf(false) }
     var phoneInfoTitle by remember { mutableStateOf("") }
     var phoneInfoBody by remember { mutableStateOf("") }
     var phoneInfoImage by remember { mutableStateOf<Uri?>(null) }
@@ -1309,7 +1310,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
             }
             if (!showPhoneInfo) {
             Spacer(Modifier.height(18.dp))
-            if (posts.isNotEmpty()) {
+            if (!showGames && posts.isNotEmpty()) {
                 Text("Kanal paylaşımları", color = Color(0xFFE7D5FF), fontSize = 23.sp, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(10.dp))
                 posts.forEach { post ->
@@ -1330,9 +1331,19 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                 }
                 Spacer(Modifier.height(14.dp))
             }
-            if (games.isNotEmpty()) {
-                Text("Oyunlar", color = Color(0xFFE7D5FF), fontSize = 25.sp, fontWeight = FontWeight.Bold)
+            Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF1A1025)), shape = RoundedCornerShape(26.dp), modifier = Modifier.fillMaxWidth().clickable { showGames = !showGames }) {
+                Row(Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 20.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text("🎮 OYUNLAR", color = Color(0xFFEEDCFF), fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                        Spacer(Modifier.height(5.dp))
+                        Text(if (showGames) "Oyunlar bölməsini bağlamaq üçün toxunun" else "Oyunların APK versiyalarına baxmaq üçün daxil olun", color = Color(0xFFBBAACB), fontSize = 13.sp)
+                    }
+                    Text(if (showGames) "↑" else "➜", color = Color(0xFFD9B5FF), fontSize = 30.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+            if (showGames) {
                 Spacer(Modifier.height(10.dp))
+                if (games.isEmpty()) Text("Hələ oyun əlavə edilməyib.", color = Color.LightGray)
                 games.filter { it.isActive || loggedIn }.forEach { g ->
                     Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF151020)), modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -1348,8 +1359,8 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                         }
                     }
                 }
-                Spacer(Modifier.height(18.dp))
             }
+            if (!showGames) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("Proqramlar", color = Color(0xFFE7D5FF), fontSize = 25.sp, fontWeight = FontWeight.Bold)
                 if (newProgramNotice) Text("  🔔 YENİ", color = Color(0xFFFFD166), fontSize = 12.sp, fontWeight = FontWeight.Black)
