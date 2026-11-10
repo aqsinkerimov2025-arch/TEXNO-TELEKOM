@@ -527,6 +527,15 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     var infoLine3 by remember { mutableStateOf("3️⃣ ŞİKAYƏT VƏ REKLAM ÜÇÜN ƏLAQƏ") }
     var whatsappPhone by remember { mutableStateOf("+994558053305") }
     val programs = remember { mutableStateListOf<AppItem>() }
+    val games = remember { mutableStateListOf<AppItem>() }
+    var showGameForm by remember { mutableStateOf(false) }
+    var gameName by remember { mutableStateOf("") }
+    var gameVersion by remember { mutableStateOf("") }
+    var gameDescription by remember { mutableStateOf("") }
+    var gameLink by remember { mutableStateOf("") }
+    var gameImage by remember { mutableStateOf<Uri?>(null) }
+    var gameImageUrl by remember { mutableStateOf("") }
+    var editingGameId by remember { mutableStateOf<String?>(null) }
     val posts = remember { mutableStateListOf<ChannelPost>() }
     val phoneInfos = remember { mutableStateListOf<PhoneInfo>() }
     var newPhoneInfoNotice by remember { mutableStateOf(false) }
@@ -570,6 +579,10 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         pickedImage = uri
         if (uri != null) message = "Şəkil qalereyadan seçildi."
+    }
+    val gameImagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        gameImage = uri
+        if (uri != null) message = "Oyun şəkli seçildi."
     }
 
     DisposableEffect(db) {
@@ -623,7 +636,10 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                         d.getString("file_size") ?: "", d.getString("android_requirement") ?: "",
                         d.getString("channel_url") ?: ""))
                 }
-                snap.documents.filter { it.getString("content_type") != "channel_post" }.forEach { d ->
+                snap.documents.filter { it.getString("content_type") == "game" }.forEach { d ->
+                    games.add(AppItem(d.id, d.getString("name") ?: "", "OYUN", d.getString("version") ?: "", d.getString("description") ?: "", d.getString("download_url") ?: "", d.getString("icon_url") ?: "", "", "", d.getBoolean("is_active") ?: true, d.getString("file_size") ?: ""))
+                }
+                snap.documents.filter { it.getString("content_type") != "channel_post" && it.getString("content_type") != "game" }.forEach { d ->
                     programs.add(AppItem(
                         d.id, d.getString("name") ?: "", d.getString("category") ?: "",
                         d.getString("version") ?: "", d.getString("description") ?: "",
@@ -765,6 +781,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
         fileSize = "0 MB"; editingId = null; currentIcon = ""; pickedImage = null; programSticker = null; currentProgramStickerUrl = ""; currentProgramStickerMime = ""
     }
 
+    fun clearGameForm() { gameName = ""; gameVersion = ""; gameDescription = ""; gameLink = ""; gameImage = null; gameImageUrl = ""; editingGameId = null; showGameForm = false }
     fun clearPostForm() {
         postTitle = ""; postVersion = ""; postVip = false; postDescription = ""
         postFeatures = ""; postDownloadUrl = ""; postFileSize = ""
@@ -838,6 +855,36 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
         }
     }
 
+    fun saveGame() {
+        if (gameName.isBlank()) { error = "Oyunun adı mütləqdir."; return }
+        if (gameLink.isNotBlank() && !gameLink.startsWith("https://") && !gameLink.startsWith("http://")) { error = "APK linki http:// və ya https:// ilə başlamalıdır."; return }
+        busy = true; error = ""; message = ""
+        fun persistGame(icon: String) {
+            val values = hashMapOf<String, Any>("name" to gameName.trim(), "version" to gameVersion.trim(), "description" to gameDescription.trim(), "download_url" to gameLink.trim(), "icon_url" to icon, "is_active" to true, "content_type" to "game", "updated_at" to FieldValue.serverTimestamp())
+            val id = editingGameId
+            if (id == null) values["created_at"] = FieldValue.serverTimestamp()
+            val task = if (id == null) db.collection("programs").add(values) else db.collection("programs").document(id).set(values, SetOptions.merge())
+            task.addOnSuccessListener {
+                newProgramNotice = true
+                db.collection("app_notifications").add(hashMapOf("type" to "game", "title" to if (id == null) "Yeni oyun əlavə edildi" else "Oyun yeniləndi", "body" to gameName.trim() + " — " + gameVersion.trim(), "created_at" to FieldValue.serverTimestamp()))
+                message = if (id == null) "Oyun əlavə edildi." else "Oyun yeniləndi."
+                clearGameForm(); busy = false
+            }.addOnFailureListener { error = "Oyun yadda saxlanmadı: ${it.localizedMessage}"; busy = false }
+        }
+        val uri = gameImage
+        if (uri == null) { persistGame(gameImageUrl); return }
+        try {
+            val source = context.contentResolver.openInputStream(uri) ?: throw Exception("Şəkil oxunmadı")
+            val original = source.use { BitmapFactory.decodeStream(it) } ?: throw Exception("Şəkil formatı dəstəklənmir")
+            val scaled = Bitmap.createScaledBitmap(original, 256, 256, true)
+            val output = ByteArrayOutputStream()
+            scaled.compress(Bitmap.CompressFormat.JPEG, 72, output)
+            val encoded = "b64:" + Base64.encodeToString(output.toByteArray(), Base64.NO_WRAP)
+            if (scaled !== original) scaled.recycle()
+            original.recycle()
+            persistGame(encoded)
+        } catch (e: Exception) { error = "Oyun şəkli hazırlana bilmədi: ${e.localizedMessage}"; busy = false }
+    }
     fun saveProgram() {
         if (name.isBlank() || category.isBlank()) { error = "Ad və kateqoriya mütləqdir."; return }
         if (link.isNotBlank() && !link.startsWith("https://") && !link.startsWith("http://")) {
@@ -1074,6 +1121,20 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                 else Text("TEXNO-MƏLUMAT bölməsində paylaş")
                             }
                             HorizontalDivider()
+                            Button(onClick = { clearGameForm(); showGameForm = true }) { Text("OYUN ƏLAVƏ ET") }
+                            if (showGameForm) {
+                                Text(if (editingGameId == null) "Oyun əlavə et" else "Oyunu redaktə et", fontWeight = FontWeight.Bold)
+                                OutlinedTextField(gameName, { gameName = it }, label = { Text("Oyunun adı") }, modifier = Modifier.fillMaxWidth())
+                                OutlinedTextField(gameVersion, { gameVersion = it }, label = { Text("Versiya") }, modifier = Modifier.fillMaxWidth())
+                                OutlinedTextField(gameDescription, { gameDescription = it }, label = { Text("Təsvir") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
+                                OutlinedTextField(gameLink, { gameLink = it }, label = { Text("APK yükləmə linki") }, modifier = Modifier.fillMaxWidth())
+                                OutlinedButton(onClick = { gameImagePicker.launch("image/*") }, modifier = Modifier.fillMaxWidth()) { Icon(Icons.Default.Image, null); Spacer(Modifier.width(8.dp)); Text("Qalereyadan oyun şəkli seç") }
+                                if (gameImage != null) AsyncImage(model = gameImage, contentDescription = "Oyun şəkli", modifier = Modifier.fillMaxWidth().heightIn(max = 180.dp), contentScale = ContentScale.Fit)
+                                else if (gameImageUrl.isNotBlank()) ProgramIcon(gameImageUrl, gameName, 64)
+                                Button(onClick = { saveGame() }, enabled = !busy && gameName.isNotBlank(), modifier = Modifier.fillMaxWidth()) { if (busy) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp) else Text(if (editingGameId == null) "Oyunu əlavə et" else "Dəyişiklikləri yadda saxla") }
+                                TextButton(onClick = { clearGameForm() }) { Text("Bağla") }
+                            }
+                            HorizontalDivider()
                             Text(if (editingId == null) "Proqram əlavə et" else "Proqramı redaktə et", fontWeight = FontWeight.Bold)
                             OutlinedTextField(name, { name = it }, label = { Text("Proqramın adı") }, modifier = Modifier.fillMaxWidth())
                             OutlinedTextField(category, { category = it }, label = { Text("Kateqoriya") }, modifier = Modifier.fillMaxWidth())
@@ -1252,6 +1313,26 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                     }
                 }
                 Spacer(Modifier.height(14.dp))
+            }
+            if (games.isNotEmpty()) {
+                Text("Oyunlar", color = Color(0xFFE7D5FF), fontSize = 25.sp, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(10.dp))
+                games.filter { it.isActive || loggedIn }.forEach { g ->
+                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF151020)), modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
+                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                if (g.iconUrl.isNotBlank()) ProgramIcon(g.iconUrl, g.name, 64)
+                                Column(Modifier.weight(1f).padding(start = 12.dp)) {
+                                    Text(g.name, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                                    if (g.version.isNotBlank()) Text("Versiya: ${g.version}", color = Color(0xFFD5B0FF), fontSize = 12.sp)
+                                }
+                            }
+                            if (g.description.isNotBlank()) Text(g.description, color = Color(0xFFD0C7DC), fontSize = 14.sp)
+                            if (g.downloadUrl.isNotBlank()) Button(onClick = { try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(g.downloadUrl))) } catch (_: Exception) { error = "Oyun APK linki açıla bilmədi." } }) { Text("OYUNU YÜKLƏ (APK)") }
+                        }
+                    }
+                }
+                Spacer(Modifier.height(18.dp))
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("Proqramlar", color = Color(0xFFE7D5FF), fontSize = 25.sp, fontWeight = FontWeight.Bold)
