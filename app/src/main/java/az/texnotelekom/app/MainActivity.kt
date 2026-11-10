@@ -447,7 +447,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     var designBgHex by remember { mutableStateOf("#090A14") }
     var designPanelHex by remember { mutableStateOf("#28233F") }
     var designAccentHex by remember { mutableStateOf("#D58BFF") }
-    var designGoldCards by remember { mutableStateOf(false) }
+    var designGoldCards by remember { mutableStateOf(true) }
     val liveBg = remoteColor(designBgHex, bg)
     val livePanel = remoteColor(designPanelHex, panel)
     val liveAccent = remoteColor(designAccentHex, accent)
@@ -675,7 +675,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                     designBgHex = snapshot.getString("design_background") ?: designBgHex
                     designPanelHex = snapshot.getString("design_panel") ?: designPanelHex
                     designAccentHex = snapshot.getString("design_accent") ?: designAccentHex
-                    designGoldCards = snapshot.getBoolean("design_gold_cards") ?: designGoldCards
+                    designGoldCards = snapshot.getBoolean("design_gold_cards") ?: true
                 }
             }
         onDispose { registration.remove() }
