@@ -951,31 +951,27 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                     modifier = Modifier.align(Alignment.Center),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text(
-                        heroTitle,
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 38.dp).offset(x = 4.dp),
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                        style = TextStyle(brush = Brush.horizontalGradient(listOf(Color(0xFF557CFF), Color(0xFFB63CDB)))),
-                        fontSize = 19.sp, fontWeight = FontWeight.Black
-                    )
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 42.dp).basicMarquee(iterations = Int.MAX_VALUE),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(14.dp)
+                    ) {
+                        Text(
+                            heroTitle,
+                            style = TextStyle(brush = Brush.horizontalGradient(listOf(Color(0xFF557CFF), Color(0xFFB63CDB)))),
+                            fontSize = 19.sp,
+                            fontWeight = FontWeight.Black,
+                            maxLines = 1
+                        )
                         Text(
                             "TEXNO-MƏLUMAT",
                             style = TextStyle(brush = Brush.horizontalGradient(listOf(Color(0xFF557CFF), Color(0xFFB63CDB)))),
                             fontSize = 19.sp,
-                            fontWeight = FontWeight.Black
+                            fontWeight = FontWeight.Black,
+                            maxLines = 1
                         )
-                        if (newPhoneInfoNotice) Text("  🔔 YENİ", color = Color(0xFFFFD166), fontSize = 10.sp, fontWeight = FontWeight.Black)
+                        if (newPhoneInfoNotice) Text("🔔 YENİ", color = Color(0xFFFFD166), fontSize = 10.sp, fontWeight = FontWeight.Black, maxLines = 1)
                     }
-                    Text(
-                        "✦ TELEFON MƏLUMATLARI  •  PREMIUM PROQRAMLARIN ÜNVANI  •  TEXNOLOGİYA DÜNYASI  •  TELEFON MƏLUMATLARI  •  PREMIUM PROQRAMLARIN ÜNVANI  ✦",
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 42.dp).basicMarquee(iterations = Int.MAX_VALUE),
-                        color = Color.White,
-                        fontSize = 7.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        letterSpacing = 0.7.sp,
-                        maxLines = 1
-                    )
                     Spacer(Modifier.height(6.dp))
                     Box(
                         Modifier.clickable { revealDeviceCodeButton = !revealDeviceCodeButton },
