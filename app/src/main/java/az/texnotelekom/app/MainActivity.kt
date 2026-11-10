@@ -529,6 +529,9 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     val programs = remember { mutableStateListOf<AppItem>() }
     val posts = remember { mutableStateListOf<ChannelPost>() }
     val phoneInfos = remember { mutableStateListOf<PhoneInfo>() }
+    var newPhoneInfoNotice by remember { mutableStateOf(false) }
+    var newProgramNotice by remember { mutableStateOf(false) }
+    var appNoticeItems by remember { mutableStateOf(listOf<Pair<String, String>>()) }
     var postTitle by remember { mutableStateOf("") }
     var postVersion by remember { mutableStateOf("") }
     var postVip by remember { mutableStateOf(false) }
@@ -567,6 +570,16 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         pickedImage = uri
         if (uri != null) message = "Şəkil qalereyadan seçildi."
+    }
+
+    DisposableEffect(db) {
+        val noticeListener = db.collection("app_notifications").orderBy("created_at", com.google.firebase.firestore.Query.Direction.DESCENDING).limit(30)
+            .addSnapshotListener { snap, e ->
+                if (e == null && snap != null) {
+                    appNoticeItems = snap.documents.map { d -> (d.getString("type") ?: "") to (d.getString("title") ?: "Yeni bildiriş") }
+                }
+            }
+        onDispose { noticeListener.remove() }
     }
 
     DisposableEffect(db) {
@@ -678,6 +691,8 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                 phoneInfoStickerUrlPending = ""
                 phoneInfoStickerMimePending = ""
                 phoneInfoBusy = false
+                newPhoneInfoNotice = true
+                db.collection("app_notifications").add(hashMapOf("type" to "phone_info", "title" to "Yeni TEXNO-MƏLUMAT paylaşımı", "body" to "Yeni məlumat paylaşıldı. Tətbiqə daxil olub baxın.", "created_at" to FieldValue.serverTimestamp()))
                 message = "TEXNO-MƏLUMAT bölməsində paylaşıldı."
             }
             .addOnFailureListener {
@@ -814,6 +829,8 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
         val task = if (id == null) db.collection("programs").add(values)
                    else db.collection("programs").document(id).set(values, SetOptions.merge())
         task.addOnSuccessListener {
+            newProgramNotice = true
+            db.collection("app_notifications").add(hashMapOf("type" to "program", "title" to if (id == null) "Yeni proqram əlavə edildi" else "Proqram yeniləndi", "body" to name.trim() + " — " + version.trim(), "created_at" to FieldValue.serverTimestamp()))
             message = if (id == null) "Proqram əlavə edildi." else "Proqram yeniləndi."
             clearForm(); busy = false
         }.addOnFailureListener {
@@ -1152,14 +1169,17 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
             Card(
                 colors = CardDefaults.cardColors(containerColor = Color(0xFF1A1025)),
                 shape = RoundedCornerShape(28.dp),
-                modifier = Modifier.fillMaxWidth().clickable { showPhoneInfo = !showPhoneInfo }
+                modifier = Modifier.fillMaxWidth().clickable { showPhoneInfo = !showPhoneInfo; newPhoneInfoNotice = false }
             ) {
                 Row(
                     Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 22.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(Modifier.weight(1f)) {
-                        Text("✦ TEXNO-MƏLUMAT", color = Color(0xFFEEDCFF), fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("✦ TEXNO-MƏLUMAT", color = Color(0xFFEEDCFF), fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                            if (newPhoneInfoNotice) Text("  🔔 YENİ", color = Color(0xFFFFD166), fontSize = 11.sp, fontWeight = FontWeight.Black)
+                        }
                         Spacer(Modifier.height(7.dp))
                         Text(
                             if (showPhoneInfo) "Telefon məlumatları bölməsini bağlamaq üçün toxunun"
@@ -1227,7 +1247,10 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                 }
                 Spacer(Modifier.height(14.dp))
             }
-            Text("Proqramlar", color = Color(0xFFE7D5FF), fontSize = 25.sp, fontWeight = FontWeight.Bold)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("Proqramlar", color = Color(0xFFE7D5FF), fontSize = 25.sp, fontWeight = FontWeight.Bold)
+                if (newProgramNotice) Text("  🔔 YENİ", color = Color(0xFFFFD166), fontSize = 12.sp, fontWeight = FontWeight.Black)
+            }
             Spacer(Modifier.height(18.dp))
             shown.forEach { p ->
                 val isGoldBankCard = designGoldCards
