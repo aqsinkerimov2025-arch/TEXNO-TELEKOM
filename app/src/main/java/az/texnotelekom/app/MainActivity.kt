@@ -200,12 +200,13 @@ private const val INLINE_STICKER_ID = "texno_inline_sticker"
 
 @Composable
 private fun TextWithInlineSticker(value: String, stickerUrl: String, stickerMime: String, color: Color, fontSize: androidx.compose.ui.unit.TextUnit, lineHeight: androidx.compose.ui.unit.TextUnit) {
-    if (stickerUrl.isBlank() || !value.contains(INLINE_STICKER_TOKEN)) {
-        Text(value.replace(INLINE_STICKER_TOKEN, ""), color = color, fontSize = fontSize, lineHeight = lineHeight)
+    val displayValue = value.replace("-", "\u2011")
+    if (stickerUrl.isBlank() || !displayValue.contains(INLINE_STICKER_TOKEN)) {
+        Text(displayValue.replace(INLINE_STICKER_TOKEN, ""), color = color, fontSize = fontSize, lineHeight = lineHeight)
         return
     }
     val annotated = buildAnnotatedString {
-        val parts = value.split(INLINE_STICKER_TOKEN)
+        val parts = displayValue.split(INLINE_STICKER_TOKEN)
         parts.forEachIndexed { index, part ->
             append(part)
             if (index < parts.lastIndex) appendInlineContent(INLINE_STICKER_ID, "[stiker]")
@@ -1304,7 +1305,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                     if (info.imageUrl.isNotBlank()) AsyncImage(model = info.imageUrl, contentDescription = info.title, modifier = Modifier.fillMaxWidth().heightIn(max = 320.dp), contentScale = ContentScale.Fit)
                                     if (info.stickerUrl.isNotBlank() && !info.body.contains(INLINE_STICKER_TOKEN)) StickerPreview(info.stickerUrl, info.stickerMime, Modifier.fillMaxWidth().height(220.dp))
-                                    Text(info.title.ifBlank { "TEXNO-MƏLUMAT" }, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                                    Text(info.title.ifBlank { "TEXNO-MƏLUMAT" }.replace("-", "\u2011"), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                                     if (info.body.isNotBlank()) TextWithInlineSticker(info.body, info.stickerUrl, info.stickerMime, Color(0xFFD0C7DC), 14.sp, 21.sp)
                                     if (loggedIn) TextButton(onClick = { db.collection("phone_information").document(info.id).delete() }) {
                                         Text("Sil", color = Color(0xFFFF7777))
