@@ -47,6 +47,8 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.asImageBitmap
@@ -961,11 +963,48 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
         )
     ) {
         Column(
-            Modifier.fillMaxSize().background(
-                Brush.linearGradient(
-                    listOf(Color(0xFF160A2E), Color(0xFF243B8A), Color(0xFF6B1C86), Color(0xFF123F75), Color(0xFF160A2E))
+            Modifier.fillMaxSize()
+                .background(
+                    Brush.linearGradient(
+                        colorStops = arrayOf(
+                            0.00f to Color(0xFF4B174F),
+                            0.12f to Color(0xFFE4A8E8),
+                            0.23f to Color(0xFF6B42B7),
+                            0.38f to Color(0xFF16BDEB),
+                            0.52f to Color(0xFF174A9C),
+                            0.66f to Color(0xFFB04BCB),
+                            0.79f to Color(0xFFF0A7D7),
+                            0.91f to Color(0xFF2869C4),
+                            1.00f to Color(0xFF32124C)
+                        ),
+                        start = Offset.Zero,
+                        end = Offset(900f, 1500f)
+                    )
                 )
-            ).statusBarsPadding().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)
+                .drawBehind {
+                    drawRect(
+                        brush = Brush.radialGradient(
+                            colors = listOf(Color.White.copy(alpha = 0.38f), Color(0xFFB7F5FF).copy(alpha = 0.16f), Color.Transparent),
+                            center = Offset(size.width * 0.28f, size.height * 0.22f),
+                            radius = size.maxDimension * 0.62f
+                        )
+                    )
+                    drawRect(
+                        brush = Brush.radialGradient(
+                            colors = listOf(Color(0xFFFFB8F2).copy(alpha = 0.30f), Color(0xFF6C4CFF).copy(alpha = 0.12f), Color.Transparent),
+                            center = Offset(size.width * 0.86f, size.height * 0.58f),
+                            radius = size.maxDimension * 0.58f
+                        )
+                    )
+                    drawRect(
+                        brush = Brush.linearGradient(
+                            colors = listOf(Color.Transparent, Color.White.copy(alpha = 0.10f), Color.Transparent),
+                            start = Offset(0f, size.height * 0.16f),
+                            end = Offset(size.width, size.height * 0.42f)
+                        )
+                    )
+                }
+                .statusBarsPadding().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)
         ) {
             Spacer(Modifier.height(12.dp))
             Box(Modifier.fillMaxWidth().padding(top = 4.dp)) {
