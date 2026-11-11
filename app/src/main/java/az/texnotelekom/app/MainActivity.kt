@@ -357,6 +357,7 @@ data class ChannelPost(
 )
 data class PhoneInfo(val id: String, val title: String, val body: String, val imageUrl: String, val stickerUrl: String, val stickerMime: String)
 data class ChannelMessage(val id: String, val title: String, val body: String, val imageUrl: String, val createdAt: Long)
+data class GroupChatMessage(val id: String, val uid: String, val nickname: String, val text: String, val createdAt: Long)
 
 
 @Composable
@@ -454,6 +455,45 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     val liveBg = remoteColor(designBgHex, bg)
     val livePanel = remoteColor(designPanelHex, panel)
     val liveAccent = remoteColor(designAccentHex, accent)
+
+    LaunchedEffect(Unit) {
+        val auth = FirebaseAuth.getInstance()
+        if (auth.currentUser != null) groupAuthReady = true
+        else auth.signInAnonymously().addOnSuccessListener { groupAuthReady = true }
+            .addOnFailureListener { groupAuthError = "Qrupa qoşulmaq mümkün olmadı: ${it.localizedMessage}" }
+    }
+
+    DisposableEffect(db, groupAuthReady) {
+        if (!groupAuthReady) return@DisposableEffect onDispose { }
+        val registration = db.collection("group_messages")
+            .orderBy("created_at", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .limit(100)
+            .addSnapshotListener { snap, e ->
+                if (e != null) groupAuthError = "Mesajlar yüklənmədi: ${e.localizedMessage}"
+                else if (snap != null) {
+                    groupMessages.clear()
+                    snap.documents.forEach { d ->
+                        groupMessages.add(GroupChatMessage(d.id, d.getString("uid") ?: "", d.getString("nickname") ?: "İstifadəçi", d.getString("text") ?: "", d.getTimestamp("created_at")?.toDate()?.time ?: 0L))
+                    }
+                    groupMessages.sortBy { it.createdAt }
+                }
+            }
+        onDispose { registration.remove() }
+    }
+
+    fun sendGroupMessage() {
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        val cleanName = groupNickname.trim().take(24)
+        val cleanText = groupDraft.trim().take(1000)
+        if (!groupAuthReady || currentUser == null) { groupAuthError = "Qrupa qoşulmaq üçün bağlantı gözlənilir."; return }
+        if (cleanName.length < 2) { groupAuthError = "Adınızı ən azı 2 hərflə yazın."; return }
+        if (cleanText.isBlank()) return
+        groupBusy = true
+        val values = hashMapOf<String, Any>("uid" to currentUser.uid, "nickname" to cleanName, "text" to cleanText, "created_at" to FieldValue.serverTimestamp())
+        db.collection("group_messages").add(values)
+            .addOnSuccessListener { groupDraft = ""; groupBusy = false; groupAuthError = ""; context.getSharedPreferences("texno_group_chat", Context.MODE_PRIVATE).edit().putString("nickname", cleanName).apply() }
+            .addOnFailureListener { groupBusy = false; groupAuthError = "Mesaj göndərilmədi: ${it.localizedMessage}" }
+    }
 
     var availableUpdate by remember { mutableStateOf<ReleaseUpdate?>(null) }
     LaunchedEffect(Unit) {
@@ -553,7 +593,13 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     var channelBody by remember { mutableStateOf("") }
     var channelImage by remember { mutableStateOf<Uri?>(null) }
     var channelBusy by remember { mutableStateOf(false) }
-    var showChannel by remember { mutableStateOf(false) }
+    var showChannel by remember { mutableStateOf(false) }    var showGroupChat by remember { mutableStateOf(false) }
+    var groupNickname by remember { mutableStateOf(context.getSharedPreferences("texno_group_chat", Context.MODE_PRIVATE).getString("nickname", "") ?: "") }
+    var groupDraft by remember { mutableStateOf("") }
+    var groupBusy by remember { mutableStateOf(false) }
+    var groupAuthReady by remember { mutableStateOf(FirebaseAuth.getInstance().currentUser != null) }
+    var groupAuthError by remember { mutableStateOf("") }
+    val groupMessages = remember { mutableStateListOf<GroupChatMessage>() }
     var newPhoneInfoNotice by remember { mutableStateOf(false) }
     var newProgramNotice by remember { mutableStateOf(false) }
     var appNoticeItems by remember { mutableStateOf(listOf<Pair<String, String>>()) }
@@ -1481,6 +1527,40 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                             if (item.body.isNotBlank()) Text(item.body, color = Color(0xFFE0E0E0), fontSize = 14.sp, lineHeight = 21.sp)
                             if (loggedIn) TextButton(onClick = { db.collection("channel_messages").document(item.id).delete().addOnSuccessListener { message = "Kanal paylaşımı silindi." }.addOnFailureListener { error = "Paylaşım silinmədi: ${it.localizedMessage}" } }) { Text("Paylaşımı sil", color = Color.White) }
                         }
+                    }
+                }
+            }
+            Spacer(Modifier.height(12.dp))
+            Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF202020)), shape = RoundedCornerShape(26.dp), modifier = Modifier.fillMaxWidth().clickable { showGroupChat = !showGroupChat }) {
+                Row(Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 20.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text("💬 TEXNO-TELEKOM QRUPU", color = Color.White, fontSize = 19.sp, fontWeight = FontWeight.Bold)
+                        Spacer(Modifier.height(5.dp))
+                        Text(if (showGroupChat) "Söhbəti bağlamaq üçün toxunun" else "İstifadəçilərlə canlı yazışmaya qoşulun", color = Color(0xFFBDBDBD), fontSize = 13.sp)
+                    }
+                    Text(if (showGroupChat) "↑" else "➜", color = Color.White, fontSize = 30.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+            if (showGroupChat) {
+                Spacer(Modifier.height(10.dp))
+                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF181818)), modifier = Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text("Ümumi söhbət", color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                        OutlinedTextField(value = groupNickname, onValueChange = { groupNickname = it.take(24) }, label = { Text("Qrupda görünəcək adınız") }, singleLine = true, modifier = Modifier.fillMaxWidth(), colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White, focusedLabelColor = Color.White, unfocusedLabelColor = Color.LightGray, focusedBorderColor = Color.White, unfocusedBorderColor = Color.Gray, cursorColor = Color.White))
+                        if (groupMessages.isEmpty()) Text("Hələ mesaj yoxdur. İlk mesajı sən yaz!", color = Color.LightGray, fontSize = 13.sp)
+                        groupMessages.forEach { chat ->
+                            Column(Modifier.fillMaxWidth().background(Color(0xFF252B42), RoundedCornerShape(12.dp)).padding(11.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(chat.nickname, color = Color(0xFFB9C9FF), fontSize = 13.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                                    if (loggedIn) TextButton(onClick = { db.collection("group_messages").document(chat.id).delete().addOnSuccessListener { message = "Mesaj silindi." }.addOnFailureListener { groupAuthError = "Mesaj silinmədi: ${it.localizedMessage}" }) { Text("Sil", color = Color.LightGray, fontSize = 11.sp) }
+                                }
+                                Text(chat.text, color = Color.White, fontSize = 14.sp, lineHeight = 20.sp)
+                            }
+                        }
+                        OutlinedTextField(value = groupDraft, onValueChange = { groupDraft = it.take(1000) }, label = { Text("Mesaj yaz...") }, modifier = Modifier.fillMaxWidth(), minLines = 2, colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White, focusedLabelColor = Color.White, unfocusedLabelColor = Color.LightGray, focusedBorderColor = Color.White, unfocusedBorderColor = Color.Gray, cursorColor = Color.White))
+                        Button(onClick = { sendGroupMessage() }, enabled = !groupBusy && groupDraft.isNotBlank() && groupNickname.trim().length >= 2, modifier = Modifier.fillMaxWidth()) { if (groupBusy) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp) else Text("MESAJI GÖNDƏR") }
+                        if (groupAuthError.isNotBlank()) Text(groupAuthError, color = Color(0xFFFFB4AB), fontSize = 12.sp)
+                        Text("Son 100 mesaj göstərilir. Qrupda hörmətli ünsiyyət saxlayın.", color = Color.LightGray, fontSize = 11.sp)
                     }
                 }
             }
