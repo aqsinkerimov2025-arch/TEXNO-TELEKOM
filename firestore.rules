@@ -26,5 +26,21 @@ service cloud.firestore {
       allow create, update, delete: if request.auth != null
         && request.auth.uid == "FflCErahavNIb8ZXsvHIyrxZYZH3";
     }
+    match /group_messages/{messageId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasOnly(["uid", "nickname", "text", "created_at"])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.nickname is string
+        && request.resource.data.nickname.size() >= 2
+        && request.resource.data.nickname.size() <= 24
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0
+        && request.resource.data.text.size() <= 1000
+        && request.resource.data.created_at is timestamp;
+      allow update: if false;
+      allow delete: if request.auth != null
+        && request.auth.uid == "FflCErahavNIb8ZXsvHIyrxZYZH3";
+    }
   }
 }
