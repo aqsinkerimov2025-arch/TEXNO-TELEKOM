@@ -961,8 +961,11 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
         )
     ) {
         Column(
-            Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color.Black, liveBg, liveBg)))
-                .statusBarsPadding().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)
+            Modifier.fillMaxSize().background(
+                Brush.linearGradient(
+                    listOf(Color(0xFF160A2E), Color(0xFF243B8A), Color(0xFF6B1C86), Color(0xFF123F75), Color(0xFF160A2E))
+                )
+            ).statusBarsPadding().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)
         ) {
             Spacer(Modifier.height(12.dp))
             Box(Modifier.fillMaxWidth().padding(top = 4.dp)) {
