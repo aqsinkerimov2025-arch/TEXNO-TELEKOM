@@ -1681,7 +1681,16 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                 },
                                 label = { Text("Qrupda görünəcək adınız") },
                                 singleLine = true,
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier.fillMaxWidth().then(
+                                    Modifier.onFocusChanged { focusState ->
+                                        if (!focusState.isFocused && groupNickname.trim().length >= 2 && !groupNameConfirmed) {
+                                            groupNickname = groupNickname.trim()
+                                            context.getSharedPreferences("texno_group_chat", Context.MODE_PRIVATE)
+                                                .edit().putString("nickname", groupNickname).apply()
+                                            groupNameConfirmed = true
+                                        }
+                                    }
+                                ),
                                 keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
                                     imeAction = androidx.compose.ui.text.input.ImeAction.Done
                                 ),
