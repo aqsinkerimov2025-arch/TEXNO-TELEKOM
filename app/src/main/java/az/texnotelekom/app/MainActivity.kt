@@ -583,6 +583,15 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     var showGroupChat by remember { mutableStateOf(false) }
     var groupNickname by remember { mutableStateOf(context.getSharedPreferences("texno_group_chat", Context.MODE_PRIVATE).getString("nickname", "") ?: "") }
     var groupNameConfirmed by remember { mutableStateOf(groupNickname.trim().length >= 2) }
+    androidx.compose.runtime.LaunchedEffect(groupNickname, groupNameConfirmed) {
+        if (!groupNameConfirmed && groupNickname.trim().length >= 2) {
+            kotlinx.coroutines.delay(1800)
+            groupNickname = groupNickname.trim()
+            context.getSharedPreferences("texno_group_chat", Context.MODE_PRIVATE)
+                .edit().putString("nickname", groupNickname).apply()
+            groupNameConfirmed = true
+        }
+    }
     var groupDraft by remember { mutableStateOf("") }
     var groupBusy by remember { mutableStateOf(false) }
     var groupAuthReady by remember { mutableStateOf(FirebaseAuth.getInstance().currentUser != null) }
@@ -1674,11 +1683,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                         if (!groupNameConfirmed) {
                             OutlinedTextField(
                                 value = groupNickname,
-                                onValueChange = {
-                                    groupNickname = it.take(24)
-                                    context.getSharedPreferences("texno_group_chat", Context.MODE_PRIVATE)
-                                        .edit().putString("nickname", groupNickname).apply()
-                                },
+                                onValueChange = { groupNickname = it.take(24) },
                                 label = { Text("Qrupda görünəcək adınız") },
                                 singleLine = true,
                                 modifier = Modifier.fillMaxWidth(),
