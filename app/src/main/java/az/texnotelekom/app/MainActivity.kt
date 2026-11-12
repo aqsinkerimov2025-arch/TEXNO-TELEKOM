@@ -1311,21 +1311,25 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                             modifier = Modifier.size(42.dp)
                         ) { Icon(Icons.Default.Search, contentDescription = "Axtarış", tint = Color.White) }
                         Card(
-                            modifier = Modifier.width(112.dp).height(96.dp).clickable { showGroupChat = true },
-                            shape = RoundedCornerShape(19.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFF100D08)),
-                            border = androidx.compose.foundation.BorderStroke(2.dp, Color(0xFFFFC928)),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 7.dp)
+                            modifier = Modifier.width(116.dp).height(116.dp).clickable { showGroupChat = true },
+                            shape = RoundedCornerShape(22.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF080808)),
+                            border = androidx.compose.foundation.BorderStroke(
+                                2.5.dp,
+                                Brush.linearGradient(listOf(Color(0xFFFFE36A), Color(0xFFFFB300), Color(0xFFFF4B24), Color(0xFFFFD54F)))
+                            ),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 12.dp)
                         ) {
                             Column(
-                                modifier = Modifier.fillMaxSize().padding(horizontal = 5.dp, vertical = 5.dp),
+                                modifier = Modifier.fillMaxSize().padding(horizontal = 4.dp, vertical = 7.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.Center
                             ) {
-                                Text("👥", fontSize = 25.sp)
-                                Text("TEXNO", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Black, maxLines = 1)
-                                Text("DƏSTƏK", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Black, maxLines = 1)
-                                Text("QRUPU", color = Color(0xFFFFC928), fontSize = 13.sp, fontWeight = FontWeight.Black, maxLines = 1)
+                                Text("👥", fontSize = 31.sp, color = Color(0xFFFFC928))
+                                Spacer(Modifier.height(5.dp))
+                                Text("TEXNO", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Black, maxLines = 1)
+                                Text("DƏSTƏK", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Black, maxLines = 1)
+                                Text("QRUPU", color = Color(0xFFFFC928), fontSize = 15.sp, fontWeight = FontWeight.Black, maxLines = 1)
                             }
                         }
                     }
