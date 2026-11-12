@@ -1314,15 +1314,24 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                         Card(
                             modifier = Modifier.size(116.dp).clickable { showGroupChat = true },
                             shape = RoundedCornerShape(22.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color.Black),
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF080808)),
+                            border = androidx.compose.foundation.BorderStroke(
+                                2.5.dp,
+                                Brush.linearGradient(listOf(Color(0xFFFFE36A), Color(0xFFFFB300), Color(0xFFFF4B24), Color(0xFFFFD54F)))
+                            ),
                             elevation = CardDefaults.cardElevation(defaultElevation = 10.dp)
                         ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.texno_support_badge),
-                                contentDescription = "TEXNO DƏSTƏK QRUPU",
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
-                            )
+                            Column(
+                                modifier = Modifier.fillMaxSize().padding(horizontal = 4.dp, vertical = 7.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Text("👥", fontSize = 25.sp, color = Color(0xFFFFC928))
+                                Spacer(Modifier.height(2.dp))
+                                Text("TEXNO", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Black, maxLines = 1)
+                                Text("DƏSTƏK", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Black, maxLines = 1)
+                                Text("QRUPU", color = Color(0xFFFFC928), fontSize = 11.sp, fontWeight = FontWeight.Black, maxLines = 1)
+                            }
                         }
                     }
                 }
