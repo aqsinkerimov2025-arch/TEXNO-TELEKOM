@@ -1672,7 +1672,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                 Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF181818)), modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Text("Ümumi söhbət", color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold)
-                        if (!groupNameConfirmed) {
+                        if (!groupNameConfirmed || loggedIn) {
                             OutlinedTextField(
                                 value = groupNickname,
                                 onValueChange = {
@@ -1680,11 +1680,11 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                     context.getSharedPreferences("texno_group_chat", Context.MODE_PRIVATE)
                                         .edit().putString("nickname", groupNickname).apply()
                                 },
-                                label = { Text("Qrupda görünəcək adınız") },
+                                label = { Text(if (loggedIn) "Qrupda görünəcək adınız (istədiyiniz vaxt dəyişə bilərsiniz)" else "Qrupda görünəcək adınız") },
                                 singleLine = true,
                                 modifier = Modifier.fillMaxWidth().then(
                                     Modifier.onFocusChanged { focusState ->
-                                        if (!focusState.isFocused && groupNickname.trim().length >= 2 && !groupNameConfirmed) {
+                                        if (!loggedIn && !focusState.isFocused && groupNickname.trim().length >= 2 && !groupNameConfirmed) {
                                             groupNickname = groupNickname.trim()
                                             context.getSharedPreferences("texno_group_chat", Context.MODE_PRIVATE)
                                                 .edit().putString("nickname", groupNickname).apply()
