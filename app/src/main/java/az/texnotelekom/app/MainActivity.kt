@@ -5,6 +5,8 @@ import android.content.BroadcastReceiver
 import android.content.IntentFilter
 import android.app.DownloadManager
 import android.os.Environment
+import android.media.MediaRecorder
+import java.io.File
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Base64
@@ -191,6 +193,39 @@ private fun uploadStickerMedia(context: Context, uri: Uri, callback: (Result<Sti
                 Handler(Looper.getMainLooper()).post { callback(Result.success(StickerUpload(secureUrl, mime, fileName))) }
             }
             connection.disconnect()
+        } catch (e: Exception) {
+            Handler(Looper.getMainLooper()).post { callback(Result.failure(e)) }
+        }
+    }.start()
+}
+
+ 
+private fun uploadGroupAudio(file: File, callback: (Result<String>) -> Unit) {
+    Thread {
+        try {
+            val boundary = "----TexnoAudio" + UUID.randomUUID().toString().replace("-", "")
+            val connection = (URL("https://api.cloudinary.com/v1_1/$CLOUDINARY_CLOUD/raw/upload").openConnection() as HttpURLConnection).apply {
+                requestMethod = "POST"; doOutput = true
+                connectTimeout = 30000; readTimeout = 180000
+                setRequestProperty("Content-Type", "multipart/form-data; boundary=$boundary")
+                setChunkedStreamingMode(65536)
+            }
+            connection.outputStream.use { output ->
+                output.write("--$boundary\r\nContent-Disposition: form-data; name=\"upload_preset\"\r\n\r\n$CLOUDINARY_PRESET\r\n".toByteArray(Charsets.UTF_8))
+                output.write("--$boundary\r\nContent-Disposition: form-data; name=\"file\"; filename=\"voice-message.m4a\"\r\nContent-Type: audio/mp4\r\n\r\n".toByteArray(Charsets.UTF_8))
+                file.inputStream().use { input ->
+                    val buffer = ByteArray(65536)
+                    while (true) { val count = input.read(buffer); if (count < 0) break; output.write(buffer, 0, count) }
+                }
+                output.write("\r\n--$boundary--\r\n".toByteArray(Charsets.UTF_8))
+            }
+            val code = connection.responseCode
+            val response = (if (code in 200..299) connection.inputStream else connection.errorStream)?.bufferedReader()?.use { it.readText() } ?: ""
+            connection.disconnect()
+            if (code !in 200..299) throw Exception("Səs yüklənmədi ($code): $response")
+            val url = JSONObject(response).optString("secure_url")
+            if (url.isBlank()) throw Exception("Səs linki alınmadı.")
+            Handler(Looper.getMainLooper()).post { callback(Result.success(url)) }
         } catch (e: Exception) {
             Handler(Looper.getMainLooper()).post { callback(Result.failure(e)) }
         }
@@ -454,6 +489,25 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     var groupAuthError by remember { mutableStateOf("") }
     val groupMessages = remember { mutableStateListOf<GroupChatMessage>() }
     var groupMediaBusy by remember { mutableStateOf(false) }
+    var voiceRecorder by remember { mutableStateOf<MediaRecorder?>(null) }
+    var voiceFile by remember { mutableStateOf<File?>(null) }
+    var isRecordingVoice by remember { mutableStateOf(false) }
+    val audioPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) {
+            try {
+                val file = File(context.cacheDir, "group_voice_${System.currentTimeMillis()}.m4a")
+                val recorder = if (Build.VERSION.SDK_INT >= 31) MediaRecorder(context) else @Suppress("DEPRECATION") MediaRecorder()
+                recorder.setAudioSource(MediaRecorder.AudioSource.MIC)
+                recorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+                recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+                recorder.setAudioEncodingBitRate(96000)
+                recorder.setAudioSamplingRate(44100)
+                recorder.setOutputFile(file.absolutePath)
+                recorder.prepare(); recorder.start()
+                voiceFile = file; voiceRecorder = recorder; isRecordingVoice = true; groupAuthError = ""
+            } catch (e: Exception) { groupAuthError = "Səs yazısı başlatılmadı: ${e.localizedMessage}" }
+        } else groupAuthError = "Səs yazmaq üçün mikrofon icazəsi lazımdır."
+    }
     val groupImagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) {
             groupMediaBusy = true
@@ -465,20 +519,6 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                         db.collection("group_messages").add(data).addOnSuccessListener { groupMediaBusy = false; groupAuthError = "" }.addOnFailureListener { groupMediaBusy = false; groupAuthError = "Şəkil göndərilmədi: ${it.localizedMessage}" }
                     } else { groupMediaBusy = false; groupAuthError = "Əvvəlcə qrup adınızı yazın." }
                 }.onFailure { groupMediaBusy = false; groupAuthError = "Şəkil yüklənmədi: ${it.localizedMessage}" }
-            }
-        }
-    }
-    val groupAudioPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        if (uri != null) {
-            groupMediaBusy = true
-            uploadStickerMedia(context, uri) { result ->
-                result.onSuccess { media ->
-                    val user = FirebaseAuth.getInstance().currentUser
-                    if (user != null && groupNickname.trim().length >= 2) {
-                        val data = hashMapOf<String, Any>("uid" to user.uid, "nickname" to groupNickname.trim().take(24), "text" to "", "image_url" to "", "audio_url" to media.url, "created_at" to FieldValue.serverTimestamp())
-                        db.collection("group_messages").add(data).addOnSuccessListener { groupMediaBusy = false; groupAuthError = "" }.addOnFailureListener { groupMediaBusy = false; groupAuthError = "Səs göndərilmədi: ${it.localizedMessage}" }
-                    } else { groupMediaBusy = false; groupAuthError = "Əvvəlcə qrup adınızı yazın." }
-                }.onFailure { groupMediaBusy = false; groupAuthError = "Səs yüklənmədi: ${it.localizedMessage}" }
             }
         }
     }
@@ -514,6 +554,31 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                 }
             }
         onDispose { registration.remove() }
+    }
+
+    fun stopAndSendVoice() {
+        val recorder = voiceRecorder ?: return
+        try {
+            recorder.stop()
+            recorder.release()
+            voiceRecorder = null
+            isRecordingVoice = false
+            val file = voiceFile ?: return
+            groupMediaBusy = true
+            uploadGroupAudio(file) { result ->
+                result.onSuccess { url ->
+                    val user = FirebaseAuth.getInstance().currentUser
+                    if (user != null && groupNickname.trim().length >= 2) {
+                        val data = hashMapOf<String, Any>("uid" to user.uid, "nickname" to groupNickname.trim().take(24), "text" to "", "image_url" to "", "audio_url" to url, "created_at" to FieldValue.serverTimestamp())
+                        db.collection("group_messages").add(data).addOnSuccessListener { groupMediaBusy = false; groupAuthError = ""; file.delete() }.addOnFailureListener { groupMediaBusy = false; groupAuthError = "Səs göndərilmədi: ${it.localizedMessage}" }
+                    } else { groupMediaBusy = false; groupAuthError = "Əvvəlcə qrup adınızı yazın." }
+                }.onFailure { groupMediaBusy = false; groupAuthError = "Səs yüklənmədi: ${it.localizedMessage}" }
+            }
+        } catch (e: Exception) {
+            runCatching { recorder.reset(); recorder.release() }
+            voiceRecorder = null; isRecordingVoice = false
+            groupAuthError = "Səs yazısı alınmadı. Yenidən cəhd et."
+        }
     }
 
     fun sendGroupMessage() {
@@ -1510,7 +1575,27 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                         if (groupMessages.isEmpty()) Text("Hələ mesaj yoxdur. İlk mesajı sən yaz!", color = Color.LightGray, fontSize = 13.sp)
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                             OutlinedButton(onClick = { groupImagePicker.launch("image/*") }, enabled = !groupMediaBusy, modifier = Modifier.weight(1f)) { Text("📷 Şəkil əlavə et") }
-                            OutlinedButton(onClick = { groupAudioPicker.launch("audio/*") }, enabled = !groupMediaBusy, modifier = Modifier.weight(1f)) { Text("🎤 Səs göndər") }
+                            OutlinedButton(
+                                onClick = {
+                                    if (isRecordingVoice) stopAndSendVoice()
+                                    else if (androidx.core.content.ContextCompat.checkSelfPermission(context, android.Manifest.permission.RECORD_AUDIO) == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                                        try {
+                                            val file = File(context.cacheDir, "group_voice_${System.currentTimeMillis()}.m4a")
+                                            val recorder = if (Build.VERSION.SDK_INT >= 31) MediaRecorder(context) else @Suppress("DEPRECATION") MediaRecorder()
+                                            recorder.setAudioSource(MediaRecorder.AudioSource.MIC)
+                                            recorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+                                            recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+                                            recorder.setAudioEncodingBitRate(96000)
+                                            recorder.setAudioSamplingRate(44100)
+                                            recorder.setOutputFile(file.absolutePath)
+                                            recorder.prepare(); recorder.start()
+                                            voiceFile = file; voiceRecorder = recorder; isRecordingVoice = true; groupAuthError = ""
+                                        } catch (e: Exception) { groupAuthError = "Səs yazısı başlatılmadı: ${e.localizedMessage}" }
+                                    } else audioPermission.launch(android.Manifest.permission.RECORD_AUDIO)
+                                },
+                                enabled = !groupMediaBusy,
+                                modifier = Modifier.weight(1f)
+                            ) { Text(if (isRecordingVoice) "⏹ Yazını bitir və göndər" else "🎙 Səs yaz") }
                         }
                         if (groupMediaBusy) CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
                         groupMessages.forEach { chat ->
