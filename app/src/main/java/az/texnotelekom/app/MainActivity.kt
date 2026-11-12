@@ -1718,9 +1718,24 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
             }
             Spacer(Modifier.height(12.dp))
             if (showGroupChat) {
-                Spacer(Modifier.height(10.dp))
-                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF181818)), modifier = Modifier.fillMaxWidth()) {
-                    Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                androidx.compose.ui.window.Dialog(
+                    onDismissRequest = { showGroupChat = false },
+                    properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxSize().background(Color(0xFF101010)).padding(horizontal = 12.dp, vertical = 8.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("TEXNO DƏSTƏK QRUPU", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                            TextButton(onClick = { showGroupChat = false }) {
+                                Text("✕", color = Color.White, fontSize = 26.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                        Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF181818)), modifier = Modifier.fillMaxSize()) {
+                    Column(Modifier.padding(14.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Text("Ümumi söhbət", color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold)
                         if (!groupNameConfirmed || loggedIn) {
                             OutlinedTextField(
@@ -1902,6 +1917,8 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                         }
                         if (groupAuthError.isNotBlank()) Text(groupAuthError, color = Color(0xFFFFB4AB), fontSize = 12.sp)
                         Text("Bütün mesajlar saxlanılır. Qrupda hörmətli ünsiyyət saxlayın.", color = Color.LightGray, fontSize = 11.sp)
+                    }
+                        }
                     }
                 }
             }
