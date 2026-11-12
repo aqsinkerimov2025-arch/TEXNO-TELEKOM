@@ -1321,12 +1321,17 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                             ),
                             elevation = CardDefaults.cardElevation(defaultElevation = 10.dp)
                         ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.texno_support_badge),
-                                contentDescription = "TEXNO DƏSTƏK QRUPU",
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Fit
-                            )
+                            Column(
+                                modifier = Modifier.fillMaxSize().padding(horizontal = 3.dp, vertical = 4.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Text("👥", fontSize = 23.sp, lineHeight = 24.sp)
+                                Spacer(Modifier.height(1.dp))
+                                Text("TEXNO", color = Color.White, fontSize = 10.sp, lineHeight = 11.sp, fontWeight = FontWeight.Black, maxLines = 1)
+                                Text("DƏSTƏK", color = Color.White, fontSize = 10.sp, lineHeight = 11.sp, fontWeight = FontWeight.Black, maxLines = 1)
+                                Text("QRUPU", color = Color(0xFFFFD21F), fontSize = 11.sp, lineHeight = 12.sp, fontWeight = FontWeight.Black, maxLines = 1)
+                            }
                         }
                     }
                 }
