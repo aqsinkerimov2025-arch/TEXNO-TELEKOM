@@ -446,6 +446,13 @@ class MainActivity : ComponentActivity() {
 fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     val context = LocalContext.current
     val db = remember { FirebaseFirestore.getInstance() }
+    var showGroupChat by remember { mutableStateOf(false) }
+    var groupNickname by remember { mutableStateOf(context.getSharedPreferences("texno_group_chat", Context.MODE_PRIVATE).getString("nickname", "") ?: "") }
+    var groupDraft by remember { mutableStateOf("") }
+    var groupBusy by remember { mutableStateOf(false) }
+    var groupAuthReady by remember { mutableStateOf(FirebaseAuth.getInstance().currentUser != null) }
+    var groupAuthError by remember { mutableStateOf("") }
+    val groupMessages = remember { mutableStateListOf<GroupChatMessage>() }
 
     // Server-managed design values update live without publishing a new APK.
     var designBgHex by remember { mutableStateOf("#000000") }
@@ -588,13 +595,6 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     var editingGameId by remember { mutableStateOf<String?>(null) }
     val posts = remember { mutableStateListOf<ChannelPost>() }
     val phoneInfos = remember { mutableStateListOf<PhoneInfo>() }
-    var showGroupChat by remember { mutableStateOf(false) }
-    var groupNickname by remember { mutableStateOf(context.getSharedPreferences("texno_group_chat", Context.MODE_PRIVATE).getString("nickname", "") ?: "") }
-    var groupDraft by remember { mutableStateOf("") }
-    var groupBusy by remember { mutableStateOf(false) }
-    var groupAuthReady by remember { mutableStateOf(FirebaseAuth.getInstance().currentUser != null) }
-    var groupAuthError by remember { mutableStateOf("") }
-    val groupMessages = remember { mutableStateListOf<GroupChatMessage>() }
     var newPhoneInfoNotice by remember { mutableStateOf(false) }
     var newProgramNotice by remember { mutableStateOf(false) }
     var appNoticeItems by remember { mutableStateOf(listOf<Pair<String, String>>()) }
@@ -1485,6 +1485,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text(chat.nickname, color = Color(0xFFB9C9FF), fontSize = 13.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
                                     if (loggedIn) TextButton(onClick = { db.collection("group_messages").document(chat.id).delete().addOnSuccessListener { message = "Mesaj silindi." }.addOnFailureListener { groupAuthError = "Mesaj silinmədi: ${it.localizedMessage}" }) { Text("Sil", color = Color.LightGray, fontSize = 11.sp) }
+                                }
                                 }
                                 Text(chat.text, color = Color.White, fontSize = 14.sp, lineHeight = 20.sp)
                             }
