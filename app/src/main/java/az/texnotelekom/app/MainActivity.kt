@@ -1720,10 +1720,16 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
             if (showGroupChat) {
                 androidx.compose.ui.window.Dialog(
                     onDismissRequest = { showGroupChat = false },
-                    properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
+                    properties = androidx.compose.ui.window.DialogProperties(
+                        usePlatformDefaultWidth = false,
+                        decorFitsSystemWindows = false
+                    )
                 ) {
                     Column(
-                        modifier = Modifier.fillMaxSize().background(Color(0xFF101010)).padding(horizontal = 12.dp, vertical = 8.dp)
+                        modifier = Modifier.fillMaxSize()
+                            .background(Color(0xFF101010))
+                            .windowInsetsPadding(WindowInsets.safeDrawing)
+                            .padding(horizontal = 12.dp, vertical = 8.dp)
                     ) {
                         Row(
                             modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 8.dp),
