@@ -1717,16 +1717,6 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                 Spacer(Modifier.height(14.dp))
             }
             Spacer(Modifier.height(12.dp))
-            Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF202020)), shape = RoundedCornerShape(26.dp), modifier = Modifier.fillMaxWidth().clickable { showGroupChat = !showGroupChat }) {
-                Row(Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 20.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Text("💬 TEXNO-TELEKOM QRUPU", color = Color.White, fontSize = 19.sp, fontWeight = FontWeight.Bold)
-                        Spacer(Modifier.height(5.dp))
-                        Text(if (showGroupChat) "Söhbəti bağlamaq üçün toxunun" else "İstifadəçilərlə canlı yazışmaya qoşulun", color = Color(0xFFBDBDBD), fontSize = 13.sp)
-                    }
-                    Text(if (showGroupChat) "↑" else "➜", color = Color.White, fontSize = 30.sp, fontWeight = FontWeight.Bold)
-                }
-            }
             if (showGroupChat) {
                 Spacer(Modifier.height(10.dp))
                 Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF181818)), modifier = Modifier.fillMaxWidth()) {
