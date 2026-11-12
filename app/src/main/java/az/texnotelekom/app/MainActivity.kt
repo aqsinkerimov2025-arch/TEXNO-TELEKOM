@@ -1287,106 +1287,109 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                 .statusBarsPadding().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)
         ) {
             Spacer(Modifier.height(12.dp))
-            Box(Modifier.fillMaxWidth().padding(top = 4.dp)) {
-                Column(
-                    modifier = Modifier.align(Alignment.Center),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 42.dp).basicMarquee(iterations = Int.MAX_VALUE),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(14.dp)
-                    ) {
-                        Text(
-                            heroTitle,
-                            style = TextStyle(brush = Brush.horizontalGradient(listOf(Color(0xFFBDBDBD), Color(0xFFBDBDBD), Color(0xFFBDBDBD)))),
-                            fontSize = 19.sp,
-                            fontWeight = FontWeight.Black,
-                            maxLines = 1
-                        )
-                        Text(
-                            "TEXNO-MƏLUMAT",
-                            style = TextStyle(brush = Brush.horizontalGradient(listOf(Color(0xFFBDBDBD), Color(0xFFBDBDBD), Color(0xFFBDBDBD)))),
-                            fontSize = 19.sp,
-                            fontWeight = FontWeight.Black,
-                            maxLines = 1
-                        )
-                        if (newPhoneInfoNotice) Text("🔔 YENİ", color = Color(0xFFFFFFFF), fontSize = 10.sp, fontWeight = FontWeight.Black, maxLines = 1)
-                    }
-                    Text(
-                        "✦ TELEFON MƏLUMATLARI  •  PREMIUM PROQRAMLARIN ÜNVANI  •  TEXNOLOGİYA DÜNYASI  •  TELEFON MƏLUMATLARI  •  PREMIUM PROQRAMLARIN ÜNVANI  ✦",
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 42.dp).basicMarquee(iterations = Int.MAX_VALUE),
-                        color = Color.White,
-                        fontSize = 7.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        letterSpacing = 0.7.sp,
-                        maxLines = 1
-                    )
-                    Spacer(Modifier.height(6.dp))
-                    Box(
-                        Modifier.clickable { revealDeviceCodeButton = !revealDeviceCodeButton },
-                        contentAlignment = Alignment.Center
-                    ) { TexnoTelekomLogo(size = 78.dp) }
-                }
-                if (isAuthorizedDevice) {
-                    Text(
-                        "ADMİN",
-                        modifier = Modifier.align(Alignment.TopStart)
-                            .padding(start = 8.dp, top = 10.dp)
-                            .clickable { adminOpen = !adminOpen; error = ""; message = "" },
-                        color = Color(0xFFFFFFFF),
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Black,
-                        letterSpacing = 1.sp
-                    )
-                }
+            Column(Modifier.fillMaxWidth().padding(top = 4.dp)) {
                 Row(
-                    modifier = Modifier.align(Alignment.TopEnd),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.End
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.Top,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    if (searchOpen) {
-                        OutlinedTextField(
-                            value = query,
-                            onValueChange = { query = it },
-                            modifier = Modifier.width(170.dp).height(54.dp),
-                            placeholder = { Text("Axtar...", color = Color(0xFFBDBDBD)) },
-                            singleLine = true,
-                            shape = RoundedCornerShape(14.dp),
-                            textStyle = TextStyle(color = Color.White, fontSize = 14.sp),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedTextColor = Color.White,
-                                unfocusedTextColor = Color.White,
-                                focusedBorderColor = Color(0xFFFFFFFF),
-                                unfocusedBorderColor = Color(0xFFFFFFFF),
-                                cursorColor = Color.White
+                    Column(
+                        modifier = Modifier.weight(1f).padding(top = 4.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        if (isAuthorizedDevice) {
+                            Text(
+                                "ADMİN",
+                                modifier = Modifier.align(Alignment.Start).padding(start = 4.dp)
+                                    .clickable { adminOpen = !adminOpen; error = ""; message = "" },
+                                color = Color.White,
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Black,
+                                letterSpacing = 1.sp
                             )
+                        }
+                        Row(
+                            modifier = Modifier.fillMaxWidth().basicMarquee(iterations = Int.MAX_VALUE),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                heroTitle,
+                                style = TextStyle(brush = Brush.horizontalGradient(listOf(Color(0xFFBDBDBD), Color(0xFFFFFFFF), Color(0xFFBDBDBD)))),
+                                fontSize = 19.sp,
+                                fontWeight = FontWeight.Black,
+                                maxLines = 1
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                "TEXNO-MƏLUMAT",
+                                style = TextStyle(brush = Brush.horizontalGradient(listOf(Color(0xFFBDBDBD), Color(0xFFFFFFFF), Color(0xFFBDBDBD)))),
+                                fontSize = 17.sp,
+                                fontWeight = FontWeight.Black,
+                                maxLines = 1
+                            )
+                            if (newPhoneInfoNotice) Text(" 🔔 YENİ", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Black, maxLines = 1)
+                        }
+                        Text(
+                            "✦ TELEFON MƏLUMATLARI  •  PREMIUM PROQRAMLARIN ÜNVANI  ✦",
+                            modifier = Modifier.fillMaxWidth().basicMarquee(iterations = Int.MAX_VALUE),
+                            color = Color.White,
+                            fontSize = 7.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            letterSpacing = 0.7.sp,
+                            maxLines = 1
                         )
                     }
-                    IconButton(
-                        onClick = { searchOpen = !searchOpen; if (!searchOpen) query = "" },
-                        modifier = Modifier.size(44.dp)
-                    ) { Icon(Icons.Default.Search, contentDescription = "Axtarış", tint = Color(0xFFFFFFFF)) }
-                    Spacer(Modifier.width(4.dp))
-                    Card(
-                        modifier = Modifier.width(104.dp).height(82.dp)
-                            .clickable { showGroupChat = true },
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF17130A)),
-                        border = androidx.compose.foundation.BorderStroke(1.5.dp, Color(0xFFFFC928)),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        Column(
-                            modifier = Modifier.fillMaxSize().padding(horizontal = 5.dp, vertical = 6.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
+                        IconButton(
+                            onClick = { searchOpen = !searchOpen; if (!searchOpen) query = "" },
+                            modifier = Modifier.size(42.dp)
+                        ) { Icon(Icons.Default.Search, contentDescription = "Axtarış", tint = Color.White) }
+                        Card(
+                            modifier = Modifier.width(112.dp).height(104.dp).clickable { showGroupChat = true },
+                            shape = RoundedCornerShape(19.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF100D08)),
+                            border = androidx.compose.foundation.BorderStroke(2.dp, Color(0xFFFFC928)),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 7.dp)
                         ) {
-                            Text("👥", fontSize = 23.sp)
-                            Spacer(Modifier.height(3.dp))
-                            Text("TEXNO DƏSTƏK", color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.Black, maxLines = 1)
-                            Text("QRUPU", color = Color(0xFFFFC928), fontSize = 11.sp, fontWeight = FontWeight.Black, maxLines = 1)
+                            Column(
+                                modifier = Modifier.fillMaxSize().padding(horizontal = 5.dp, vertical = 7.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Text("👥", fontSize = 27.sp)
+                                Spacer(Modifier.height(5.dp))
+                                Text("TEXNO", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Black, maxLines = 1)
+                                Text("DƏSTƏK", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Black, maxLines = 1)
+                                Text("QRUPU", color = Color(0xFFFFC928), fontSize = 14.sp, fontWeight = FontWeight.Black, maxLines = 1)
+                            }
                         }
                     }
+                }
+                Box(
+                    Modifier.fillMaxWidth().padding(top = 8.dp).clickable { revealDeviceCodeButton = !revealDeviceCodeButton },
+                    contentAlignment = Alignment.Center
+                ) { TexnoTelekomLogo(size = 78.dp) }
+                if (searchOpen) {
+                    OutlinedTextField(
+                        value = query,
+                        onValueChange = { query = it },
+                        modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+                        placeholder = { Text("Axtar...", color = Color.LightGray) },
+                        singleLine = true,
+                        shape = RoundedCornerShape(14.dp),
+                        textStyle = TextStyle(color = Color.White, fontSize = 14.sp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedBorderColor = Color.White,
+                            unfocusedBorderColor = Color.White,
+                            cursorColor = Color.White
+                        )
+                    )
                 }
             }
             if (revealDeviceCodeButton) {
