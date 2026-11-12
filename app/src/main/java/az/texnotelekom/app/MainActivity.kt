@@ -1672,30 +1672,6 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                         Text("Ümumi söhbət", color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold)
                         OutlinedTextField(value = groupNickname, onValueChange = { groupNickname = it.take(24) }, label = { Text("Qrupda görünəcək adınız") }, singleLine = true, modifier = Modifier.fillMaxWidth(), colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White, focusedLabelColor = Color.White, unfocusedLabelColor = Color.LightGray, focusedBorderColor = Color.White, unfocusedBorderColor = Color.Gray, cursorColor = Color.White))
                         if (groupMessages.isEmpty()) Text("Hələ mesaj yoxdur. İlk mesajı sən yaz!", color = Color.LightGray, fontSize = 13.sp)
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                            OutlinedButton(onClick = { groupImagePicker.launch("image/*") }, enabled = !groupMediaBusy, modifier = Modifier.weight(1f)) { Text("📷 Şəkil əlavə et") }
-                            OutlinedButton(
-                                onClick = {
-                                    if (isRecordingVoice) stopAndSendVoice()
-                                    else if (androidx.core.content.ContextCompat.checkSelfPermission(context, android.Manifest.permission.RECORD_AUDIO) == android.content.pm.PackageManager.PERMISSION_GRANTED) {
-                                        try {
-                                            val file = File(context.cacheDir, "group_voice_${System.currentTimeMillis()}.m4a")
-                                            val recorder = if (Build.VERSION.SDK_INT >= 31) MediaRecorder(context) else @Suppress("DEPRECATION") MediaRecorder()
-                                            recorder.setAudioSource(MediaRecorder.AudioSource.MIC)
-                                            recorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
-                                            recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-                                            recorder.setAudioEncodingBitRate(96000)
-                                            recorder.setAudioSamplingRate(44100)
-                                            recorder.setOutputFile(file.absolutePath)
-                                            recorder.prepare(); recorder.start()
-                                            voiceFile = file; voiceRecorder = recorder; isRecordingVoice = true; groupAuthError = ""
-                                        } catch (e: Exception) { groupAuthError = "Səs yazısı başlatılmadı: ${e.localizedMessage}" }
-                                    } else audioPermission.launch(android.Manifest.permission.RECORD_AUDIO)
-                                },
-                                enabled = !groupMediaBusy,
-                                modifier = Modifier.weight(1f)
-                            ) { Text(if (isRecordingVoice) "⏹ Yazını bitir və göndər" else "🎙 Səs yaz") }
-                        }
                         if (groupMediaBusy) CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
                         groupMessages.forEach { chat ->
                             Column(
@@ -1729,8 +1705,80 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                 if (chat.audioUrl.isNotBlank()) GroupVoiceMessagePlayer(chat.audioUrl, chat.createdAt)
                             }
                         }
-                        OutlinedTextField(value = groupDraft, onValueChange = { groupDraft = it.take(1000) }, label = { Text("Mesaj yaz...") }, modifier = Modifier.fillMaxWidth(), minLines = 2, colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White, focusedLabelColor = Color.White, unfocusedLabelColor = Color.LightGray, focusedBorderColor = Color.White, unfocusedBorderColor = Color.Gray, cursorColor = Color.White))
-                        Button(onClick = { sendGroupMessage() }, enabled = !groupBusy && groupDraft.isNotBlank() && groupNickname.trim().length >= 2, modifier = Modifier.fillMaxWidth()) { if (groupBusy) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp) else Text("MESAJI GÖNDƏR") }
+                        Row(
+                            modifier = Modifier.fillMaxWidth()
+                                .background(Color(0xFFFFFFFF), RoundedCornerShape(28.dp))
+                                .padding(horizontal = 6.dp, vertical = 5.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            OutlinedTextField(
+                                value = groupDraft,
+                                onValueChange = { groupDraft = it.take(1000) },
+                                placeholder = { Text("Mesaj", color = Color(0xFF697278)) },
+                                modifier = Modifier.weight(1f),
+                                singleLine = false,
+                                maxLines = 4,
+                                shape = RoundedCornerShape(24.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedTextColor = Color(0xFF202124),
+                                    unfocusedTextColor = Color(0xFF202124),
+                                    focusedBorderColor = Color.Transparent,
+                                    unfocusedBorderColor = Color.Transparent,
+                                    focusedContainerColor = Color.Transparent,
+                                    unfocusedContainerColor = Color.Transparent,
+                                    cursorColor = Color(0xFF1687D9)
+                                )
+                            )
+                            IconButton(
+                                onClick = { groupImagePicker.launch("image/*") },
+                                enabled = !groupMediaBusy,
+                                modifier = Modifier.size(42.dp)
+                            ) { Text("📷", fontSize = 21.sp) }
+                            androidx.compose.material3.FilledIconButton(
+                                onClick = {
+                                    if (isRecordingVoice) stopAndSendVoice()
+                                    else if (groupDraft.isNotBlank()) sendGroupMessage()
+                                    else if (androidx.core.content.ContextCompat.checkSelfPermission(context, android.Manifest.permission.RECORD_AUDIO) == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                                        try {
+                                            val file = File(context.cacheDir, "group_voice_" + System.currentTimeMillis() + ".m4a")
+                                            val recorder = createGroupVoiceRecorder(context)
+                                            recorder.setAudioSource(MediaRecorder.AudioSource.MIC)
+                                            recorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+                                            recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+                                            recorder.setAudioEncodingBitRate(96000)
+                                            recorder.setAudioSamplingRate(44100)
+                                            recorder.setOutputFile(file.absolutePath)
+                                            recorder.prepare()
+                                            recorder.start()
+                                            voiceFile = file
+                                            voiceRecorder = recorder
+                                            isRecordingVoice = true
+                                            groupAuthError = ""
+                                        } catch (e: Exception) {
+                                            groupAuthError = "Səs yazısı başlatılmadı: " + e.localizedMessage
+                                        }
+                                    } else audioPermission.launch(android.Manifest.permission.RECORD_AUDIO)
+                                },
+                                enabled = !groupMediaBusy && !groupBusy && groupNickname.trim().length >= 2,
+                                modifier = Modifier.size(48.dp),
+                                colors = IconButtonDefaults.filledIconButtonColors(
+                                    containerColor = Color(0xFF19A765),
+                                    contentColor = Color.White,
+                                    disabledContainerColor = Color(0xFF777777)
+                                )
+                            ) {
+                                Text(
+                                    when {
+                                        isRecordingVoice -> "■"
+                                        groupDraft.isNotBlank() -> "➤"
+                                        else -> "🎙"
+                                    },
+                                    fontSize = 22.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
                         if (groupAuthError.isNotBlank()) Text(groupAuthError, color = Color(0xFFFFB4AB), fontSize = 12.sp)
                         Text("Bütün mesajlar saxlanılır. Qrupda hörmətli ünsiyyət saxlayın.", color = Color.LightGray, fontSize = 11.sp)
                     }
