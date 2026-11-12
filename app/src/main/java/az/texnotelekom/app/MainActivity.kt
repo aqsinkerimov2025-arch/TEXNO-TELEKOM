@@ -327,6 +327,112 @@ private fun StickerPreview(url: String, mimeType: String, modifier: Modifier = M
     }
 }
 
+@Composable
+private fun GroupVoiceMessagePlayer(url: String) {
+    val context = LocalContext.current
+    val player = remember(url) {
+        androidx.media3.exoplayer.ExoPlayer.Builder(context).build().apply {
+            setMediaItem(androidx.media3.common.MediaItem.fromUri(url))
+            prepare()
+        }
+    }
+    var isPlaying by remember(url) { mutableStateOf(false) }
+    var durationMs by remember(url) { mutableLongStateOf(0L) }
+    var positionMs by remember(url) { mutableLongStateOf(0L) }
+    var isSeeking by remember(url) { mutableStateOf(false) }
+
+    DisposableEffect(player) {
+        val listener = object : androidx.media3.common.Player.Listener {
+            override fun onIsPlayingChanged(playing: Boolean) { isPlaying = playing }
+            override fun onPlaybackStateChanged(state: Int) {
+                if (state == androidx.media3.common.Player.STATE_READY) durationMs = player.duration.coerceAtLeast(0L)
+                if (state == androidx.media3.common.Player.STATE_ENDED) {
+                    isPlaying = false
+                    positionMs = 0L
+                    player.seekTo(0)
+                }
+            }
+        }
+        player.addListener(listener)
+        onDispose {
+            player.removeListener(listener)
+            player.release()
+        }
+    }
+    LaunchedEffect(player) {
+        while (true) {
+            if (!isSeeking) {
+                positionMs = player.currentPosition.coerceAtLeast(0L)
+                if (player.duration > 0L) durationMs = player.duration
+            }
+            kotlinx.coroutines.delay(250)
+        }
+    }
+    fun timeLabel(ms: Long): String {
+        val seconds = (ms / 1000L).coerceAtLeast(0L)
+        return "%d:%02d".format(seconds / 60L, seconds % 60L)
+    }
+    val bars = remember(url) { List(36) { i -> 8 + ((i * 17 + url.length * 7) % 23) } }
+
+    Row(
+        modifier = Modifier.fillMaxWidth()
+            .background(Color(0xFFF4F4F4), RoundedCornerShape(24.dp))
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        androidx.compose.material3.IconButton(
+            onClick = {
+                if (player.isPlaying) player.pause()
+                else {
+                    if (player.playbackState == androidx.media3.common.Player.STATE_ENDED) player.seekTo(0)
+                    player.play()
+                }
+            },
+            modifier = Modifier.size(42.dp)
+        ) {
+            Text(if (isPlaying) "Ⅱ" else "▶", color = Color(0xFF52616B), fontSize = 25.sp, fontWeight = FontWeight.Bold)
+        }
+        Column(Modifier.weight(1f)) {
+            Row(
+                modifier = Modifier.fillMaxWidth().height(38.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                bars.forEachIndexed { index, height ->
+                    val played = durationMs > 0L && index.toFloat() / bars.size <= positionMs.toFloat() / durationMs.toFloat()
+                    Box(
+                        Modifier.weight(1f).height(height.dp)
+                            .background(if (played) Color(0xFF1687D9) else Color(0xFF9DA5AA), RoundedCornerShape(3.dp))
+                    )
+                }
+            }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(timeLabel(positionMs), color = Color(0xFF59636A), fontSize = 11.sp)
+                Text(timeLabel(durationMs), color = Color(0xFF59636A), fontSize = 11.sp)
+            }
+            Slider(
+                value = if (durationMs > 0L) (positionMs.toFloat() / durationMs.toFloat()).coerceIn(0f, 1f) else 0f,
+                onValueChange = { value ->
+                    isSeeking = true
+                    positionMs = (value * durationMs).toLong()
+                },
+                onValueChangeFinished = {
+                    if (durationMs > 0L) player.seekTo(positionMs)
+                    isSeeking = false
+                },
+                enabled = durationMs > 0L,
+                modifier = Modifier.fillMaxWidth().height(20.dp),
+                colors = SliderDefaults.colors(
+                    thumbColor = Color(0xFF1687D9),
+                    activeTrackColor = Color(0xFF1687D9),
+                    inactiveTrackColor = Color(0xFFB8BEC2)
+                )
+            )
+        }
+    }
+}
+
 private fun uploadApk(context: Context, uri: Uri, callback: (Result<Pair<String, Long>>) -> Unit) {
     Thread {
         try {
@@ -1631,7 +1737,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                 }
                                 if (chat.text.isNotBlank()) Text(text = chat.text, color = Color.White, fontSize = 14.sp, lineHeight = 20.sp)
                                 if (chat.imageUrl.isNotBlank()) AsyncImage(model = chat.imageUrl, contentDescription = "Qrup şəkli", modifier = Modifier.fillMaxWidth().heightIn(max = 280.dp), contentScale = ContentScale.Fit)
-                                if (chat.audioUrl.isNotBlank()) OutlinedButton(onClick = { try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(chat.audioUrl))) } catch (_: Exception) { groupAuthError = "Səs faylı açıla bilmədi." } }) { Text("▶ Səs faylını dinlə") }
+                                if (chat.audioUrl.isNotBlank()) GroupVoiceMessagePlayer(chat.audioUrl)
                             }
                         }
                         OutlinedTextField(value = groupDraft, onValueChange = { groupDraft = it.take(1000) }, label = { Text("Mesaj yaz...") }, modifier = Modifier.fillMaxWidth(), minLines = 2, colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White, focusedLabelColor = Color.White, unfocusedLabelColor = Color.LightGray, focusedBorderColor = Color.White, unfocusedBorderColor = Color.Gray, cursorColor = Color.White))
