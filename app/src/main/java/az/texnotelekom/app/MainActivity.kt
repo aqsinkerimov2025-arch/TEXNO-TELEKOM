@@ -53,6 +53,8 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
@@ -492,7 +494,7 @@ data class ChannelPost(
 )
 data class PhoneInfo(val id: String, val title: String, val body: String, val imageUrl: String, val stickerUrl: String, val stickerMime: String)
 data class ChannelMessage(val id: String, val title: String, val body: String, val imageUrl: String, val createdAt: Long)
-data class GroupChatMessage(val id: String, val uid: String, val nickname: String, val text: String, val imageUrl: String, val audioUrl: String, val createdAt: Long)
+data class GroupChatMessage(val id: String, val uid: String, val nickname: String, val text: String, val imageUrl: String, val audioUrl: String, val createdAt: Long, val replyToId: String = "", val replyToNickname: String = "", val replyToText: String = "")
 
 
 @Composable
@@ -585,6 +587,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     var groupNickname by remember { mutableStateOf(context.getSharedPreferences("texno_group_chat", Context.MODE_PRIVATE).getString("nickname", "") ?: "") }
     var groupNameConfirmed by remember { mutableStateOf(groupNickname.trim().length >= 2) }
     var groupDraft by remember { mutableStateOf("") }
+    var replyToMessage by remember { mutableStateOf<GroupChatMessage?>(null) }
     var groupBusy by remember { mutableStateOf(false) }
     var groupAuthReady by remember { mutableStateOf(FirebaseAuth.getInstance().currentUser != null) }
     var groupAuthError by remember { mutableStateOf("") }
@@ -637,6 +640,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                     val user = FirebaseAuth.getInstance().currentUser
                     if (user != null && groupNickname.trim().length >= 2) {
                         val data = hashMapOf<String, Any>("uid" to user.uid, "nickname" to groupNickname.trim().take(24), "text" to "", "image_url" to url, "audio_url" to "", "created_at" to FieldValue.serverTimestamp())
+                        replyToMessage?.let { data["reply_to_id"] = it.id; data["reply_to_nickname"] = it.nickname; data["reply_to_text"] = it.text.ifBlank { if (it.imageUrl.isNotBlank()) "📷 Şəkil" else "🎙 Səs mesajı" }.take(180) }
                         db.collection("group_messages").add(data).addOnSuccessListener { groupMediaBusy = false; groupAuthError = "" }.addOnFailureListener { groupMediaBusy = false; groupAuthError = "Şəkil göndərilmədi: ${it.localizedMessage}" }
                     } else { groupMediaBusy = false; groupAuthError = "Əvvəlcə qrup adınızı yazın." }
                 }.onFailure { groupMediaBusy = false; groupAuthError = "Şəkil yüklənmədi: ${it.localizedMessage}" }
@@ -669,7 +673,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                 else if (snap != null) {
                     groupMessages.clear()
                     snap.documents.forEach { d ->
-                        groupMessages.add(GroupChatMessage(d.id, d.getString("uid") ?: "", d.getString("nickname") ?: "İstifadəçi", d.getString("text") ?: "", d.getString("image_url") ?: "", d.getString("audio_url") ?: "", d.getTimestamp("created_at")?.toDate()?.time ?: 0L))
+                        groupMessages.add(GroupChatMessage(d.id, d.getString("uid") ?: "", d.getString("nickname") ?: "İstifadəçi", d.getString("text") ?: "", d.getString("image_url") ?: "", d.getString("audio_url") ?: "", d.getTimestamp("created_at")?.toDate()?.time ?: 0L, d.getString("reply_to_id") ?: "", d.getString("reply_to_nickname") ?: "", d.getString("reply_to_text") ?: ""))
                     }
                     groupMessages.sortBy { it.createdAt }
                 }
@@ -691,7 +695,8 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                     val user = FirebaseAuth.getInstance().currentUser
                     if (user != null && groupNickname.trim().length >= 2) {
                         val data = hashMapOf<String, Any>("uid" to user.uid, "nickname" to groupNickname.trim().take(24), "text" to "", "image_url" to "", "audio_url" to url, "created_at" to FieldValue.serverTimestamp())
-                        db.collection("group_messages").add(data).addOnSuccessListener { groupMediaBusy = false; groupAuthError = ""; file.delete() }.addOnFailureListener { groupMediaBusy = false; groupAuthError = "Səs göndərilmədi: ${it.localizedMessage}" }
+                        replyToMessage?.let { data["reply_to_id"] = it.id; data["reply_to_nickname"] = it.nickname; data["reply_to_text"] = it.text.ifBlank { if (it.imageUrl.isNotBlank()) "📷 Şəkil" else "🎙 Səs mesajı" }.take(180) }
+                        db.collection("group_messages").add(data).addOnSuccessListener { groupMediaBusy = false; replyToMessage = null; groupAuthError = ""; file.delete() }.addOnFailureListener { groupMediaBusy = false; groupAuthError = "Səs göndərilmədi: ${it.localizedMessage}" }
                     } else { groupMediaBusy = false; groupAuthError = "Əvvəlcə qrup adınızı yazın." }
                 }.onFailure { groupMediaBusy = false; groupAuthError = "Səs yüklənmədi: ${it.localizedMessage}" }
             }
@@ -711,8 +716,9 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
         if (cleanText.isBlank()) return
         groupBusy = true
         val values = hashMapOf<String, Any>("uid" to currentUser.uid, "nickname" to cleanName, "text" to cleanText, "created_at" to FieldValue.serverTimestamp())
+        replyToMessage?.let { values["reply_to_id"] = it.id; values["reply_to_nickname"] = it.nickname; values["reply_to_text"] = it.text.ifBlank { if (it.imageUrl.isNotBlank()) "📷 Şəkil" else "🎙 Səs mesajı" }.take(180) }
         db.collection("group_messages").add(values)
-            .addOnSuccessListener { groupDraft = ""; groupBusy = false; groupAuthError = ""; context.getSharedPreferences("texno_group_chat", Context.MODE_PRIVATE).edit().putString("nickname", cleanName).apply() }
+            .addOnSuccessListener { groupDraft = ""; replyToMessage = null; groupBusy = false; groupAuthError = ""; context.getSharedPreferences("texno_group_chat", Context.MODE_PRIVATE).edit().putString("nickname", cleanName).apply() }
             .addOnFailureListener { groupBusy = false; groupAuthError = "Mesaj göndərilmədi: ${it.localizedMessage}" }
     }
 
@@ -1751,8 +1757,16 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                         if (groupMessages.isEmpty()) Text("Hələ mesaj yoxdur. İlk mesajı sən yaz!", color = Color.LightGray, fontSize = 13.sp)
                         if (groupMediaBusy) CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
                         groupMessages.forEach { chat ->
+                            var swipeDistance = 0f
                             Column(
                                 modifier = Modifier.fillMaxWidth()
+                                    .pointerInput(chat.id) {
+                                        detectHorizontalDragGestures(
+                                            onDragStart = { swipeDistance = 0f },
+                                            onHorizontalDrag = { change, dragAmount -> if (dragAmount > 0) swipeDistance += dragAmount; change.consume() },
+                                            onDragEnd = { if (swipeDistance > 65f) replyToMessage = chat }
+                                        )
+                                    }
                                     .background(Color(0xFF252B42), RoundedCornerShape(12.dp))
                                     .padding(11.dp),
                                 verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -1777,6 +1791,12 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                         }
                                     }
                                 }
+                                if (chat.replyToNickname.isNotBlank()) {
+                                    Column(Modifier.fillMaxWidth().background(Color(0xFF182039), RoundedCornerShape(8.dp)).padding(7.dp)) {
+                                        Text("↪ ${chat.replyToNickname}", color = Color(0xFF9DB5FF), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                        Text(chat.replyToText, color = Color.LightGray, fontSize = 12.sp, maxLines = 2)
+                                    }
+                                }
                                 if (chat.text.isNotBlank()) Text(text = chat.text, color = Color.White, fontSize = 14.sp, lineHeight = 20.sp)
                                 if (chat.imageUrl.isNotBlank()) AsyncImage(model = chat.imageUrl, contentDescription = "Qrup şəkli", modifier = Modifier.fillMaxWidth().heightIn(max = 280.dp), contentScale = ContentScale.Fit)
                                 if (chat.audioUrl.isNotBlank()) GroupVoiceMessagePlayer(chat.audioUrl, chat.createdAt)
@@ -1784,6 +1804,15 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                         }
                         if (isRecordingVoice) {
                             Text("● Səs yazılır — göndər düyməsinə basanda səs paylaşılacaq", color = Color(0xFFFF7777), fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                        }
+                        if (replyToMessage != null) {
+                            Row(Modifier.fillMaxWidth().background(Color(0xFF252B42), RoundedCornerShape(10.dp)).padding(9.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Column(Modifier.weight(1f)) {
+                                    Text("↪ Cavab verilir: ${replyToMessage?.nickname}", color = Color(0xFF9DB5FF), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                    Text(replyToMessage?.text?.ifBlank { if (replyToMessage?.imageUrl?.isNotBlank() == true) "📷 Şəkil" else "🎙 Səs mesajı" } ?: "", color = Color.LightGray, fontSize = 12.sp, maxLines = 1)
+                                }
+                                TextButton(onClick = { replyToMessage = null }) { Text("Ləğv et", color = Color.White) }
+                            }
                         }
                         Row(
                             modifier = Modifier.fillMaxWidth()
