@@ -589,6 +589,26 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     var groupAuthReady by remember { mutableStateOf(FirebaseAuth.getInstance().currentUser != null) }
     var groupAuthError by remember { mutableStateOf("") }
     val groupMessages = remember { mutableStateListOf<GroupChatMessage>() }
+    var feedbackDraft by remember { mutableStateOf("") }
+    var feedbackBusy by remember { mutableStateOf(false) }
+    var feedbackRecording by remember { mutableStateOf(false) }
+    var feedbackRecorder by remember { mutableStateOf<MediaRecorder?>(null) }
+    var feedbackFile by remember { mutableStateOf<File?>(null) }
+    var showFeedback by remember { mutableStateOf(false) }
+    val feedbackItems = remember { mutableStateListOf<String>() }
+    fun startFeedbackRecording() {
+        try {
+            val file = File(context.cacheDir, "feedback_voice_${System.currentTimeMillis()}.m4a")
+            val recorder = createGroupVoiceRecorder(context)
+            recorder.setAudioSource(MediaRecorder.AudioSource.MIC); recorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+            recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC); recorder.setAudioEncodingBitRate(96000)
+            recorder.setAudioSamplingRate(44100); recorder.setOutputFile(file.absolutePath)
+            recorder.prepare(); recorder.start(); feedbackFile = file; feedbackRecorder = recorder; feedbackRecording = true
+        } catch (e: Exception) { groupAuthError = "Səs yazısı başlatılmadı: ${e.localizedMessage}" }
+    }
+    val feedbackAudioPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) startFeedbackRecording() else groupAuthError = "Mikrofon icazəsi lazımdır."
+    }
     var groupMediaBusy by remember { mutableStateOf(false) }
     var voiceRecorder by remember { mutableStateOf<MediaRecorder?>(null) }
     var voiceFile by remember { mutableStateOf<File?>(null) }
@@ -750,6 +770,18 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     val isAuthorizedDevice = deviceId in ADMIN_DEVICE_IDS
     val savedAdminUser = remember { FirebaseAuth.getInstance().currentUser }
     var loggedIn by remember { mutableStateOf(isAuthorizedDevice && savedAdminUser?.uid == ADMIN_UID && savedAdminUser.email == ADMIN_EMAIL) }
+
+    DisposableEffect(loggedIn) {
+        if (!loggedIn) return@DisposableEffect onDispose { }
+        val registration = db.collection("admin_feedback").orderBy("created_at", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .addSnapshotListener { snap, e ->
+                if (e == null && snap != null) {
+                    feedbackItems.clear()
+                    snap.documents.forEach { d -> feedbackItems.add("${d.getString("nickname") ?: "İstifadəçi"}|${d.getString("text") ?: ""}|${d.getString("audio_url") ?: ""}") }
+                }
+            }
+        onDispose { registration.remove() }
+    }
 
     var email by remember { mutableStateOf(ADMIN_EMAIL) }
     var password by remember { mutableStateOf("") }
@@ -1833,6 +1865,62 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                 }
             }
             Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(10.dp))
+            Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF181818)), shape = RoundedCornerShape(22.dp), modifier = Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Row(Modifier.fillMaxWidth().clickable { showFeedback = !showFeedback }, verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text("MR_R3HB3R — ADMİNLƏ ƏLAQƏ", color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                            Text("Şikayət və təkliflərini mesaj və ya səslə göndər", color = Color.LightGray, fontSize = 12.sp)
+                        }
+                        Text(if (showFeedback) "▲" else "▼", color = Color.White)
+                    }
+                    if (showFeedback) {
+                        OutlinedTextField(value = feedbackDraft, onValueChange = { feedbackDraft = it.take(1500) }, modifier = Modifier.fillMaxWidth(), label = { Text("Şikayət və ya təklifiniz") }, minLines = 3, maxLines = 5, colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White, focusedLabelColor = Color.White, unfocusedLabelColor = Color.LightGray, focusedBorderColor = Color.White, unfocusedBorderColor = Color.Gray, cursorColor = Color.White))
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Button(onClick = {
+                                if (feedbackRecording) {
+                                    try {
+                                        feedbackRecorder?.stop(); feedbackRecorder?.release(); feedbackRecorder = null; feedbackRecording = false
+                                        val file = feedbackFile
+                                        if (file != null) {
+                                            feedbackBusy = true
+                                            uploadGroupAudio(file) { result -> result.onSuccess { url ->
+                                                val user = FirebaseAuth.getInstance().currentUser
+                                                val data = hashMapOf<String, Any>("uid" to (user?.uid ?: "anonymous"), "nickname" to groupNickname.ifBlank { "İstifadəçi" }, "text" to feedbackDraft.trim(), "audio_url" to url, "created_at" to FieldValue.serverTimestamp())
+                                                db.collection("admin_feedback").add(data).addOnSuccessListener { feedbackDraft = ""; feedbackBusy = false; file.delete(); groupAuthError = "Səsli müraciət adminə göndərildi." }.addOnFailureListener { feedbackBusy = false; groupAuthError = "Göndərilmədi: ${it.localizedMessage}" }
+                                            }.onFailure { feedbackBusy = false; groupAuthError = "Səs yüklənmədi: ${it.localizedMessage}" } }
+                                        }
+                                    } catch (_: Exception) { feedbackRecording = false; feedbackRecorder = null; groupAuthError = "Səs yazısı saxlanmadı." }
+                                } else if (androidx.core.content.ContextCompat.checkSelfPermission(context, android.Manifest.permission.RECORD_AUDIO) == android.content.pm.PackageManager.PERMISSION_GRANTED) startFeedbackRecording() else feedbackAudioPermission.launch(android.Manifest.permission.RECORD_AUDIO)
+                            }, enabled = !feedbackBusy) { Text(if (feedbackRecording) "■ Səsi göndər" else "🎙 Səs yaz") }
+                            Button(onClick = {
+                                if (feedbackDraft.isBlank()) groupAuthError = "Mesajınızı yazın."
+                                else {
+                                    feedbackBusy = true
+                                    val user = FirebaseAuth.getInstance().currentUser
+                                    val data = hashMapOf<String, Any>("uid" to (user?.uid ?: "anonymous"), "nickname" to groupNickname.ifBlank { "İstifadəçi" }, "text" to feedbackDraft.trim(), "audio_url" to "", "created_at" to FieldValue.serverTimestamp())
+                                    db.collection("admin_feedback").add(data).addOnSuccessListener { feedbackDraft = ""; feedbackBusy = false; groupAuthError = "Müraciətiniz adminə göndərildi." }.addOnFailureListener { feedbackBusy = false; groupAuthError = "Göndərilmədi: ${it.localizedMessage}" }
+                                }
+                            }, enabled = !feedbackBusy && !feedbackRecording) { Text(if (feedbackBusy) "Göndərilir..." else "Mesajı göndər") }
+                        }
+                        if (feedbackRecording) Text("● Səs yazılır — bitirəndə «Səsi göndər» düyməsinə bas.", color = Color(0xFFFF7777), fontSize = 12.sp)
+                        if (loggedIn) {
+                            Divider(color = Color.DarkGray)
+                            Text("GƏLƏN MÜRACİƏTLƏR (${feedbackItems.size})", color = Color.White, fontWeight = FontWeight.Bold)
+                            feedbackItems.forEach { item ->
+                                val parts = item.split("|", limit = 3)
+                                Column(Modifier.fillMaxWidth().background(Color(0xFF252525), RoundedCornerShape(12.dp)).padding(10.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                                    Text(parts.getOrElse(0) { "İstifadəçi" }, color = Color(0xFF80CBC4), fontWeight = FontWeight.Bold)
+                                    if (parts.getOrElse(1) { "" }.isNotBlank()) Text(parts[1], color = Color.White)
+                                    if (parts.getOrElse(2) { "" }.isNotBlank()) GroupVoiceMessagePlayer(parts[2], System.currentTimeMillis())
+                                }
+                            }
+                            if (feedbackItems.isEmpty()) Text("Hələ müraciət yoxdur.", color = Color.LightGray, fontSize = 12.sp)
+                        }
+                    }
+                }
+            }
             Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF202020)), shape = RoundedCornerShape(26.dp), modifier = Modifier.fillMaxWidth().clickable { showGames = !showGames }) {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 20.dp), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
