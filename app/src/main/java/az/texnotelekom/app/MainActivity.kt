@@ -200,6 +200,10 @@ private fun uploadStickerMedia(context: Context, uri: Uri, callback: (Result<Sti
 }
 
  
+@Suppress("DEPRECATION")
+private fun createGroupVoiceRecorder(context: Context): MediaRecorder =
+    if (Build.VERSION.SDK_INT >= 31) MediaRecorder(context) else MediaRecorder()
+
 private fun uploadGroupAudio(file: File, callback: (Result<String>) -> Unit) {
     Thread {
         try {
@@ -496,7 +500,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
         if (granted) {
             try {
                 val file = File(context.cacheDir, "group_voice_${System.currentTimeMillis()}.m4a")
-                val recorder = if (Build.VERSION.SDK_INT >= 31) MediaRecorder(context) else @Suppress("DEPRECATION") MediaRecorder()
+                val recorder = createGroupVoiceRecorder(context)
                 recorder.setAudioSource(MediaRecorder.AudioSource.MIC)
                 recorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
                 recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
