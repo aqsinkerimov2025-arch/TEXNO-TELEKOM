@@ -1365,8 +1365,28 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                     }
                     IconButton(
                         onClick = { searchOpen = !searchOpen; if (!searchOpen) query = "" },
-                        modifier = Modifier.size(48.dp)
+                        modifier = Modifier.size(44.dp)
                     ) { Icon(Icons.Default.Search, contentDescription = "Axtarış", tint = Color(0xFFFFFFFF)) }
+                    Spacer(Modifier.width(4.dp))
+                    Card(
+                        modifier = Modifier.width(104.dp).height(82.dp)
+                            .clickable { showGroupChat = true },
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF17130A)),
+                        border = androidx.compose.foundation.BorderStroke(1.5.dp, Color(0xFFFFC928)),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.fillMaxSize().padding(horizontal = 5.dp, vertical = 6.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Icon(Icons.Default.Group, contentDescription = "Texno Dəstək Qrupu", tint = Color(0xFFFFC928), modifier = Modifier.size(25.dp))
+                            Spacer(Modifier.height(3.dp))
+                            Text("TEXNO DƏSTƏK", color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.Black, maxLines = 1)
+                            Text("QRUPU", color = Color(0xFFFFC928), fontSize = 11.sp, fontWeight = FontWeight.Black, maxLines = 1)
+                        }
+                    }
                 }
             }
             if (revealDeviceCodeButton) {
