@@ -160,7 +160,7 @@ private fun uploadStickerMedia(context: Context, uri: Uri, callback: (Result<Sti
             val extension = fileName.substringAfterLast('.', "").lowercase()
             val resource = when {
                 extension == "tgs" || mime == "application/gzip" -> "raw"
-                extension == "webm" || mime.startsWith("video/") -> "video"
+                extension == "webm" || mime.startsWith("video/") || mime.startsWith("audio/") -> "video"
                 else -> "image"
             }
             val boundary = "----TexnoSticker" + UUID.randomUUID().toString().replace("-", "")
@@ -357,7 +357,7 @@ data class ChannelPost(
 )
 data class PhoneInfo(val id: String, val title: String, val body: String, val imageUrl: String, val stickerUrl: String, val stickerMime: String)
 data class ChannelMessage(val id: String, val title: String, val body: String, val imageUrl: String, val createdAt: Long)
-data class GroupChatMessage(val id: String, val uid: String, val nickname: String, val text: String, val createdAt: Long)
+data class GroupChatMessage(val id: String, val uid: String, val nickname: String, val text: String, val imageUrl: String, val audioUrl: String, val createdAt: Long)
 
 
 @Composable
@@ -453,6 +453,35 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     var groupAuthReady by remember { mutableStateOf(FirebaseAuth.getInstance().currentUser != null) }
     var groupAuthError by remember { mutableStateOf("") }
     val groupMessages = remember { mutableStateListOf<GroupChatMessage>() }
+    var groupMediaBusy by remember { mutableStateOf(false) }
+    val groupImagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri != null) {
+            groupMediaBusy = true
+            uploadPhoneImage(context, uri) { result ->
+                result.onSuccess { url ->
+                    val user = FirebaseAuth.getInstance().currentUser
+                    if (user != null && groupNickname.trim().length >= 2) {
+                        val data = hashMapOf<String, Any>("uid" to user.uid, "nickname" to groupNickname.trim().take(24), "text" to "", "image_url" to url, "audio_url" to "", "created_at" to FieldValue.serverTimestamp())
+                        db.collection("group_messages").add(data).addOnSuccessListener { groupMediaBusy = false; groupAuthError = "" }.addOnFailureListener { groupMediaBusy = false; groupAuthError = "Şəkil göndərilmədi: ${it.localizedMessage}" }
+                    } else { groupMediaBusy = false; groupAuthError = "Əvvəlcə qrup adınızı yazın." }
+                }.onFailure { groupMediaBusy = false; groupAuthError = "Şəkil yüklənmədi: ${it.localizedMessage}" }
+            }
+        }
+    }
+    val groupAudioPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri != null) {
+            groupMediaBusy = true
+            uploadStickerMedia(context, uri) { result ->
+                result.onSuccess { media ->
+                    val user = FirebaseAuth.getInstance().currentUser
+                    if (user != null && groupNickname.trim().length >= 2) {
+                        val data = hashMapOf<String, Any>("uid" to user.uid, "nickname" to groupNickname.trim().take(24), "text" to "", "image_url" to "", "audio_url" to media.url, "created_at" to FieldValue.serverTimestamp())
+                        db.collection("group_messages").add(data).addOnSuccessListener { groupMediaBusy = false; groupAuthError = "" }.addOnFailureListener { groupMediaBusy = false; groupAuthError = "Səs göndərilmədi: ${it.localizedMessage}" }
+                    } else { groupMediaBusy = false; groupAuthError = "Əvvəlcə qrup adınızı yazın." }
+                }.onFailure { groupMediaBusy = false; groupAuthError = "Səs yüklənmədi: ${it.localizedMessage}" }
+            }
+        }
+    }
 
     // Server-managed design values update live without publishing a new APK.
     var designBgHex by remember { mutableStateOf("#000000") }
@@ -479,7 +508,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                 else if (snap != null) {
                     groupMessages.clear()
                     snap.documents.forEach { d ->
-                        groupMessages.add(GroupChatMessage(d.id, d.getString("uid") ?: "", d.getString("nickname") ?: "İstifadəçi", d.getString("text") ?: "", d.getTimestamp("created_at")?.toDate()?.time ?: 0L))
+                        groupMessages.add(GroupChatMessage(d.id, d.getString("uid") ?: "", d.getString("nickname") ?: "İstifadəçi", d.getString("text") ?: "", d.getString("image_url") ?: "", d.getString("audio_url") ?: "", d.getTimestamp("created_at")?.toDate()?.time ?: 0L))
                     }
                     groupMessages.sortBy { it.createdAt }
                 }
@@ -1479,6 +1508,11 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                         Text("Ümumi söhbət", color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold)
                         OutlinedTextField(value = groupNickname, onValueChange = { groupNickname = it.take(24) }, label = { Text("Qrupda görünəcək adınız") }, singleLine = true, modifier = Modifier.fillMaxWidth(), colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White, focusedLabelColor = Color.White, unfocusedLabelColor = Color.LightGray, focusedBorderColor = Color.White, unfocusedBorderColor = Color.Gray, cursorColor = Color.White))
                         if (groupMessages.isEmpty()) Text("Hələ mesaj yoxdur. İlk mesajı sən yaz!", color = Color.LightGray, fontSize = 13.sp)
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                            OutlinedButton(onClick = { groupImagePicker.launch("image/*") }, enabled = !groupMediaBusy, modifier = Modifier.weight(1f)) { Text("📷 Şəkil əlavə et") }
+                            OutlinedButton(onClick = { groupAudioPicker.launch("audio/*") }, enabled = !groupMediaBusy, modifier = Modifier.weight(1f)) { Text("🎤 Səs göndər") }
+                        }
+                        if (groupMediaBusy) CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
                         groupMessages.forEach { chat ->
                             Column(
                                 modifier = Modifier.fillMaxWidth()
@@ -1506,7 +1540,9 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                         }
                                     }
                                 }
-                                Text(text = chat.text, color = Color.White, fontSize = 14.sp, lineHeight = 20.sp)
+                                if (chat.text.isNotBlank()) Text(text = chat.text, color = Color.White, fontSize = 14.sp, lineHeight = 20.sp)
+                                if (chat.imageUrl.isNotBlank()) AsyncImage(model = chat.imageUrl, contentDescription = "Qrup şəkli", modifier = Modifier.fillMaxWidth().heightIn(max = 280.dp), contentScale = ContentScale.Fit)
+                                if (chat.audioUrl.isNotBlank()) OutlinedButton(onClick = { try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(chat.audioUrl))) } catch (_: Exception) { groupAuthError = "Səs faylı açıla bilmədi." } }) { Text("▶ Səs faylını dinlə") }
                             }
                         }
                         OutlinedTextField(value = groupDraft, onValueChange = { groupDraft = it.take(1000) }, label = { Text("Mesaj yaz...") }, modifier = Modifier.fillMaxWidth(), minLines = 2, colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White, focusedLabelColor = Color.White, unfocusedLabelColor = Color.LightGray, focusedBorderColor = Color.White, unfocusedBorderColor = Color.Gray, cursorColor = Color.White))
