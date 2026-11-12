@@ -1311,7 +1311,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                             modifier = Modifier.size(42.dp)
                         ) { Icon(Icons.Default.Search, contentDescription = "Axtarış", tint = Color.White) }
                         Card(
-                            modifier = Modifier.width(116.dp).height(116.dp).clickable { showGroupChat = true },
+                            modifier = Modifier.width(116.dp).height(122.dp).clickable { showGroupChat = true },
                             shape = RoundedCornerShape(22.dp),
                             colors = CardDefaults.cardColors(containerColor = Color(0xFF080808)),
                             border = androidx.compose.foundation.BorderStroke(
@@ -1325,11 +1325,11 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.Center
                             ) {
-                                Text("👥", fontSize = 31.sp, color = Color(0xFFFFC928))
-                                Spacer(Modifier.height(5.dp))
-                                Text("TEXNO", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Black, maxLines = 1)
-                                Text("DƏSTƏK", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Black, maxLines = 1)
-                                Text("QRUPU", color = Color(0xFFFFC928), fontSize = 15.sp, fontWeight = FontWeight.Black, maxLines = 1)
+                                Text("👥", fontSize = 25.sp, color = Color(0xFFFFC928))
+                                Spacer(Modifier.height(2.dp))
+                                Text("TEXNO", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Black, maxLines = 1)
+                                Text("DƏSTƏK", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Black, maxLines = 1)
+                                Text("QRUPU", color = Color(0xFFFFC928), fontSize = 11.sp, fontWeight = FontWeight.Black, maxLines = 1)
                             }
                         }
                     }
