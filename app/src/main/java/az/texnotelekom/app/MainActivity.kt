@@ -59,6 +59,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.Placeholder
@@ -1311,26 +1312,17 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                             modifier = Modifier.size(42.dp)
                         ) { Icon(Icons.Default.Search, contentDescription = "Axtarış", tint = Color.White) }
                         Card(
-                            modifier = Modifier.width(116.dp).height(122.dp).clickable { showGroupChat = true },
+                            modifier = Modifier.size(116.dp).clickable { showGroupChat = true },
                             shape = RoundedCornerShape(22.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFF080808)),
-                            border = androidx.compose.foundation.BorderStroke(
-                                2.5.dp,
-                                Brush.linearGradient(listOf(Color(0xFFFFE36A), Color(0xFFFFB300), Color(0xFFFF4B24), Color(0xFFFFD54F)))
-                            ),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 12.dp)
+                            colors = CardDefaults.cardColors(containerColor = Color.Black),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 10.dp)
                         ) {
-                            Column(
-                                modifier = Modifier.fillMaxSize().padding(horizontal = 4.dp, vertical = 7.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                Text("👥", fontSize = 25.sp, color = Color(0xFFFFC928))
-                                Spacer(Modifier.height(2.dp))
-                                Text("TEXNO", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Black, maxLines = 1)
-                                Text("DƏSTƏK", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Black, maxLines = 1)
-                                Text("QRUPU", color = Color(0xFFFFC928), fontSize = 11.sp, fontWeight = FontWeight.Black, maxLines = 1)
-                            }
+                            Image(
+                                painter = painterResource(id = R.drawable.texno_support_badge),
+                                contentDescription = "TEXNO DƏSTƏK QRUPU",
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
                         }
                     }
                 }
