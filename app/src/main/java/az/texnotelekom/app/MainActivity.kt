@@ -1481,13 +1481,33 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                         OutlinedTextField(value = groupNickname, onValueChange = { groupNickname = it.take(24) }, label = { Text("Qrupda görünəcək adınız") }, singleLine = true, modifier = Modifier.fillMaxWidth(), colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White, focusedLabelColor = Color.White, unfocusedLabelColor = Color.LightGray, focusedBorderColor = Color.White, unfocusedBorderColor = Color.Gray, cursorColor = Color.White))
                         if (groupMessages.isEmpty()) Text("Hələ mesaj yoxdur. İlk mesajı sən yaz!", color = Color.LightGray, fontSize = 13.sp)
                         groupMessages.forEach { chat ->
-                            Column(Modifier.fillMaxWidth().background(Color(0xFF252B42), RoundedCornerShape(12.dp)).padding(11.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Column(
+                                modifier = Modifier.fillMaxWidth()
+                                    .background(Color(0xFF252B42), RoundedCornerShape(12.dp))
+                                    .padding(11.dp),
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(chat.nickname, color = Color(0xFFB9C9FF), fontSize = 13.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-                                    if (loggedIn) TextButton(onClick = { db.collection("group_messages").document(chat.id).delete().addOnSuccessListener { message = "Mesaj silindi." }.addOnFailureListener { groupAuthError = "Mesaj silinmədi: ${it.localizedMessage}" }) { Text("Sil", color = Color.LightGray, fontSize = 11.sp) }
+                                    Text(
+                                        text = chat.nickname,
+                                        color = Color(0xFFB9C9FF),
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    if (loggedIn) {
+                                        TextButton(
+                                            onClick = {
+                                                db.collection("group_messages").document(chat.id).delete()
+                                                    .addOnSuccessListener { message = "Mesaj silindi." }
+                                                    .addOnFailureListener { groupAuthError = "Mesaj silinmədi: ${it.localizedMessage}" }
+                                            }
+                                        ) {
+                                            Text(text = "Sil", color = Color.LightGray, fontSize = 11.sp)
+                                        }
+                                    }
                                 }
-                                }
-                                Text(chat.text, color = Color.White, fontSize = 14.sp, lineHeight = 20.sp)
+                                Text(text = chat.text, color = Color.White, fontSize = 14.sp, lineHeight = 20.sp)
                             }
                         }
                         OutlinedTextField(value = groupDraft, onValueChange = { groupDraft = it.take(1000) }, label = { Text("Mesaj yaz...") }, modifier = Modifier.fillMaxWidth(), minLines = 2, colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White, focusedLabelColor = Color.White, unfocusedLabelColor = Color.LightGray, focusedBorderColor = Color.White, unfocusedBorderColor = Color.Gray, cursorColor = Color.White))
