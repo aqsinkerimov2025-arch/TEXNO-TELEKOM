@@ -1381,7 +1381,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center
                         ) {
-                            Icon(Icons.Default.Group, contentDescription = "Texno Dəstək Qrupu", tint = Color(0xFFFFC928), modifier = Modifier.size(25.dp))
+                            Text("👥", fontSize = 23.sp)
                             Spacer(Modifier.height(3.dp))
                             Text("TEXNO DƏSTƏK", color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.Black, maxLines = 1)
                             Text("QRUPU", color = Color(0xFFFFC928), fontSize = 11.sp, fontWeight = FontWeight.Black, maxLines = 1)
