@@ -328,7 +328,7 @@ private fun StickerPreview(url: String, mimeType: String, modifier: Modifier = M
 }
 
 @Composable
-private fun GroupVoiceMessagePlayer(url: String) {
+private fun GroupVoiceMessagePlayer(url: String, sentAt: Long) {
     val context = LocalContext.current
     val player = remember(url) {
         androidx.media3.exoplayer.ExoPlayer.Builder(context).build().apply {
@@ -339,7 +339,6 @@ private fun GroupVoiceMessagePlayer(url: String) {
     var isPlaying by remember(url) { mutableStateOf(false) }
     var durationMs by remember(url) { mutableLongStateOf(0L) }
     var positionMs by remember(url) { mutableLongStateOf(0L) }
-    var isSeeking by remember(url) { mutableStateOf(false) }
 
     DisposableEffect(player) {
         val listener = object : androidx.media3.common.Player.Listener {
@@ -361,25 +360,27 @@ private fun GroupVoiceMessagePlayer(url: String) {
     }
     LaunchedEffect(player) {
         while (true) {
-            if (!isSeeking) {
-                positionMs = player.currentPosition.coerceAtLeast(0L)
-                if (player.duration > 0L) durationMs = player.duration
-            }
-            kotlinx.coroutines.delay(250)
+            positionMs = player.currentPosition.coerceAtLeast(0L)
+            if (player.duration > 0L) durationMs = player.duration
+            kotlinx.coroutines.delay(180)
         }
     }
     fun timeLabel(ms: Long): String {
         val seconds = (ms / 1000L).coerceAtLeast(0L)
         return "%d:%02d".format(seconds / 60L, seconds % 60L)
     }
-    val bars = remember(url) { List(36) { i -> 8 + ((i * 17 + url.length * 7) % 23) } }
+    val clock = remember(sentAt) {
+        java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(java.util.Date(sentAt))
+    }
+    val bars = remember(url) { List(38) { i -> 9 + ((i * 17 + url.length * 7) % 25) } }
+    val progress = if (durationMs > 0L) (positionMs.toFloat() / durationMs.toFloat()).coerceIn(0f, 1f) else 0f
 
     Row(
         modifier = Modifier.fillMaxWidth()
-            .background(Color(0xFFF4F4F4), RoundedCornerShape(24.dp))
-            .padding(horizontal = 12.dp, vertical = 10.dp),
+            .background(Color(0xFFFFFFFF), RoundedCornerShape(22.dp))
+            .padding(horizontal = 10.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         androidx.compose.material3.IconButton(
             onClick = {
@@ -391,44 +392,32 @@ private fun GroupVoiceMessagePlayer(url: String) {
             },
             modifier = Modifier.size(42.dp)
         ) {
-            Text(if (isPlaying) "Ⅱ" else "▶", color = Color(0xFF52616B), fontSize = 25.sp, fontWeight = FontWeight.Bold)
+            Text(if (isPlaying) "Ⅱ" else "▶", color = Color(0xFF66747B), fontSize = 26.sp, fontWeight = FontWeight.Bold)
         }
-        Column(Modifier.weight(1f)) {
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth().height(38.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 bars.forEachIndexed { index, height ->
-                    val played = durationMs > 0L && index.toFloat() / bars.size <= positionMs.toFloat() / durationMs.toFloat()
+                    val played = index.toFloat() / bars.size <= progress
                     Box(
                         Modifier.weight(1f).height(height.dp)
-                            .background(if (played) Color(0xFF1687D9) else Color(0xFF9DA5AA), RoundedCornerShape(3.dp))
+                            .background(if (played) Color(0xFF1687D9) else Color(0xFFBFC5C8), RoundedCornerShape(3.dp))
                     )
                 }
             }
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(timeLabel(positionMs), color = Color(0xFF59636A), fontSize = 11.sp)
-                Text(timeLabel(durationMs), color = Color(0xFF59636A), fontSize = 11.sp)
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text(timeLabel(if (positionMs > 0L) positionMs else durationMs), color = Color(0xFF59636A), fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                Text(clock, color = Color(0xFF59636A), fontSize = 11.sp)
             }
-            Slider(
-                value = if (durationMs > 0L) (positionMs.toFloat() / durationMs.toFloat()).coerceIn(0f, 1f) else 0f,
-                onValueChange = { value ->
-                    isSeeking = true
-                    positionMs = (value * durationMs).toLong()
-                },
-                onValueChangeFinished = {
-                    if (durationMs > 0L) player.seekTo(positionMs)
-                    isSeeking = false
-                },
-                enabled = durationMs > 0L,
-                modifier = Modifier.fillMaxWidth().height(20.dp),
-                colors = SliderDefaults.colors(
-                    thumbColor = Color(0xFF1687D9),
-                    activeTrackColor = Color(0xFF1687D9),
-                    inactiveTrackColor = Color(0xFFB8BEC2)
-                )
-            )
+        }
+        Box(
+            Modifier.size(38.dp).background(Color(0xFFE8F3FA), RoundedCornerShape(50)),
+            contentAlignment = Alignment.Center
+        ) {
+            Text("🎙", fontSize = 19.sp)
         }
     }
 }
@@ -1737,7 +1726,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                 }
                                 if (chat.text.isNotBlank()) Text(text = chat.text, color = Color.White, fontSize = 14.sp, lineHeight = 20.sp)
                                 if (chat.imageUrl.isNotBlank()) AsyncImage(model = chat.imageUrl, contentDescription = "Qrup şəkli", modifier = Modifier.fillMaxWidth().heightIn(max = 280.dp), contentScale = ContentScale.Fit)
-                                if (chat.audioUrl.isNotBlank()) GroupVoiceMessagePlayer(chat.audioUrl)
+                                if (chat.audioUrl.isNotBlank()) GroupVoiceMessagePlayer(chat.audioUrl, chat.createdAt)
                             }
                         }
                         OutlinedTextField(value = groupDraft, onValueChange = { groupDraft = it.take(1000) }, label = { Text("Mesaj yaz...") }, modifier = Modifier.fillMaxWidth(), minLines = 2, colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White, focusedLabelColor = Color.White, unfocusedLabelColor = Color.LightGray, focusedBorderColor = Color.White, unfocusedBorderColor = Color.Gray, cursorColor = Color.White))
