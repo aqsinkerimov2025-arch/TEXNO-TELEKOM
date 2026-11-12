@@ -333,6 +333,7 @@ private fun GroupVoiceMessagePlayer(url: String, sentAt: Long) {
     val player = remember(url) {
         androidx.media3.exoplayer.ExoPlayer.Builder(context).build().apply {
             setMediaItem(androidx.media3.common.MediaItem.fromUri(url))
+            repeatMode = androidx.media3.common.Player.REPEAT_MODE_OFF
             prepare()
         }
     }
@@ -347,8 +348,7 @@ private fun GroupVoiceMessagePlayer(url: String, sentAt: Long) {
                 if (state == androidx.media3.common.Player.STATE_READY) durationMs = player.duration.coerceAtLeast(0L)
                 if (state == androidx.media3.common.Player.STATE_ENDED) {
                     isPlaying = false
-                    positionMs = 0L
-                    player.seekTo(0)
+                    positionMs = durationMs
                 }
             }
         }
