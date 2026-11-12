@@ -474,7 +474,6 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
         if (!groupAuthReady) return@DisposableEffect onDispose { }
         val registration = db.collection("group_messages")
             .orderBy("created_at", com.google.firebase.firestore.Query.Direction.DESCENDING)
-            .limit(100)
             .addSnapshotListener { snap, e ->
                 if (e != null) groupAuthError = "Mesajlar yüklənmədi: ${e.localizedMessage}"
                 else if (snap != null) {
@@ -1513,7 +1512,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                         OutlinedTextField(value = groupDraft, onValueChange = { groupDraft = it.take(1000) }, label = { Text("Mesaj yaz...") }, modifier = Modifier.fillMaxWidth(), minLines = 2, colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White, focusedLabelColor = Color.White, unfocusedLabelColor = Color.LightGray, focusedBorderColor = Color.White, unfocusedBorderColor = Color.Gray, cursorColor = Color.White))
                         Button(onClick = { sendGroupMessage() }, enabled = !groupBusy && groupDraft.isNotBlank() && groupNickname.trim().length >= 2, modifier = Modifier.fillMaxWidth()) { if (groupBusy) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp) else Text("MESAJI GÖNDƏR") }
                         if (groupAuthError.isNotBlank()) Text(groupAuthError, color = Color(0xFFFFB4AB), fontSize = 12.sp)
-                        Text("Son 100 mesaj göstərilir. Qrupda hörmətli ünsiyyət saxlayın.", color = Color.LightGray, fontSize = 11.sp)
+                        Text("Bütün mesajlar saxlanılır. Qrupda hörmətli ünsiyyət saxlayın.", color = Color.LightGray, fontSize = 11.sp)
                     }
                 }
             }
