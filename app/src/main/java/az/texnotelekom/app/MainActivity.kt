@@ -588,12 +588,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     var editingGameId by remember { mutableStateOf<String?>(null) }
     val posts = remember { mutableStateListOf<ChannelPost>() }
     val phoneInfos = remember { mutableStateListOf<PhoneInfo>() }
-    val channelMessages = remember { mutableStateListOf<ChannelMessage>() }
-    var channelTitle by remember { mutableStateOf("") }
-    var channelBody by remember { mutableStateOf("") }
-    var channelImage by remember { mutableStateOf<Uri?>(null) }
-    var channelBusy by remember { mutableStateOf(false) }
-    var showChannel by remember { mutableStateOf(false) }    var showGroupChat by remember { mutableStateOf(false) }
+    var showGroupChat by remember { mutableStateOf(false) }
     var groupNickname by remember { mutableStateOf(context.getSharedPreferences("texno_group_chat", Context.MODE_PRIVATE).getString("nickname", "") ?: "") }
     var groupDraft by remember { mutableStateOf("") }
     var groupBusy by remember { mutableStateOf(false) }
@@ -683,19 +678,6 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                 }
             }
         onDispose { phoneListener.remove() }
-    }
-
-    DisposableEffect(db) {
-        val channelListener = db.collection("channel_messages").addSnapshotListener { snap, e ->
-            if (e == null && snap != null) {
-                channelMessages.clear()
-                snap.documents.forEach { d ->
-                    channelMessages.add(ChannelMessage(d.id, d.getString("title") ?: "", d.getString("body") ?: "", d.getString("image_url") ?: "", d.getTimestamp("created_at")?.toDate()?.time ?: 0L))
-                }
-                channelMessages.sortByDescending { it.createdAt }
-            }
-        }
-        onDispose { channelListener.remove() }
     }
 
     DisposableEffect(db) {
@@ -1271,32 +1253,6 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                 else Text("TEXNO-MƏLUMAT bölməsində paylaş")
                             }
                             HorizontalDivider()
-                            Text("TEXNO-TELEKOM KANALI", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                            OutlinedTextField(channelTitle, { channelTitle = it }, label = { Text("Paylaşım başlığı") }, modifier = Modifier.fillMaxWidth(), colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White, focusedLabelColor = Color.White, unfocusedLabelColor = Color.LightGray, focusedBorderColor = Color.White, unfocusedBorderColor = Color.Gray, cursorColor = Color.White))
-                            OutlinedTextField(channelBody, { channelBody = it }, label = { Text("Kanal paylaşımı") }, modifier = Modifier.fillMaxWidth(), minLines = 3, colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White, focusedLabelColor = Color.White, unfocusedLabelColor = Color.LightGray, focusedBorderColor = Color.White, unfocusedBorderColor = Color.Gray, cursorColor = Color.White))
-                            OutlinedButton(onClick = { phoneInfoImagePicker.launch("image/*") }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)) { Icon(Icons.Default.Image, null); Spacer(Modifier.width(8.dp)); Text("Kanal üçün şəkil seç") }
-                            if (channelImage != null) {
-                                AsyncImage(model = channelImage, contentDescription = "Kanal şəkli", modifier = Modifier.fillMaxWidth().heightIn(max = 180.dp), contentScale = ContentScale.Fit)
-                                TextButton(onClick = { channelImage = null }) { Text("Şəkli sil") }
-                            }
-                            Button(onClick = {
-                                if (channelTitle.isBlank() && channelBody.isBlank() && channelImage == null) { error = "Kanal paylaşımı üçün mətn və ya şəkil əlavə edin." }
-                                else if (!channelBusy) {
-                                    channelBusy = true
-                                    val selected = channelImage
-                                    fun publishChannelPost(imageUrl: String) {
-                                        val values = hashMapOf<String, Any>("title" to channelTitle.trim(), "body" to channelBody.trim(), "image_url" to imageUrl, "created_at" to FieldValue.serverTimestamp())
-                                        db.collection("channel_messages").add(values).addOnSuccessListener {
-                                            channelTitle = ""; channelBody = ""; channelImage = null; channelBusy = false
-                                            message = "TEXNO-TELEKOM kanalında paylaşıldı."
-                                        }.addOnFailureListener { channelBusy = false; error = "Kanal paylaşımı alınmadı: ${it.localizedMessage}" }
-                                    }
-                                    if (selected == null) publishChannelPost("") else uploadPhoneImage(context, selected) { result ->
-                                        result.onSuccess { publishChannelPost(it) }.onFailure { channelBusy = false; error = "Şəkil yüklənmədi: ${it.localizedMessage}" }
-                                    }
-                                }
-                            }, enabled = !channelBusy, modifier = Modifier.fillMaxWidth()) { if (channelBusy) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp) else Text("KANALDA PAYLAŞ") }
-                            HorizontalDivider()
                             Button(onClick = { clearGameForm(); showGameForm = true }) { Text("OYUN ƏLAVƏ ET") }
                             if (showGameForm) {
                                 Text(if (editingGameId == null) "Oyun əlavə et" else "Oyunu redaktə et", fontWeight = FontWeight.Bold)
@@ -1505,30 +1461,6 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                     }
                 }
                 Spacer(Modifier.height(14.dp))
-            }
-            Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF202020)), shape = RoundedCornerShape(26.dp), modifier = Modifier.fillMaxWidth().clickable { showChannel = !showChannel }) {
-                Row(Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 20.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Text("📢 TEXNO-TELEKOM KANALI", color = Color.White, fontSize = 19.sp, fontWeight = FontWeight.Bold)
-                        Spacer(Modifier.height(5.dp))
-                        Text(if (showChannel) "Kanalı bağlamaq üçün toxunun" else "Rəsmi elanları və yenilikləri oxuyun", color = Color(0xFFBDBDBD), fontSize = 13.sp)
-                    }
-                    Text(if (showChannel) "↑" else "➜", color = Color.White, fontSize = 30.sp, fontWeight = FontWeight.Bold)
-                }
-            }
-            if (showChannel) {
-                Spacer(Modifier.height(10.dp))
-                if (channelMessages.isEmpty()) Text("Kanalda hələ paylaşım yoxdur.", color = Color.LightGray)
-                channelMessages.forEach { item ->
-                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF181818)), modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp)) {
-                        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text(item.title.ifBlank { "TEXNO-TELEKOM" }, color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold)
-                            if (item.imageUrl.isNotBlank()) AsyncImage(model = item.imageUrl, contentDescription = item.title, modifier = Modifier.fillMaxWidth().heightIn(max = 300.dp), contentScale = ContentScale.Fit)
-                            if (item.body.isNotBlank()) Text(item.body, color = Color(0xFFE0E0E0), fontSize = 14.sp, lineHeight = 21.sp)
-                            if (loggedIn) TextButton(onClick = { db.collection("channel_messages").document(item.id).delete().addOnSuccessListener { message = "Kanal paylaşımı silindi." }.addOnFailureListener { error = "Paylaşım silinmədi: ${it.localizedMessage}" } }) { Text("Paylaşımı sil", color = Color.White) }
-                        }
-                    }
-                }
             }
             Spacer(Modifier.height(12.dp))
             Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF202020)), shape = RoundedCornerShape(26.dp), modifier = Modifier.fillMaxWidth().clickable { showGroupChat = !showGroupChat }) {
