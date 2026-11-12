@@ -582,6 +582,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     val db = remember { FirebaseFirestore.getInstance() }
     var showGroupChat by remember { mutableStateOf(false) }
     var groupNickname by remember { mutableStateOf(context.getSharedPreferences("texno_group_chat", Context.MODE_PRIVATE).getString("nickname", "") ?: "") }
+    var groupNameConfirmed by remember { mutableStateOf(groupNickname.trim().length >= 2) }
     var groupDraft by remember { mutableStateOf("") }
     var groupBusy by remember { mutableStateOf(false) }
     var groupAuthReady by remember { mutableStateOf(FirebaseAuth.getInstance().currentUser != null) }
@@ -1670,13 +1671,30 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                 Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF181818)), modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Text("Ümumi söhbət", color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold)
-                        if (groupNickname.isBlank()) {
+                        if (!groupNameConfirmed) {
                             OutlinedTextField(
                                 value = groupNickname,
-                                onValueChange = { groupNickname = it.take(24) },
+                                onValueChange = {
+                                    groupNickname = it.take(24)
+                                    context.getSharedPreferences("texno_group_chat", Context.MODE_PRIVATE)
+                                        .edit().putString("nickname", groupNickname).apply()
+                                },
                                 label = { Text("Qrupda görünəcək adınız") },
                                 singleLine = true,
                                 modifier = Modifier.fillMaxWidth(),
+                                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                                    imeAction = androidx.compose.ui.text.input.ImeAction.Done
+                                ),
+                                keyboardActions = androidx.compose.foundation.text.KeyboardActions(
+                                    onDone = {
+                                        if (groupNickname.trim().length >= 2) {
+                                            groupNickname = groupNickname.trim()
+                                            groupNameConfirmed = true
+                                            context.getSharedPreferences("texno_group_chat", Context.MODE_PRIVATE)
+                                                .edit().putString("nickname", groupNickname).apply()
+                                        } else groupAuthError = "Adınızı ən azı 2 hərflə yazın."
+                                    }
+                                ),
                                 colors = OutlinedTextFieldDefaults.colors(
                                     focusedTextColor = Color.White,
                                     unfocusedTextColor = Color.White,
@@ -1687,20 +1705,6 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                     cursorColor = Color.White
                                 )
                             )
-                            Button(
-                                onClick = {
-                                    val name = groupNickname.trim()
-                                    if (name.length >= 2) {
-                                        groupNickname = name
-                                        context.getSharedPreferences("texno_group_chat", Context.MODE_PRIVATE)
-                                            .edit().putString("nickname", name).apply()
-                                    } else groupAuthError = "Adınızı ən azı 2 hərflə yazın."
-                                },
-                                enabled = groupNickname.trim().length >= 2,
-                                modifier = Modifier.fillMaxWidth()
-                            ) { Text("ADIMI YADDA SAXLA") }
-                        } else {
-                            Text("Qrup adı: " + groupNickname, color = Color(0xFFB9C9FF), fontSize = 13.sp)
                         }
                         if (groupMessages.isEmpty()) Text("Hələ mesaj yoxdur. İlk mesajı sən yaz!", color = Color.LightGray, fontSize = 13.sp)
                         if (groupMediaBusy) CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
