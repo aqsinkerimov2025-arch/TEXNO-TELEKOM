@@ -1344,14 +1344,14 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                         Text(
                             heroTitle,
                             style = TextStyle(brush = Brush.horizontalGradient(listOf(Color(0xFFBDBDBD), Color.White, Color(0xFFBDBDBD)))),
-                            fontSize = 19.sp,
+                            fontSize = 14.sp,
                             fontWeight = FontWeight.Black,
                             maxLines = 1
                         )
                         Text(
                             "TEXNO-MƏLUMAT",
                             style = TextStyle(brush = Brush.horizontalGradient(listOf(Color(0xFFBDBDBD), Color.White, Color(0xFFBDBDBD)))),
-                            fontSize = 19.sp,
+                            fontSize = 14.sp,
                             fontWeight = FontWeight.Black,
                             maxLines = 1
                         )
@@ -1361,9 +1361,9 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                         "✦ TELEFON MƏLUMATLARI  •  PREMIUM PROQRAMLARIN ÜNVANI  •  TEXNOLOGİYA DÜNYASI  ✦",
                         modifier = Modifier.fillMaxWidth().basicMarquee(iterations = Int.MAX_VALUE),
                         color = Color.White,
-                        fontSize = 7.sp,
+                        fontSize = 6.sp,
                         fontWeight = FontWeight.SemiBold,
-                        letterSpacing = 0.7.sp,
+                        letterSpacing = 0.35.sp,
                         maxLines = 1
                     )
                 }
