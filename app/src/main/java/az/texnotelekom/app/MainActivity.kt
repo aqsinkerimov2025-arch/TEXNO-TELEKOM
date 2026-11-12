@@ -1705,6 +1705,9 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                 if (chat.audioUrl.isNotBlank()) GroupVoiceMessagePlayer(chat.audioUrl, chat.createdAt)
                             }
                         }
+                        if (isRecordingVoice) {
+                            Text("● Səs yazılır — göndər düyməsinə basanda səs paylaşılacaq", color = Color(0xFFFF7777), fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                        }
                         Row(
                             modifier = Modifier.fillMaxWidth()
                                 .background(Color(0xFFFFFFFF), RoundedCornerShape(28.dp))
@@ -1770,7 +1773,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                             ) {
                                 Text(
                                     when {
-                                        isRecordingVoice -> "■"
+                                        isRecordingVoice -> "➤"
                                         groupDraft.isNotBlank() -> "➤"
                                         else -> "🎙"
                                     },
