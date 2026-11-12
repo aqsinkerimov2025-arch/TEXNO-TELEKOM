@@ -1312,7 +1312,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                             modifier = Modifier.size(42.dp)
                         ) { Icon(Icons.Default.Search, contentDescription = "Axtarış", tint = Color.White) }
                         Card(
-                            modifier = Modifier.size(116.dp).clickable { showGroupChat = true },
+                            modifier = Modifier.size(90.dp).clickable { showGroupChat = true },
                             shape = RoundedCornerShape(22.dp),
                             colors = CardDefaults.cardColors(containerColor = Color(0xFF080808)),
                             border = androidx.compose.foundation.BorderStroke(
