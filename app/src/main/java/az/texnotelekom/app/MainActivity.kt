@@ -1670,7 +1670,38 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                 Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF181818)), modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Text("Ümumi söhbət", color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold)
-                        OutlinedTextField(value = groupNickname, onValueChange = { groupNickname = it.take(24) }, label = { Text("Qrupda görünəcək adınız") }, singleLine = true, modifier = Modifier.fillMaxWidth(), colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White, focusedLabelColor = Color.White, unfocusedLabelColor = Color.LightGray, focusedBorderColor = Color.White, unfocusedBorderColor = Color.Gray, cursorColor = Color.White))
+                        if (groupNickname.isBlank()) {
+                            OutlinedTextField(
+                                value = groupNickname,
+                                onValueChange = { groupNickname = it.take(24) },
+                                label = { Text("Qrupda görünəcək adınız") },
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedTextColor = Color.White,
+                                    unfocusedTextColor = Color.White,
+                                    focusedLabelColor = Color.White,
+                                    unfocusedLabelColor = Color.LightGray,
+                                    focusedBorderColor = Color.White,
+                                    unfocusedBorderColor = Color.Gray,
+                                    cursorColor = Color.White
+                                )
+                            )
+                            Button(
+                                onClick = {
+                                    val name = groupNickname.trim()
+                                    if (name.length >= 2) {
+                                        groupNickname = name
+                                        context.getSharedPreferences("texno_group_chat", Context.MODE_PRIVATE)
+                                            .edit().putString("nickname", name).apply()
+                                    } else groupAuthError = "Adınızı ən azı 2 hərflə yazın."
+                                },
+                                enabled = groupNickname.trim().length >= 2,
+                                modifier = Modifier.fillMaxWidth()
+                            ) { Text("ADIMI YADDA SAXLA") }
+                        } else {
+                            Text("Qrup adı: " + groupNickname, color = Color(0xFFB9C9FF), fontSize = 13.sp)
+                        }
                         if (groupMessages.isEmpty()) Text("Hələ mesaj yoxdur. İlk mesajı sən yaz!", color = Color.LightGray, fontSize = 13.sp)
                         if (groupMediaBusy) CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
                         groupMessages.forEach { chat ->
