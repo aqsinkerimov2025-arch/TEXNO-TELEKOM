@@ -1325,7 +1325,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                 painter = painterResource(id = R.drawable.texno_support_badge),
                                 contentDescription = "TEXNO DƏSTƏK QRUPU",
                                 modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
+                                contentScale = ContentScale.Fit
                             )
                         }
                     }
