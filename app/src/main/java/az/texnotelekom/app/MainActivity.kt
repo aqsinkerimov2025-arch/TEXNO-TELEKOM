@@ -1725,11 +1725,26 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                         decorFitsSystemWindows = false
                     )
                 ) {
+                    val dialogView = androidx.compose.ui.platform.LocalView.current
+                    val dialogWindow = (dialogView.parent as? androidx.compose.ui.window.DialogWindowProvider)?.window
+                    DisposableEffect(dialogWindow) {
+                        val decorView = dialogWindow?.decorView
+                        val previousVisibility = decorView?.systemUiVisibility ?: 0
+                        decorView?.systemUiVisibility = previousVisibility or
+                            android.view.View.SYSTEM_UI_FLAG_FULLSCREEN or
+                            android.view.View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
+                            android.view.View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
+                            android.view.View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
+                            android.view.View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
+                            android.view.View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                        onDispose {
+                            decorView?.systemUiVisibility = previousVisibility
+                        }
+                    }
                     Column(
                         modifier = Modifier.fillMaxSize()
                             .background(Color(0xFF101010))
-                            .windowInsetsPadding(WindowInsets.safeDrawing)
-                            .padding(horizontal = 12.dp, vertical = 8.dp)
+                            .padding(horizontal = 12.dp)
                     ) {
                         Row(
                             modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 8.dp),
