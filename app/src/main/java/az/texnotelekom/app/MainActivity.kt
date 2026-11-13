@@ -1771,8 +1771,11 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                 Text("✕", color = Color.White, fontSize = 26.sp, fontWeight = FontWeight.Bold)
                             }
                         }
-                        Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF181818)), modifier = Modifier.fillMaxSize()) {
-                    Column(Modifier.fillMaxSize().padding(14.dp).imePadding()) {
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF181818)),
+                            modifier = Modifier.fillMaxSize().imePadding()
+                        ) {
+                    Column(Modifier.fillMaxSize().padding(14.dp)) {
                         Column(
                             Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()),
                             verticalArrangement = Arrangement.spacedBy(10.dp)
