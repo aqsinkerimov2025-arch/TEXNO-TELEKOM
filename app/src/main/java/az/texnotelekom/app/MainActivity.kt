@@ -1760,6 +1760,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                     Column(
                         modifier = Modifier.fillMaxSize()
                             .background(Color(0xFF101010))
+                            .imePadding()
                             .padding(horizontal = 12.dp)
                     ) {
                         Row(
@@ -1773,7 +1774,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                         }
                         Card(
                             colors = CardDefaults.cardColors(containerColor = Color(0xFF181818)),
-                            modifier = Modifier.fillMaxSize().imePadding()
+                            modifier = Modifier.weight(1f).fillMaxWidth()
                         ) {
                     Column(Modifier.fillMaxSize().padding(14.dp)) {
                         Column(
