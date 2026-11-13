@@ -706,6 +706,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
         BitmapFactory.decodeByteArray(bytes, 0, bytes.size).asImageBitmap()
     }
     var showGames by remember { mutableStateOf(false) }
+    var showPrograms by remember { mutableStateOf(false) }
     var phoneInfoTitle by remember { mutableStateOf("") }
     var phoneInfoBody by remember { mutableStateOf("") }
     var phoneInfoImage by remember { mutableStateOf<Uri?>(null) }
@@ -1715,12 +1716,33 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
             }
             }
             if (!showPhoneInfo) {
-            if (!showGames) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Proqramlar", color = Color(0xFFFFFFFF), fontSize = 25.sp, fontWeight = FontWeight.Bold)
-                if (newProgramNotice) Text("  🔔 YENİ", color = Color(0xFFFFFFFF), fontSize = 12.sp, fontWeight = FontWeight.Black)
-            }
-            Spacer(Modifier.height(18.dp))
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF202020)),
+                    shape = RoundedCornerShape(26.dp),
+                    modifier = Modifier.fillMaxWidth().clickable { showPrograms = !showPrograms }
+                ) {
+                    Row(
+                        Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 18.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Image(bitmap = texnoInfoLogo, contentDescription = "TEXNO-TELEKOM loqosu", modifier = Modifier.size(76.dp), contentScale = ContentScale.Fit)
+                        Column(Modifier.weight(1f).padding(start = 14.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("PROQRAMLAR", color = Color.White, fontSize = 19.sp, fontWeight = FontWeight.Black)
+                                if (newProgramNotice) Text("  🔔", color = Color.White, fontSize = 13.sp)
+                            }
+                            Spacer(Modifier.height(6.dp))
+                            Text(
+                                if (showPrograms) "Proqramlar bölməsini bağlamaq üçün toxunun"
+                                else "Paylaşdığım proqramlara baxmaq və yükləmək üçün daxil olun",
+                                color = Color(0xFFBDBDBD), fontSize = 13.sp, lineHeight = 19.sp
+                            )
+                        }
+                        Text(if (showPrograms) "↑" else "➜", color = Color.White, fontSize = 30.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+                if (showPrograms) {
+                    Spacer(Modifier.height(12.dp))
             shown.forEach { p ->
                 val isGoldBankCard = designGoldCards
                 Card(
@@ -1834,8 +1856,10 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
             }
             if (shown.isEmpty()) Text("Proqram tapılmadı.", color = Color.LightGray)
             Spacer(Modifier.height(18.dp))
-            }
-            }
+ 
+                    if (shown.isEmpty()) Text("Hələ proqram paylaşılmayıb.", color = Color.LightGray)
+                    Spacer(Modifier.height(18.dp))
+                }
             }
             Spacer(Modifier.height(28.dp))
             Column(
