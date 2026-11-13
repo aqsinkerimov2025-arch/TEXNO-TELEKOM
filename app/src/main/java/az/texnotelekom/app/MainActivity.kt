@@ -1854,3 +1854,5 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
         }
     }
 }
+
+// APK-ni yenidən yığmaq üçün build yeniləməsi.
