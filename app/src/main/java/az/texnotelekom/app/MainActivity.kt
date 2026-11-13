@@ -702,8 +702,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     var searchOpen by remember { mutableStateOf(false) }
     var showPhoneInfo by remember { mutableStateOf(false) }
     val texnoInfoLogo = remember {
-        val bytes = Base64.decode(TEXNO_INFO_LOGO_BASE64, Base64.DEFAULT)
-        BitmapFactory.decodeByteArray(bytes, 0, bytes.size).asImageBitmap()
+        BitmapFactory.decodeResource(context.resources, R.drawable.texno_telekom_program_logo).asImageBitmap()
     }
     var showGames by remember { mutableStateOf(false) }
     var showPrograms by remember { mutableStateOf(false) }
