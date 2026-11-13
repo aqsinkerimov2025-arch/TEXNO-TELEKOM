@@ -1743,10 +1743,6 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                         }
                         // Hide both system bars without drawing behind their insets.
                         // This allows Android/Compose to resize the dialog when the keyboard opens.
-                        decorView?.systemUiVisibility =
-                            android.view.View.SYSTEM_UI_FLAG_FULLSCREEN or
-                            android.view.View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
-                            android.view.View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
                         onDispose {
                             decorView?.systemUiVisibility = previousVisibility
                             dialogWindow?.clearFlags(android.view.WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN)
@@ -1754,6 +1750,19 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                 flags = previousFlags
                                 softInputMode = previousSoftInputMode
                             }
+                        }
+                    }
+                    val imeVisible = WindowInsets.isImeVisible
+                    SideEffect {
+                        // Full immersive screen while the keyboard is closed.
+                        // Let Android resize the dialog normally while the keyboard is open.
+                        dialogWindow?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+                        dialogView.systemUiVisibility = if (imeVisible) {
+                            0
+                        } else {
+                            android.view.View.SYSTEM_UI_FLAG_FULLSCREEN or
+                                android.view.View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
+                                android.view.View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
                         }
                     }
                     Column(
