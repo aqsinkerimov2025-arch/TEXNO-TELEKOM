@@ -1609,7 +1609,6 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                     if (loggedIn) TextButton(onClick = { db.collection("phone_information").document(info.id).delete() }) {
                                         Text("Sil", color = Color(0xFFFFFFFF))
                                     }
-                                }
                             }
                         }
                     }
