@@ -1645,7 +1645,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Row(Modifier.fillMaxWidth().clickable { showFeedback = !showFeedback }, verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
-                            Text("MR_R3HB3R — ADMİNLƏ ƏLAQƏ", color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                            Text("MR_R3HB3R — ADMİNLƏ-ƏLAQƏ", color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold)
                             Text("Şikayət və təkliflərini mesaj və ya səslə göndər", color = Color.LightGray, fontSize = 12.sp)
                         }
                         Text(if (showFeedback) "▲" else "▼", color = Color.White)
