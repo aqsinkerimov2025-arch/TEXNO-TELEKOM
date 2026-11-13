@@ -1881,4 +1881,5 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
             }
         }
     }
+}
 
