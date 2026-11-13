@@ -1639,6 +1639,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
             Spacer(Modifier.height(12.dp))
             Spacer(Modifier.height(10.dp))
             Spacer(Modifier.height(10.dp))
+            if (!showPhoneInfo) {
             Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF181818)), shape = RoundedCornerShape(22.dp), modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Row(Modifier.fillMaxWidth().clickable { showFeedback = !showFeedback }, verticalAlignment = Alignment.CenterVertically) {
@@ -1681,6 +1682,8 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                     }
                 }
             }
+            }
+            if (!showPhoneInfo) {
             Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF202020)), shape = RoundedCornerShape(26.dp), modifier = Modifier.fillMaxWidth().clickable { showGames = !showGames }) {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 20.dp), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
@@ -1709,6 +1712,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                         }
                     }
                 }
+            }
             }
             if (!showGames) {
             Row(verticalAlignment = Alignment.CenterVertically) {
