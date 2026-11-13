@@ -1730,7 +1730,18 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                     DisposableEffect(dialogWindow) {
                         val decorView = dialogWindow?.decorView
                         val previousVisibility = decorView?.systemUiVisibility ?: 0
-                        decorView?.systemUiVisibility = previousVisibility or
+                        val previousFlags = dialogWindow?.attributes?.flags ?: 0
+                        dialogWindow?.apply {
+                            setLayout(
+                                android.view.WindowManager.LayoutParams.MATCH_PARENT,
+                                android.view.WindowManager.LayoutParams.MATCH_PARENT
+                            )
+                            addFlags(
+                                android.view.WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                                    android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
+                            )
+                        }
+                        decorView?.systemUiVisibility =
                             android.view.View.SYSTEM_UI_FLAG_FULLSCREEN or
                             android.view.View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
                             android.view.View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
@@ -1739,6 +1750,11 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                             android.view.View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                         onDispose {
                             decorView?.systemUiVisibility = previousVisibility
+                            dialogWindow?.clearFlags(
+                                android.view.WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                                    android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
+                            )
+                            dialogWindow?.attributes = dialogWindow.attributes.apply { flags = previousFlags }
                         }
                     }
                     Column(
