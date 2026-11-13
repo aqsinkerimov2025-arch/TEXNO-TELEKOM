@@ -1964,6 +1964,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                     }
                 }
             }
+            }
             Spacer(Modifier.height(10.dp))
             Spacer(Modifier.height(10.dp))
             Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF181818)), shape = RoundedCornerShape(22.dp), modifier = Modifier.fillMaxWidth()) {
