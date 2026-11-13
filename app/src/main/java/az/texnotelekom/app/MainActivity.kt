@@ -1285,10 +1285,8 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                         )
                     )
                 }
-                .background(if (showGroupChat) Color(0xFF101010) else Color.Transparent)
-            .then(if (showGroupChat) Modifier else Modifier.statusBarsPadding().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp))
+                .statusBarsPadding().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)
         ) {
-            if (!showGroupChat) {
             Spacer(Modifier.height(12.dp))
             Column(Modifier.fillMaxWidth().padding(top = 4.dp)) {
                 Row(
@@ -1719,27 +1717,46 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                 Spacer(Modifier.height(14.dp))
             }
             Spacer(Modifier.height(12.dp))
-            }
             if (showGroupChat) {
-            val groupActivity = context as? android.app.Activity
-            DisposableEffect(showGroupChat) {
-                val window = groupActivity?.window
-                val decor = window?.decorView
-                val oldVisibility = decor?.systemUiVisibility ?: 0
-                val oldSoftInput = window?.attributes?.softInputMode ?: 0
-                window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
-                decor?.systemUiVisibility =
-                    android.view.View.SYSTEM_UI_FLAG_FULLSCREEN or
-                    android.view.View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
-                    android.view.View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
-                    android.view.View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
-                    android.view.View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
-                    android.view.View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                onDispose {
-                    decor?.systemUiVisibility = oldVisibility
-                    window?.setSoftInputMode(oldSoftInput)
-                }
-            }
+                androidx.compose.ui.window.Dialog(
+                    onDismissRequest = { showGroupChat = false },
+                    properties = androidx.compose.ui.window.DialogProperties(
+                        usePlatformDefaultWidth = false,
+                        decorFitsSystemWindows = false
+                    )
+                ) {
+                    val dialogView = androidx.compose.ui.platform.LocalView.current
+                    val dialogWindow = (dialogView.parent as? androidx.compose.ui.window.DialogWindowProvider)?.window
+                    DisposableEffect(dialogWindow) {
+                        val decorView = dialogWindow?.decorView
+                        val previousVisibility = decorView?.systemUiVisibility ?: 0
+                        val previousFlags = dialogWindow?.attributes?.flags ?: 0
+                        val previousSoftInputMode = dialogWindow?.attributes?.softInputMode ?: 0
+                        dialogWindow?.apply {
+                            setLayout(
+                                android.view.WindowManager.LayoutParams.MATCH_PARENT,
+                                android.view.WindowManager.LayoutParams.MATCH_PARENT
+                            )
+                            addFlags(android.view.WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN)
+                            clearFlags(android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
+                            setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+                        }
+                        decorView?.systemUiVisibility =
+                            android.view.View.SYSTEM_UI_FLAG_FULLSCREEN or
+                            android.view.View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
+                            android.view.View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
+                            android.view.View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
+                            android.view.View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
+                            android.view.View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                        onDispose {
+                            decorView?.systemUiVisibility = previousVisibility
+                            dialogWindow?.clearFlags(android.view.WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN)
+                            dialogWindow?.attributes = dialogWindow.attributes.apply {
+                                flags = previousFlags
+                                softInputMode = previousSoftInputMode
+                            }
+                        }
+                    }
                     Column(
                         modifier = Modifier.fillMaxSize()
                             .background(Color(0xFF101010))
@@ -1756,7 +1773,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                         }
                         Card(
                             colors = CardDefaults.cardColors(containerColor = Color(0xFF181818)),
-                            modifier = Modifier.weight(1f).fillMaxWidth()
+                            modifier = Modifier.fillMaxSize().imePadding()
                         ) {
                     Column(Modifier.fillMaxSize().padding(14.dp)) {
                         Column(
@@ -1950,7 +1967,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                     }
                 }
             }
-            if (!showGroupChat) {
+            }
             Spacer(Modifier.height(10.dp))
             Spacer(Modifier.height(10.dp))
             Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF181818)), shape = RoundedCornerShape(22.dp), modifier = Modifier.fillMaxWidth()) {
@@ -2178,7 +2195,6 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                     fontWeight = FontWeight.SemiBold,
                     letterSpacing = 0.5.sp
                 )
-            }
             }
         }
     }
