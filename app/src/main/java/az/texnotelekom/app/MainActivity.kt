@@ -1731,15 +1731,15 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                         val decorView = dialogWindow?.decorView
                         val previousVisibility = decorView?.systemUiVisibility ?: 0
                         val previousFlags = dialogWindow?.attributes?.flags ?: 0
+                        val previousSoftInputMode = dialogWindow?.attributes?.softInputMode ?: 0
                         dialogWindow?.apply {
                             setLayout(
                                 android.view.WindowManager.LayoutParams.MATCH_PARENT,
                                 android.view.WindowManager.LayoutParams.MATCH_PARENT
                             )
-                            addFlags(
-                                android.view.WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                                    android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
-                            )
+                            addFlags(android.view.WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN)
+                            clearFlags(android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
+                            setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
                         }
                         decorView?.systemUiVisibility =
                             android.view.View.SYSTEM_UI_FLAG_FULLSCREEN or
@@ -1750,16 +1750,17 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                             android.view.View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                         onDispose {
                             decorView?.systemUiVisibility = previousVisibility
-                            dialogWindow?.clearFlags(
-                                android.view.WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                                    android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
-                            )
-                            dialogWindow?.attributes = dialogWindow.attributes.apply { flags = previousFlags }
+                            dialogWindow?.clearFlags(android.view.WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN)
+                            dialogWindow?.attributes = dialogWindow.attributes.apply {
+                                flags = previousFlags
+                                softInputMode = previousSoftInputMode
+                            }
                         }
                     }
                     Column(
                         modifier = Modifier.fillMaxSize()
                             .background(Color(0xFF101010))
+                            .imePadding()
                             .padding(horizontal = 12.dp)
                     ) {
                         Row(
