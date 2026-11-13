@@ -1854,8 +1854,6 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                     }
                 }
             }
-            if (shown.isEmpty()) Text("Proqram tapılmadı.", color = Color.LightGray)
-            Spacer(Modifier.height(18.dp))
  
                     if (shown.isEmpty()) Text("Hələ proqram paylaşılmayıb.", color = Color.LightGray)
                     Spacer(Modifier.height(18.dp))
