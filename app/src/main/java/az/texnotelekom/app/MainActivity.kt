@@ -1739,8 +1739,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                 android.view.WindowManager.LayoutParams.MATCH_PARENT,
                                 android.view.WindowManager.LayoutParams.MATCH_PARENT
                             )
-                            addFlags(android.view.WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN)
-                            clearFlags(android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
+                            clearFlags(android.view.WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
                             setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
                         }
                         // Hide both system bars without drawing behind their insets.
@@ -1759,6 +1758,12 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                         // Full immersive screen while the keyboard is closed.
                         // Let Android resize the dialog normally while the keyboard is open.
                         dialogWindow?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+                        // Some OEM keyboards (including Honor MagicOS) do not resize a Dialog
+                        // reliably while it is laid out edge-to-edge. Let the window fit/resize
+                        // when the IME is visible; restore edge-to-edge after it closes.
+                        dialogWindow?.let {
+                            androidx.core.view.WindowCompat.setDecorFitsSystemWindows(it, imeVisible)
+                        }
                         dialogView.systemUiVisibility = if (imeVisible) {
                             0
                         } else {
