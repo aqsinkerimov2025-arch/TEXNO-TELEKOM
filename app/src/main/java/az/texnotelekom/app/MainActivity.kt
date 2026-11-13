@@ -1614,6 +1614,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                     }
                 }
             }
+            if (!showPhoneInfo) {
             Spacer(Modifier.height(18.dp))
             if (!showGames && posts.isNotEmpty()) {
                 Text("Kanal paylaşımları", color = Color(0xFFFFFFFF), fontSize = 23.sp, fontWeight = FontWeight.Bold)
@@ -1829,6 +1830,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
             }
             if (shown.isEmpty()) Text("Proqram tapılmadı.", color = Color.LightGray)
             Spacer(Modifier.height(18.dp))
+            }
             }
             Spacer(Modifier.height(28.dp))
             Column(
