@@ -1772,7 +1772,11 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                             }
                         }
                         Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF181818)), modifier = Modifier.fillMaxSize()) {
-                    Column(Modifier.padding(14.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Column(Modifier.fillMaxSize().padding(14.dp)) {
+                        Column(
+                            Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
                         Text("Ümumi söhbət", color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold)
                         if (!groupNameConfirmed || loggedIn) {
                             OutlinedTextField(
@@ -1878,6 +1882,9 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                 TextButton(onClick = { replyToMessage = null }) { Text("Ləğv et", color = Color.White) }
                             }
                         }
+                        if (groupAuthError.isNotBlank()) Text(groupAuthError, color = Color(0xFFFFB4AB), fontSize = 12.sp)
+                        Text("Bütün mesajlar saxlanılır. Qrupda hörmətli ünsiyyət saxlayın.", color = Color.LightGray, fontSize = 11.sp)
+                        }
                         Row(
                             modifier = Modifier.fillMaxWidth()
                                 .background(Color(0xFFFFFFFF), RoundedCornerShape(28.dp))
@@ -1952,9 +1959,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                 )
                             }
                         }
-                        if (groupAuthError.isNotBlank()) Text(groupAuthError, color = Color(0xFFFFB4AB), fontSize = 12.sp)
-                        Text("Bütün mesajlar saxlanılır. Qrupda hörmətli ünsiyyət saxlayın.", color = Color.LightGray, fontSize = 11.sp)
-                    }
+
                         }
                     }
                 }
