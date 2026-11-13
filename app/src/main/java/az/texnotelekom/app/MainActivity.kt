@@ -1612,6 +1612,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                     }
                 }
             }
+            }
             if (!showPhoneInfo) {
             Spacer(Modifier.height(18.dp))
             if (!showGames && posts.isNotEmpty()) {
