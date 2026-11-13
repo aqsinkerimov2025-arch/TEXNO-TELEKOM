@@ -1651,48 +1651,35 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                         Text(if (showFeedback) "▲" else "▼", color = Color.White)
                     }
                     if (showFeedback) {
-                        OutlinedTextField(value = feedbackDraft, onValueChange = { feedbackDraft = it.take(1500) }, modifier = Modifier.fillMaxWidth(), label = { Text("Şikayət və ya təklifiniz") }, minLines = 3, maxLines = 5, colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White, focusedLabelColor = Color.White, unfocusedLabelColor = Color.LightGray, focusedBorderColor = Color.White, unfocusedBorderColor = Color.Gray, cursorColor = Color.White))
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Button(onClick = {
-                                if (feedbackRecording) {
-                                    try {
-                                        feedbackRecorder?.stop(); feedbackRecorder?.release(); feedbackRecorder = null; feedbackRecording = false
-                                        val file = feedbackFile
-                                        if (file != null) {
-                                            feedbackBusy = true
-                                            uploadGroupAudio(file) { result -> result.onSuccess { url ->
-                                                val user = FirebaseAuth.getInstance().currentUser
-                                                val data = hashMapOf<String, Any>("uid" to (user?.uid ?: "anonymous"), "nickname" to groupNickname.ifBlank { "İstifadəçi" }, "text" to feedbackDraft.trim(), "audio_url" to url, "created_at" to FieldValue.serverTimestamp())
-                                                db.collection("admin_feedback").add(data).addOnSuccessListener { feedbackDraft = ""; feedbackBusy = false; file.delete(); groupAuthError = "Səsli müraciət adminə göndərildi." }.addOnFailureListener { feedbackBusy = false; groupAuthError = "Göndərilmədi: ${it.localizedMessage}" }
-                                            }.onFailure { feedbackBusy = false; groupAuthError = "Səs yüklənmədi: ${it.localizedMessage}" } }
-                                        }
-                                    } catch (_: Exception) { feedbackRecording = false; feedbackRecorder = null; groupAuthError = "Səs yazısı saxlanmadı." }
-                                } else if (androidx.core.content.ContextCompat.checkSelfPermission(context, android.Manifest.permission.RECORD_AUDIO) == android.content.pm.PackageManager.PERMISSION_GRANTED) startFeedbackRecording() else feedbackAudioPermission.launch(android.Manifest.permission.RECORD_AUDIO)
-                            }, enabled = !feedbackBusy) { Text(if (feedbackRecording) "■ Səsi göndər" else "🎙 Səs yaz") }
-                            Button(onClick = {
-                                if (feedbackDraft.isBlank()) groupAuthError = "Mesajınızı yazın."
-                                else {
-                                    feedbackBusy = true
-                                    val user = FirebaseAuth.getInstance().currentUser
-                                    val data = hashMapOf<String, Any>("uid" to (user?.uid ?: "anonymous"), "nickname" to groupNickname.ifBlank { "İstifadəçi" }, "text" to feedbackDraft.trim(), "audio_url" to "", "created_at" to FieldValue.serverTimestamp())
-                                    db.collection("admin_feedback").add(data).addOnSuccessListener { feedbackDraft = ""; feedbackBusy = false; groupAuthError = "Müraciətiniz adminə göndərildi." }.addOnFailureListener { feedbackBusy = false; groupAuthError = "Göndərilmədi: ${it.localizedMessage}" }
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF101010)),
+                            shape = RoundedCornerShape(18.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(
+                                Modifier.fillMaxWidth().padding(18.dp),
+                                verticalArrangement = Arrangement.spacedBy(14.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text("MR_R3HB3R", color = Color.White, fontSize = 23.sp, fontWeight = FontWeight.Black)
+                                HorizontalDivider(color = Color.DarkGray)
+                                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                    Text("ADI", color = Color.LightGray, modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold)
+                                    Text("АГШИН", color = Color.White, fontWeight = FontWeight.Bold)
                                 }
-                            }, enabled = !feedbackBusy && !feedbackRecording) { Text(if (feedbackBusy) "Göndərilir..." else "Mesajı göndər") }
-                        }
-                        if (feedbackRecording) Text("● Səs yazılır — bitirəndə «Səsi göndər» düyməsinə bas.", color = Color(0xFFFF7777), fontSize = 12.sp)
-                        if (loggedIn) {
-                            Divider(color = Color.DarkGray)
-                            Text("GƏLƏN MÜRACİƏTLƏR (${feedbackItems.size})", color = Color.White, fontWeight = FontWeight.Bold)
-                            feedbackItems.forEach { item ->
-                                val parts = item.split("|", limit = 3)
-                                Column(Modifier.fillMaxWidth().background(Color(0xFF252525), RoundedCornerShape(12.dp)).padding(10.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                                    Text(parts.getOrElse(0) { "İstifadəçi" }, color = Color(0xFF80CBC4), fontWeight = FontWeight.Bold)
-                                    if (parts.getOrElse(1) { "" }.isNotBlank()) Text(parts[1], color = Color.White)
-                                    if (parts.getOrElse(2) { "" }.isNotBlank()) GroupVoiceMessagePlayer(parts[2], System.currentTimeMillis())
+                                HorizontalDivider(color = Color.DarkGray)
+                                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                    Text("CİNSİ", color = Color.LightGray, modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold)
+                                    Text("Kişi", color = Color.White, fontWeight = FontWeight.Bold)
+                                }
+                                HorizontalDivider(color = Color.DarkGray)
+                                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                    Text("RÜTBƏSİ", color = Color.LightGray, modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold)
+                                    Text("⚜️ PLATFORM SAHİBİ", color = Color.White, fontWeight = FontWeight.Bold)
                                 }
                             }
-                            if (feedbackItems.isEmpty()) Text("Hələ müraciət yoxdur.", color = Color.LightGray, fontSize = 12.sp)
                         }
+                    }
                     }
                 }
             }
