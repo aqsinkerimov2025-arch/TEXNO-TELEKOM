@@ -794,11 +794,11 @@ private fun GroupChatScreen(onClose: () -> Unit) {
             Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 12.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (messages.isEmpty()) Text("Hələ mesaj yoxdur. İlk mesajı sən göndər!", color = Color.LightGray, modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 30.dp))
                 messages.forEach { item ->
-                    val mine = item.uid == auth.currentUser?.uid
+                    val adminMessage = item.uid == ADMIN_UID
                     Card(
-                        colors = CardDefaults.cardColors(containerColor = if (mine) Color(0xFF244A3B) else Color(0xFF252525)),
+                        colors = CardDefaults.cardColors(containerColor = if (adminMessage) Color(0xFF252525) else Color(0xFF244A3B)),
                         shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier.fillMaxWidth(0.88f).align(if (mine) Alignment.End else Alignment.Start).clickable { reply = item }
+                        modifier = Modifier.fillMaxWidth(0.88f).align(if (adminMessage) Alignment.Start else Alignment.End).clickable { reply = item }
                     ) {
                         Column(Modifier.padding(11.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
                             Text(item.nickname, color = Color(0xFFFFD36A), fontSize = 11.sp, fontWeight = FontWeight.Bold)
