@@ -615,36 +615,6 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     val feedbackAudioPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         if (granted) startFeedbackRecording() else groupAuthError = "Mikrofon icazəsi lazımdır."
     }
-    fun sendFeedbackText() {
-        val textValue = feedbackDraft.trim()
-        if (textValue.isBlank() || feedbackBusy) return
-        feedbackBusy = true
-        val data = hashMapOf<String, Any>("nickname" to "İstifadəçi", "device_id" to deviceId, "text" to textValue, "audio_url" to "", "created_at" to FieldValue.serverTimestamp())
-        db.collection("admin_feedback").add(data)
-            .addOnSuccessListener { feedbackDraft = ""; feedbackBusy = false }
-            .addOnFailureListener { feedbackBusy = false; error = "Mesaj göndərilmədi: ${it.localizedMessage}" }
-    }
-    fun stopAndSendFeedbackVoice() {
-        val recorder = feedbackRecorder ?: return
-        val file = feedbackFile
-        try { recorder.stop() } catch (_: Exception) { }
-        try { recorder.release() } catch (_: Exception) { }
-        feedbackRecorder = null
-        feedbackRecording = false
-        if (file == null || !file.exists() || file.length() < 500) {
-            error = "Səs yazısı boşdur. Yenidən yaz."
-            return
-        }
-        feedbackBusy = true
-        uploadGroupAudio(file) { result ->
-            result.onSuccess { audioUrl ->
-                val data = hashMapOf<String, Any>("nickname" to "İstifadəçi", "device_id" to deviceId, "text" to "", "audio_url" to audioUrl, "created_at" to FieldValue.serverTimestamp())
-                db.collection("admin_feedback").add(data)
-                    .addOnSuccessListener { feedbackBusy = false; file.delete() }
-                    .addOnFailureListener { feedbackBusy = false; error = "Səs göndərilmədi: ${it.localizedMessage}" }
-            }.onFailure { feedbackBusy = false; error = "Səs yüklənmədi: ${it.localizedMessage}" }
-        }
-    }
     var groupMediaBusy by remember { mutableStateOf(false) }
     var voiceRecorder by remember { mutableStateOf<MediaRecorder?>(null) }
     var voiceFile by remember { mutableStateOf<File?>(null) }
@@ -769,6 +739,36 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     var password by remember { mutableStateOf("") }
 
     var error by remember { mutableStateOf("") }
+    fun sendFeedbackText() {
+        val textValue = feedbackDraft.trim()
+        if (textValue.isBlank() || feedbackBusy) return
+        feedbackBusy = true
+        val data = hashMapOf<String, Any>("nickname" to "İstifadəçi", "device_id" to deviceId, "text" to textValue, "audio_url" to "", "created_at" to FieldValue.serverTimestamp())
+        db.collection("admin_feedback").add(data)
+            .addOnSuccessListener { feedbackDraft = ""; feedbackBusy = false }
+            .addOnFailureListener { feedbackBusy = false; error = "Mesaj göndərilmədi: ${it.localizedMessage}" }
+    }
+    fun stopAndSendFeedbackVoice() {
+        val recorder = feedbackRecorder ?: return
+        val file = feedbackFile
+        try { recorder.stop() } catch (_: Exception) { }
+        try { recorder.release() } catch (_: Exception) { }
+        feedbackRecorder = null
+        feedbackRecording = false
+        if (file == null || !file.exists() || file.length() < 500) {
+            error = "Səs yazısı boşdur. Yenidən yaz."
+            return
+        }
+        feedbackBusy = true
+        uploadGroupAudio(file) { result ->
+            result.onSuccess { audioUrl ->
+                val data = hashMapOf<String, Any>("nickname" to "İstifadəçi", "device_id" to deviceId, "text" to "", "audio_url" to audioUrl, "created_at" to FieldValue.serverTimestamp())
+                db.collection("admin_feedback").add(data)
+                    .addOnSuccessListener { feedbackBusy = false; file.delete() }
+                    .addOnFailureListener { feedbackBusy = false; error = "Səs göndərilmədi: ${it.localizedMessage}" }
+            }.onFailure { feedbackBusy = false; error = "Səs yüklənmədi: ${it.localizedMessage}" }
+        }
+    }
     var message by remember { mutableStateOf("") }
     var name by remember { mutableStateOf("") }
     var category by remember { mutableStateOf("") }
