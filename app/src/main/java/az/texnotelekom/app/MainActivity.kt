@@ -693,7 +693,7 @@ private fun GroupChatScreen(onClose: () -> Unit) {
         }
     }
 
-    Column(Modifier.fillMaxSize().background(Color(0xFF101010)).statusBarsPadding()) {
+    Column(Modifier.fillMaxSize().background(Color(0xFF101010)).statusBarsPadding().navigationBarsPadding().imePadding()) {
         Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
             Text("‹", color = Color.White, fontSize = 34.sp, modifier = Modifier.clickable { onClose() }.padding(horizontal = 8.dp))
             Image(painter = painterResource(R.drawable.texno_support_badge), contentDescription = "TEXNO DƏSTƏK QRUPU", modifier = Modifier.size(42.dp).clip(CircleShape), contentScale = ContentScale.Crop)
