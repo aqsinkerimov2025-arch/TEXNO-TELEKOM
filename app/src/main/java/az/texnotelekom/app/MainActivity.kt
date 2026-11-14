@@ -614,7 +614,7 @@ private fun GroupChatScreen(onClose: () -> Unit) {
     var showManagementPanel by remember { mutableStateOf(false) }
     var showDeleteAllConfirm by remember { mutableStateOf(false) }
     var managementBusy by remember { mutableStateOf(false) }
-    var showGroupRules by remember { mutableStateOf(true) }
+    var showGroupRules by remember { mutableStateOf(!prefs.getBoolean("group_rules_seen", false)) }
     var groupRules by remember { mutableStateOf("1. Bir-birinizə hörmətlə yanaşın.\\n2. Təhqir və söyüş yazmayın.\\n3. Reklam və spam paylaşmayın.\\n4. Şəxsi məlumatları icazəsiz paylaşmayın.\\n5. Qrupda mövzuya uyğun mesajlar yazın.") }
     var rulesDraft by remember { mutableStateOf("") }
     var showRulesEditor by remember { mutableStateOf(false) }
@@ -816,7 +816,7 @@ private fun GroupChatScreen(onClose: () -> Unit) {
             ) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Text("QRUP QAYDALARI", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Black, modifier = Modifier.weight(1f))
-                    Text("✕", color = Color.White, fontSize = 26.sp, modifier = Modifier.clickable { showGroupRules = false }.padding(8.dp))
+                    Text("✕", color = Color.White, fontSize = 26.sp, modifier = Modifier.clickable { prefs.edit().putBoolean("group_rules_seen", true).apply(); showGroupRules = false }.padding(8.dp))
                 }
                 if (showRulesEditor && isGroupAdmin) {
                     OutlinedTextField(
