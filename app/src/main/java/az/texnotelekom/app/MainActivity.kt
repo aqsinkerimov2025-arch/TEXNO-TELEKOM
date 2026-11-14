@@ -606,6 +606,40 @@ private fun GroupChatScreen(onClose: () -> Unit) {
     var status by remember { mutableStateOf("") }
     val messages = remember { mutableStateListOf<GroupChatMessage>() }
     val auth = FirebaseAuth.getInstance()
+    val isGroupAdmin = auth.currentUser?.uid == ADMIN_UID
+    var showManagementPanel by remember { mutableStateOf(false) }
+    var showDeleteAllConfirm by remember { mutableStateOf(false) }
+    var managementBusy by remember { mutableStateOf(false) }
+    fun deleteAllGroupMessages() {
+        if (!isGroupAdmin || managementBusy) return
+        managementBusy = true
+        db.collection("group_messages").get()
+            .addOnSuccessListener { snapshot ->
+                val chunks = snapshot.documents.chunked(450)
+                fun deleteChunk(index: Int) {
+                    if (index >= chunks.size) {
+                        managementBusy = false
+                        showDeleteAllConfirm = false
+                        showManagementPanel = false
+                        status = "Bütün qrup mesajları silindi."
+                        return
+                    }
+                    val batch = db.batch()
+                    chunks[index].forEach { batch.delete(it.reference) }
+                    batch.commit()
+                        .addOnSuccessListener { deleteChunk(index + 1) }
+                        .addOnFailureListener {
+                            managementBusy = false
+                            status = "Mesajlar silinmədi: ${it.localizedMessage}"
+                        }
+                }
+                deleteChunk(0)
+            }
+            .addOnFailureListener {
+                managementBusy = false
+                status = "Mesajlar yüklənmədi: ${it.localizedMessage}"
+            }
+    }
     val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) {
             busy = true
@@ -701,9 +735,44 @@ private fun GroupChatScreen(onClose: () -> Unit) {
                 Text("TEXNO DƏSTƏK QRUPU", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Black)
                 Text("Ümumi söhbət", color = Color(0xFFBDBDBD), fontSize = 11.sp)
             }
-            Text("⋮", color = Color.White, fontSize = 26.sp)
+            if (isGroupAdmin) {
+                Text("⋮", color = Color.White, fontSize = 26.sp,
+                    modifier = Modifier.clickable { showManagementPanel = !showManagementPanel }.padding(horizontal = 8.dp))
+            }
+        }
+        if (isGroupAdmin && showManagementPanel) {
+            Card(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF242424)),
+                shape = RoundedCornerShape(14.dp)
+            ) {
+                Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text("RƏHBƏRLİK PANELİ", color = Color(0xFFFFD36A), fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                    Button(
+                        onClick = { showDeleteAllConfirm = true },
+                        enabled = !managementBusy,
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF9F2929)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(if (managementBusy) "SİLİNİR..." else "BÜTÜN MESAJLARI SİL")
+                    }
+                }
+            }
         }
         HorizontalDivider(color = Color(0xFF303030))
+        if (showDeleteAllConfirm && isGroupAdmin) {
+            AlertDialog(
+                onDismissRequest = { if (!managementBusy) showDeleteAllConfirm = false },
+                title = { Text("Bütün mesajlar silinsin?") },
+                text = { Text("Qrupdakı bütün mətn, şəkil və səs mesajları silinəcək. Bu əməliyyat geri qaytarılmır.") },
+                confirmButton = {
+                    TextButton(onClick = { deleteAllGroupMessages() }, enabled = !managementBusy) { Text("Bəli, hamısını sil") }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteAllConfirm = false }, enabled = !managementBusy) { Text("Ləğv et") }
+                }
+            )
+        }
         if (!nameConfirmed) {
             Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("Qrupa xoş gəlmisiniz", color = Color.White, fontSize = 21.sp, fontWeight = FontWeight.Bold)
