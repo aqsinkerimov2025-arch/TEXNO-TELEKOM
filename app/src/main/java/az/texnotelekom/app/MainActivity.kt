@@ -615,6 +615,36 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     val feedbackAudioPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         if (granted) startFeedbackRecording() else groupAuthError = "Mikrofon icazəsi lazımdır."
     }
+    fun sendFeedbackText() {
+        val textValue = feedbackDraft.trim()
+        if (textValue.isBlank() || feedbackBusy) return
+        feedbackBusy = true
+        val data = hashMapOf<String, Any>("nickname" to "İstifadəçi", "device_id" to deviceId, "text" to textValue, "audio_url" to "", "created_at" to FieldValue.serverTimestamp())
+        db.collection("admin_feedback").add(data)
+            .addOnSuccessListener { feedbackDraft = ""; feedbackBusy = false }
+            .addOnFailureListener { feedbackBusy = false; error = "Mesaj göndərilmədi: ${it.localizedMessage}" }
+    }
+    fun stopAndSendFeedbackVoice() {
+        val recorder = feedbackRecorder ?: return
+        val file = feedbackFile
+        try { recorder.stop() } catch (_: Exception) { }
+        try { recorder.release() } catch (_: Exception) { }
+        feedbackRecorder = null
+        feedbackRecording = false
+        if (file == null || !file.exists() || file.length() < 500) {
+            error = "Səs yazısı boşdur. Yenidən yaz."
+            return
+        }
+        feedbackBusy = true
+        uploadGroupAudio(file) { result ->
+            result.onSuccess { audioUrl ->
+                val data = hashMapOf<String, Any>("nickname" to "İstifadəçi", "device_id" to deviceId, "text" to "", "audio_url" to audioUrl, "created_at" to FieldValue.serverTimestamp())
+                db.collection("admin_feedback").add(data)
+                    .addOnSuccessListener { feedbackBusy = false; file.delete() }
+                    .addOnFailureListener { feedbackBusy = false; error = "Səs göndərilmədi: ${it.localizedMessage}" }
+            }.onFailure { feedbackBusy = false; error = "Səs yüklənmədi: ${it.localizedMessage}" }
+        }
+    }
     var groupMediaBusy by remember { mutableStateOf(false) }
     var voiceRecorder by remember { mutableStateOf<MediaRecorder?>(null) }
     var voiceFile by remember { mutableStateOf<File?>(null) }
@@ -722,9 +752,10 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     val savedAdminUser = remember { FirebaseAuth.getInstance().currentUser }
     var loggedIn by remember { mutableStateOf(isAuthorizedDevice && savedAdminUser?.uid == ADMIN_UID && savedAdminUser.email == ADMIN_EMAIL) }
 
-    DisposableEffect(loggedIn) {
-        if (!loggedIn) return@DisposableEffect onDispose { }
-        val registration = db.collection("admin_feedback").orderBy("created_at", com.google.firebase.firestore.Query.Direction.DESCENDING)
+    DisposableEffect(loggedIn, deviceId) {
+        var feedbackQuery: com.google.firebase.firestore.Query = db.collection("admin_feedback")
+        if (!loggedIn) feedbackQuery = feedbackQuery.whereEqualTo("device_id", deviceId)
+        val registration = feedbackQuery.orderBy("created_at", com.google.firebase.firestore.Query.Direction.DESCENDING)
             .addSnapshotListener { snap, e ->
                 if (e == null && snap != null) {
                     feedbackItems.clear()
@@ -1679,6 +1710,45 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                 }
                             }
                         }
+                        Spacer(Modifier.height(10.dp))
+                        Text("MESAJLAR", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                        if (feedbackItems.isEmpty()) {
+                            Text("Hələ mesaj göndərilməyib.", color = Color.LightGray, fontSize = 13.sp)
+                        } else {
+                            feedbackItems.reversed().forEach { item ->
+                                val parts = item.split("|", limit = 3)
+                                val sender = parts.getOrNull(0).orEmpty()
+                                val body = parts.getOrNull(1).orEmpty()
+                                val audio = parts.getOrNull(2).orEmpty()
+                                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF242424)), shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth()) {
+                                    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                        Text(if (loggedIn) sender else "Siz", color = Color.LightGray, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                        if (body.isNotBlank()) Text(body, color = Color.White, fontSize = 14.sp)
+                                        if (audio.isNotBlank()) TextButton(onClick = { try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(audio))) } catch (_: Exception) { error = "Səs açıla bilmədi." } }) { Text("▶ Səs mesajını dinlə", color = Color.White) }
+                                    }
+                                }
+                            }
+                        }
+                        OutlinedTextField(
+                            value = feedbackDraft,
+                            onValueChange = { feedbackDraft = it },
+                            modifier = Modifier.fillMaxWidth(),
+                            placeholder = { Text("Mesaj yaz...") },
+                            minLines = 2,
+                            maxLines = 4,
+                            enabled = !feedbackBusy,
+                            colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White, focusedBorderColor = Color.White, unfocusedBorderColor = Color.Gray, cursorColor = Color.White)
+                        )
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Button(onClick = { if (feedbackRecording) stopAndSendFeedbackVoice() else feedbackAudioPermission.launch(Manifest.permission.RECORD_AUDIO) }, enabled = !feedbackBusy, modifier = Modifier.weight(1f)) {
+                                Text(if (feedbackRecording) "■ Səsi göndər" else "🎙 Səs yaz")
+                            }
+                            Button(onClick = { sendFeedbackText() }, enabled = !feedbackBusy && feedbackDraft.isNotBlank(), modifier = Modifier.weight(1f)) {
+                                Text(if (feedbackBusy) "Göndərilir..." else "Göndər")
+                            }
+                        }
+                        if (feedbackRecording) Text("Səs yazılır... Bitirmək və göndərmək üçün düyməyə toxun.", color = Color(0xFFFFD54F), fontSize = 12.sp)
+                        if (error.isNotBlank()) Text(error, color = Color(0xFFFF8A80), fontSize = 12.sp)
                     }
                     }
                 }
