@@ -1553,6 +1553,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                 )
             }
 
+            if (!showPrograms) {
             Spacer(Modifier.height(22.dp))
             Card(
                 colors = CardDefaults.cardColors(containerColor = Color(0xFF202020)),
@@ -1714,6 +1715,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                 }
             }
             }
+            }
             if (!showPhoneInfo) {
                 Card(
                     colors = CardDefaults.cardColors(containerColor = Color(0xFF202020)),
@@ -1742,6 +1744,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                 }
                 if (showPrograms) {
                     Spacer(Modifier.height(12.dp))
+                    if (shown.isEmpty()) Text("Hələ proqram paylaşılmayıb.", color = Color.LightGray)
             shown.forEach { p ->
                 val isGoldBankCard = designGoldCards
                 Card(
