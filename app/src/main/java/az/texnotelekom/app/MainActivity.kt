@@ -701,9 +701,6 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     var query by remember { mutableStateOf("") }
     var searchOpen by remember { mutableStateOf(false) }
     var showPhoneInfo by remember { mutableStateOf(false) }
-    val texnoMelumatLogo = remember {
-        BitmapFactory.decodeResource(context.resources, R.drawable.texno_melumat_logo).asImageBitmap()
-    }
     val texnoInfoLogo = remember {
         BitmapFactory.decodeResource(context.resources, R.drawable.texno_telekom_program_logo).asImageBitmap()
     }
@@ -1567,7 +1564,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(9.dp)) {
-                        Image(bitmap = texnoMelumatLogo, contentDescription = "TEXNO-MƏLUMAT loqosu", modifier = Modifier.size(78.dp), contentScale = ContentScale.Fit)
+                        Image(bitmap = texnoInfoLogo, contentDescription = "TEXNO-MƏLUMAT loqosu", modifier = Modifier.size(78.dp), contentScale = ContentScale.Fit)
                         Column(Modifier.weight(1f)) {
                             Text("TEXNO-MƏLUMAT", color = Color(0xFFFFFFFF), fontSize = 16.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
                             Spacer(Modifier.height(7.dp))
