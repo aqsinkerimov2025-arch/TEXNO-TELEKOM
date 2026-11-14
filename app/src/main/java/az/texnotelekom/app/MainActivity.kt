@@ -1818,7 +1818,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
             shown.forEach { p ->
                 val isGoldBankCard = designGoldCards
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = if (isGoldBankCard) Color(0xFFFFFFFF) else Color(0xFF202020)),
+                    colors = CardDefaults.cardColors(containerColor = if (isGoldBankCard) Color(0xFFC58B22) else Color(0xFF202020)),
                     shape = RoundedCornerShape(30.dp),
                     modifier = Modifier.fillMaxWidth().padding(vertical = 7.dp)
                 ) {
@@ -1826,7 +1826,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                         Modifier.fillMaxWidth()
                             .background(
                                 if (isGoldBankCard) Brush.linearGradient(
-                                    listOf(Color(0xFFBDBDBD), Color(0xFFBDBDBD), Color(0xFFFFFFFF), Color(0xFFFFFFFF))
+                                    listOf(Color(0xFFFFE69A), Color(0xFFC18A24), Color(0xFFF5C85B), Color(0xFF9A6418))
                                 ) else Brush.linearGradient(listOf(Color(0xFF202020), Color(0xFF202020))),
                                 RoundedCornerShape(28.dp)
                             )
@@ -1835,41 +1835,41 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                     ) {
                         if (isGoldBankCard) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("TEXNO-TELEKOM", color = Color(0xFFFFFFFF), fontSize = 12.sp, fontWeight = FontWeight.Black)
+                                Text("TEXNO-TELEKOM", color = Color(0xFF4A2D08), fontSize = 12.sp, fontWeight = FontWeight.Black)
                                 Spacer(Modifier.weight(1f))
-                                Text("✦ GOLD", color = Color(0xFFFFFFFF), fontSize = 13.sp, fontWeight = FontWeight.Black)
+                                Text("✦ GOLD", color = Color(0xFF4A2D08), fontSize = 13.sp, fontWeight = FontWeight.Black)
                             }
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Box(
                                     Modifier.size(width = 48.dp, height = 34.dp)
                                         .background(
-                                            Brush.linearGradient(listOf(Color(0xFFBDBDBD), Color(0xFFBDBDBD))),
+                                            Brush.linearGradient(listOf(Color(0xFFFFE7A3), Color(0xFFC18A24))),
                                             RoundedCornerShape(8.dp)
                                         ),
                                     contentAlignment = Alignment.Center
-                                ) { Text("▦", color = Color(0xFFFFFFFF), fontSize = 23.sp, fontWeight = FontWeight.Bold) }
+                                ) { Text("▦", color = Color(0xFF68430D), fontSize = 23.sp, fontWeight = FontWeight.Bold) }
                                 Spacer(Modifier.weight(1f))
-                                Text("PREMIUM MEMBER", color = Color(0xFFFFFFFF), fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                Text("PREMIUM MEMBER", color = Color(0xFF4A2D08), fontSize = 10.sp, fontWeight = FontWeight.Bold)
                             }
                         }
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Box(
-                                Modifier.size(74.dp).background(Color(0xFF303030), RoundedCornerShape(23.dp)),
+                                Modifier.size(74.dp).background(Color(0xFF2B2030), RoundedCornerShape(23.dp)),
                                 contentAlignment = Alignment.Center
                             ) {
                                 if (p.iconUrl.isNotBlank()) ProgramIcon(p.iconUrl, p.name, 58)
                                 else Text("✦", color = Color(0xFFFFFFFF), fontSize = 38.sp)
                             }
                             Column(Modifier.weight(1f).padding(start = 14.dp)) {
-                                Text(p.name, fontWeight = FontWeight.Bold, fontSize = 19.sp, color = if (isGoldBankCard) Color(0xFFFFFFFF) else Color.White)
+                                Text(p.name, fontWeight = FontWeight.Bold, fontSize = 19.sp, color = if (isGoldBankCard) Color(0xFF3E280A) else Color.White)
                                 Spacer(Modifier.height(5.dp))
                                 Text(
                                     if (p.version.isNotBlank()) "${p.category} • ${p.version}" else p.category,
-                                    color = if (isGoldBankCard) Color(0xFFFFFFFF) else Color(0xFFBDBDBD), fontSize = 13.sp
+                                    color = if (isGoldBankCard) Color(0xFF5B3A10) else Color(0xFFBDBDBD), fontSize = 13.sp
                                 )
                             }
                         }
-                        TextWithInlineSticker(p.description, p.stickerUrl, p.stickerMime, if (isGoldBankCard) Color(0xFFFFFFFF) else Color(0xFFE0E0E0), 14.sp, 20.sp)
+                        TextWithInlineSticker(p.description, p.stickerUrl, p.stickerMime, if (isGoldBankCard) Color(0xFF4A2D08) else Color(0xFFE0E0E0), 14.sp, 20.sp)
                         if (p.stickerUrl.isNotBlank() && !p.description.contains(INLINE_STICKER_TOKEN)) StickerPreview(p.stickerUrl, p.stickerMime, Modifier.fillMaxWidth().height(220.dp))
                         Row(
                             Modifier.fillMaxWidth(),
@@ -1880,7 +1880,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                 Box(
                                     Modifier.weight(1f).height(54.dp)
                                         .background(
-                                            if (isGoldBankCard) Brush.horizontalGradient(listOf(Color(0xFFFFFFFF), Color(0xFFFFFFFF), Color(0xFFBDBDBD))) else Brush.horizontalGradient(listOf(Color.White, Color(0xFFBDBDBD))),
+                                            if (isGoldBankCard) Brush.horizontalGradient(listOf(Color(0xFF9A6418), Color(0xFFE9B94D), Color(0xFFFFE69A))) else Brush.horizontalGradient(listOf(Color.White, Color(0xFFBDBDBD))),
                                             RoundedCornerShape(18.dp)
                                         )
                                         .clickable {
@@ -1889,7 +1889,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                         },
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text("Yüklə", color = if (isGoldBankCard) Color(0xFFFFFFFF) else Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                    Text("Yüklə", color = if (isGoldBankCard) Color(0xFF3E280A) else Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                                 }
                             } else {
                                 Text("Link əlavə edilməyib", color = Color(0xFFBDBDBD), modifier = Modifier.weight(1f), fontSize = 12.sp)
@@ -1903,8 +1903,8 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                         message = "Redaktə üçün seçildi."
                                     },
                                     shape = RoundedCornerShape(18.dp),
-                                    border = androidx.compose.foundation.BorderStroke(1.5.dp, Color(0xFFBDBDBD)),
-                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFFFFFF)),
+                                    border = androidx.compose.foundation.BorderStroke(1.5.dp, Color(0xFF8C641E)),
+                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF4A2D08)),
                                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 14.dp)
                                 ) { Text("Redaktə", fontWeight = FontWeight.Bold) }
                                 Button(
@@ -1915,8 +1915,8 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                         }.addOnFailureListener { error = "Silmək alınmadı: ${it.localizedMessage}" }
                                     },
                                     colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color(0xFFBDBDBD),
-                                        contentColor = Color(0xFFFFFFFF)
+                                        containerColor = Color(0xFFD7A63A),
+                                        contentColor = Color(0xFF4A2D08)
                                     ),
                                     shape = RoundedCornerShape(18.dp),
                                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 14.dp)
