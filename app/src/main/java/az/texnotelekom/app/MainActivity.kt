@@ -43,6 +43,9 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.AttachFile
@@ -605,7 +608,7 @@ private fun GroupChatScreen(onClose: () -> Unit) {
     var voiceFile by remember { mutableStateOf<File?>(null) }
     var status by remember { mutableStateOf("") }
     val messages = remember { mutableStateListOf<GroupChatMessage>() }
-    val messageScrollState = rememberScrollState()
+    val messageListState = rememberLazyListState()
     val auth = FirebaseAuth.getInstance()
     val isGroupAdmin = auth.currentUser?.uid == ADMIN_UID
     var showManagementPanel by remember { mutableStateOf(false) }
@@ -701,8 +704,8 @@ private fun GroupChatScreen(onClose: () -> Unit) {
             } catch (e: Exception) { status = "Səs yazısı başlatılmadı: ${e.localizedMessage}" }
         } else status = "Səs yazmaq üçün mikrofon icazəsi lazımdır."
     }
-    LaunchedEffect(messages.size) {
-        messageScrollState.animateScrollTo(messageScrollState.maxValue)
+    LaunchedEffect(messages.lastOrNull()?.id) {
+        if (messages.isNotEmpty()) messageListState.animateScrollToItem(messages.lastIndex)
     }
 
     DisposableEffect(Unit) {
@@ -854,22 +857,33 @@ private fun GroupChatScreen(onClose: () -> Unit) {
                 if (status.isNotBlank()) Text(status, color = Color(0xFFFF8A80), fontSize = 12.sp)
             }
         } else {
-            Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(messageScrollState).padding(horizontal = 12.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.Bottom)) {
-                if (messages.isEmpty()) Text("Hələ mesaj yoxdur. İlk mesajı sən göndər!", color = Color.LightGray, modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 30.dp))
-                messages.forEach { item ->
+            LazyColumn(
+                state = messageListState,
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                if (messages.isEmpty()) {
+                    item {
+                        Text("Hələ mesaj yoxdur. İlk mesajı sən göndər!", color = Color.LightGray, modifier = Modifier.fillMaxWidth().padding(top = 30.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                    }
+                }
+                items(messages, key = { it.id }) { item ->
                     val adminMessage = item.uid == ADMIN_UID
-                    Card(
-                        colors = CardDefaults.cardColors(containerColor = if (adminMessage) Color(0xFF252525) else Color(0xFF244A3B)),
-                        shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier.fillMaxWidth(0.88f).align(if (adminMessage) Alignment.Start else Alignment.End).clickable { reply = item }
-                    ) {
-                        Column(Modifier.padding(11.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                            Text(item.nickname, color = Color(0xFFFFD36A), fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                            if (item.replyToNickname.isNotBlank()) Text("↪ ${item.replyToNickname}: ${item.replyToText}", color = Color(0xFFBDBDBD), fontSize = 11.sp)
-                            if (item.text.isNotBlank()) Text(item.text, color = Color.White, fontSize = 14.sp)
-                            if (item.imageUrl.isNotBlank()) AsyncImage(model = item.imageUrl, contentDescription = "Qrup şəkli", modifier = Modifier.fillMaxWidth().heightIn(max = 240.dp), contentScale = ContentScale.Fit)
-                            if (item.audioUrl.isNotBlank()) GroupVoiceMessagePlayer(item.audioUrl, item.createdAt)
-                            Text("Cavab vermək üçün toxun", color = Color(0xFFBDBDBD), fontSize = 9.sp)
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = if (adminMessage) Arrangement.Start else Arrangement.End) {
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = if (adminMessage) Color(0xFF252525) else Color(0xFF244A3B)),
+                            shape = RoundedCornerShape(16.dp),
+                            modifier = Modifier.fillMaxWidth(0.88f).clickable { reply = item }
+                        ) {
+                            Column(Modifier.padding(11.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                                Text(item.nickname, color = Color(0xFFFFD36A), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                if (item.replyToNickname.isNotBlank()) Text("↪ ${item.replyToNickname}: ${item.replyToText}", color = Color(0xFFBDBDBD), fontSize = 11.sp)
+                                if (item.text.isNotBlank()) Text(item.text, color = Color.White, fontSize = 14.sp)
+                                if (item.imageUrl.isNotBlank()) AsyncImage(model = item.imageUrl, contentDescription = "Qrup şəkli", modifier = Modifier.fillMaxWidth().heightIn(max = 240.dp), contentScale = ContentScale.Fit)
+                                if (item.audioUrl.isNotBlank()) GroupVoiceMessagePlayer(item.audioUrl, item.createdAt)
+                                Text("Cavab vermək üçün toxun", color = Color(0xFFBDBDBD), fontSize = 9.sp)
+                            }
                         }
                     }
                 }
