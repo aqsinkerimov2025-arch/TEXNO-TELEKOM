@@ -1740,7 +1740,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                             colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White, focusedBorderColor = Color.White, unfocusedBorderColor = Color.Gray, cursorColor = Color.White)
                         )
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Button(onClick = { if (feedbackRecording) stopAndSendFeedbackVoice() else feedbackAudioPermission.launch(Manifest.permission.RECORD_AUDIO) }, enabled = !feedbackBusy, modifier = Modifier.weight(1f)) {
+                            Button(onClick = { if (feedbackRecording) stopAndSendFeedbackVoice() else feedbackAudioPermission.launch(android.Manifest.permission.RECORD_AUDIO) }, enabled = !feedbackBusy, modifier = Modifier.weight(1f)) {
                                 Text(if (feedbackRecording) "■ Səsi göndər" else "🎙 Səs yaz")
                             }
                             Button(onClick = { sendFeedbackText() }, enabled = !feedbackBusy && feedbackDraft.isNotBlank(), modifier = Modifier.weight(1f)) {
