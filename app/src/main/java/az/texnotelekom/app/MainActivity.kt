@@ -591,6 +591,176 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
+private fun GroupChatScreen(onClose: () -> Unit) {
+    val context = LocalContext.current
+    val db = remember { FirebaseFirestore.getInstance() }
+    val prefs = remember { context.getSharedPreferences("texno_group_chat", Context.MODE_PRIVATE) }
+    var nickname by remember { mutableStateOf(prefs.getString("nickname", "") ?: "") }
+    var nameConfirmed by remember { mutableStateOf(nickname.trim().length >= 2) }
+    var draft by remember { mutableStateOf("") }
+    var reply by remember { mutableStateOf<GroupChatMessage?>(null) }
+    var busy by remember { mutableStateOf(false) }
+    var recording by remember { mutableStateOf(false) }
+    var recorder by remember { mutableStateOf<MediaRecorder?>(null) }
+    var voiceFile by remember { mutableStateOf<File?>(null) }
+    var status by remember { mutableStateOf("") }
+    val messages = remember { mutableStateListOf<GroupChatMessage>() }
+    val auth = FirebaseAuth.getInstance()
+    val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri != null) {
+            busy = true
+            uploadPhoneImage(context, uri) { result ->
+                result.onSuccess { url ->
+                    val user = auth.currentUser
+                    if (user == null) { busy = false; status = "Qrupa qoşulmaq mümkün olmadı."; return@onSuccess }
+                    val data = hashMapOf<String, Any>("uid" to user.uid, "nickname" to nickname.trim().take(24), "text" to "", "image_url" to url, "audio_url" to "", "created_at" to FieldValue.serverTimestamp())
+                    reply?.let { data["reply_to_id"] = it.id; data["reply_to_nickname"] = it.nickname; data["reply_to_text"] = it.text.ifBlank { "📷 Şəkil" }.take(180) }
+                    db.collection("group_messages").add(data)
+                        .addOnSuccessListener { busy = false; reply = null; status = "" }
+                        .addOnFailureListener { busy = false; status = "Şəkil göndərilmədi: ${it.localizedMessage}" }
+                }.onFailure { busy = false; status = "Şəkil yüklənmədi: ${it.localizedMessage}" }
+            }
+        }
+    }
+    val micPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) {
+            try {
+                val file = File(context.cacheDir, "group_voice_${System.currentTimeMillis()}.m4a")
+                val rec = createGroupVoiceRecorder(context)
+                rec.setAudioSource(MediaRecorder.AudioSource.MIC)
+                rec.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+                rec.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+                rec.setAudioEncodingBitRate(96000)
+                rec.setAudioSamplingRate(44100)
+                rec.setOutputFile(file.absolutePath)
+                rec.prepare(); rec.start()
+                voiceFile = file; recorder = rec; recording = true; status = "Səs yazılır..."
+            } catch (e: Exception) { status = "Səs yazısı başlatılmadı: ${e.localizedMessage}" }
+        } else status = "Səs yazmaq üçün mikrofon icazəsi lazımdır."
+    }
+    DisposableEffect(Unit) {
+        val registration = db.collection("group_messages")
+            .orderBy("created_at", com.google.firebase.firestore.Query.Direction.ASCENDING)
+            .limit(200)
+            .addSnapshotListener { snap, error ->
+                if (error == null && snap != null) {
+                    messages.clear()
+                    snap.documents.forEach { d ->
+                        messages.add(GroupChatMessage(
+                            d.id, d.getString("uid") ?: "", d.getString("nickname") ?: "İstifadəçi",
+                            d.getString("text") ?: "", d.getString("image_url") ?: "", d.getString("audio_url") ?: "",
+                            d.getTimestamp("created_at")?.toDate()?.time ?: 0L,
+                            d.getString("reply_to_id") ?: "", d.getString("reply_to_nickname") ?: "", d.getString("reply_to_text") ?: ""
+                        ))
+                    }
+                } else if (error != null) status = "Mesajlar yüklənmədi: ${error.localizedMessage}"
+            }
+        onDispose {
+            registration.remove()
+            try { recorder?.stop(); recorder?.release() } catch (_: Exception) { }
+        }
+    }
+    fun sendText() {
+        val value = draft.trim()
+        val user = auth.currentUser
+        if (value.isBlank() || busy) return
+        if (user == null) { status = "Qrupa qoşulmaq mümkün olmadı."; return }
+        busy = true
+        val data = hashMapOf<String, Any>("uid" to user.uid, "nickname" to nickname.trim().take(24), "text" to value, "image_url" to "", "audio_url" to "", "created_at" to FieldValue.serverTimestamp())
+        reply?.let { data["reply_to_id"] = it.id; data["reply_to_nickname"] = it.nickname; data["reply_to_text"] = it.text.ifBlank { if (it.imageUrl.isNotBlank()) "📷 Şəkil" else "🎙 Səs mesajı" }.take(180) }
+        db.collection("group_messages").add(data)
+            .addOnSuccessListener { draft = ""; reply = null; busy = false; status = "" }
+            .addOnFailureListener { busy = false; status = "Mesaj göndərilmədi: ${it.localizedMessage}" }
+    }
+    fun finishVoice() {
+        val rec = recorder ?: return
+        val file = voiceFile
+        try { rec.stop() } catch (_: Exception) { }
+        try { rec.release() } catch (_: Exception) { }
+        recorder = null; recording = false
+        if (file == null || !file.exists() || file.length() < 500) { status = "Səs yazısı boşdur."; return }
+        busy = true
+        uploadGroupAudio(file) { result ->
+            result.onSuccess { url ->
+                val user = auth.currentUser
+                if (user == null) { busy = false; status = "Qrupa qoşulmaq mümkün olmadı."; return@onSuccess }
+                val data = hashMapOf<String, Any>("uid" to user.uid, "nickname" to nickname.trim().take(24), "text" to "", "image_url" to "", "audio_url" to url, "created_at" to FieldValue.serverTimestamp())
+                reply?.let { data["reply_to_id"] = it.id; data["reply_to_nickname"] = it.nickname; data["reply_to_text"] = it.text.ifBlank { "🎙 Səs mesajı" }.take(180) }
+                db.collection("group_messages").add(data)
+                    .addOnSuccessListener { busy = false; reply = null; file.delete(); status = "" }
+                    .addOnFailureListener { busy = false; status = "Səs göndərilmədi: ${it.localizedMessage}" }
+            }.onFailure { busy = false; status = "Səs yüklənmədi: ${it.localizedMessage}" }
+        }
+    }
+
+    Column(Modifier.fillMaxSize().background(Color(0xFF101010)).statusBarsPadding()) {
+        Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text("‹", color = Color.White, fontSize = 34.sp, modifier = Modifier.clickable { onClose() }.padding(horizontal = 8.dp))
+            Image(painter = painterResource(R.drawable.texno_support_badge), contentDescription = "TEXNO DƏSTƏK QRUPU", modifier = Modifier.size(42.dp).clip(CircleShape), contentScale = ContentScale.Crop)
+            Column(Modifier.weight(1f).padding(start = 10.dp)) {
+                Text("TEXNO DƏSTƏK QRUPU", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Black)
+                Text("Ümumi söhbət", color = Color(0xFFBDBDBD), fontSize = 11.sp)
+            }
+            Text("⋮", color = Color.White, fontSize = 26.sp)
+        }
+        HorizontalDivider(color = Color(0xFF303030))
+        if (!nameConfirmed) {
+            Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("Qrupa xoş gəlmisiniz", color = Color.White, fontSize = 21.sp, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(12.dp))
+                Text("Qrupda görünəcək adınızı bir dəfə yazın.", color = Color.LightGray, fontSize = 14.sp)
+                Spacer(Modifier.height(12.dp))
+                OutlinedTextField(value = nickname, onValueChange = { nickname = it.take(24) }, modifier = Modifier.fillMaxWidth(), singleLine = true, placeholder = { Text("Adınız") })
+                Spacer(Modifier.height(12.dp))
+                Button(onClick = {
+                    if (nickname.trim().length >= 2) {
+                        nickname = nickname.trim()
+                        prefs.edit().putString("nickname", nickname).apply()
+                        nameConfirmed = true
+                    } else status = "Ad ən azı 2 hərf olmalıdır."
+                }, modifier = Modifier.fillMaxWidth()) { Text("Daxil ol") }
+                if (status.isNotBlank()) Text(status, color = Color(0xFFFF8A80), fontSize = 12.sp)
+            }
+        } else {
+            Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 12.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (messages.isEmpty()) Text("Hələ mesaj yoxdur. İlk mesajı sən göndər!", color = Color.LightGray, modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 30.dp))
+                messages.forEach { item ->
+                    val mine = item.uid == auth.currentUser?.uid
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = if (mine) Color(0xFF244A3B) else Color(0xFF252525)),
+                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier.fillMaxWidth(0.88f).align(if (mine) Alignment.End else Alignment.Start).clickable { reply = item }
+                    ) {
+                        Column(Modifier.padding(11.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                            Text(item.nickname, color = Color(0xFFFFD36A), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            if (item.replyToNickname.isNotBlank()) Text("↪ ${item.replyToNickname}: ${item.replyToText}", color = Color(0xFFBDBDBD), fontSize = 11.sp)
+                            if (item.text.isNotBlank()) Text(item.text, color = Color.White, fontSize = 14.sp)
+                            if (item.imageUrl.isNotBlank()) AsyncImage(model = item.imageUrl, contentDescription = "Qrup şəkli", modifier = Modifier.fillMaxWidth().heightIn(max = 240.dp), contentScale = ContentScale.Fit)
+                            if (item.audioUrl.isNotBlank()) GroupVoiceMessagePlayer(item.audioUrl, item.createdAt)
+                            Text("Cavab vermək üçün toxun", color = Color(0xFFBDBDBD), fontSize = 9.sp)
+                        }
+                    }
+                }
+            }
+            if (reply != null) {
+                Row(Modifier.fillMaxWidth().background(Color(0xFF242424)).padding(horizontal = 14.dp, vertical = 7.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text("Cavab: ${reply!!.nickname} · ${reply!!.text.ifBlank { "Media" }}", color = Color.White, modifier = Modifier.weight(1f), maxLines = 1)
+                    Text("✕", color = Color.White, modifier = Modifier.clickable { reply = null }.padding(8.dp))
+                }
+            }
+            Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 8.dp).background(Color(0xFFF4F0E8), RoundedCornerShape(28.dp)).padding(horizontal = 6.dp, vertical = 5.dp), verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = { imagePicker.launch("image/*") }, enabled = !busy, modifier = Modifier.size(38.dp)) { Text("📎", fontSize = 20.sp) }
+                BasicTextField(value = draft, onValueChange = { draft = it }, modifier = Modifier.weight(1f).padding(vertical = 10.dp), singleLine = true, enabled = !busy && !recording, textStyle = TextStyle(color = Color(0xFF202124), fontSize = 15.sp), cursorBrush = androidx.compose.ui.graphics.SolidColor(Color(0xFF159B68)), decorationBox = { inner -> Box { if (draft.isEmpty()) Text("Mesaj", color = Color.Gray); inner() } })
+                IconButton(onClick = { if (draft.isNotBlank()) sendText() else if (recording) finishVoice() else micPermission.launch(android.Manifest.permission.RECORD_AUDIO) }, enabled = !busy, modifier = Modifier.size(46.dp).background(Color(0xFF20A66A), CircleShape)) {
+                    Text(if (draft.isNotBlank()) "➤" else if (recording) "■" else "🎙", color = Color.White, fontSize = 19.sp)
+                }
+            }
+            if (status.isNotBlank()) Text(status, color = Color(0xFFFFD36A), fontSize = 11.sp, modifier = Modifier.padding(horizontal = 14.dp, vertical = 3.dp))
+        }
+    }
+}
+
+@Composable
 fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     val context = LocalContext.current
     val db = remember { FirebaseFirestore.getInstance() }
@@ -1224,6 +1394,9 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
             large = RoundedCornerShape(28.dp)
         )
     ) {
+        if (showGroupChat) {
+            GroupChatScreen(onClose = { showGroupChat = false })
+        } else {
         Column(
             Modifier.fillMaxSize()
                 .background(
@@ -1281,10 +1454,18 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                             letterSpacing = 1.sp
                         )
                     }
-                    IconButton(
-                        onClick = { searchOpen = !searchOpen; if (!searchOpen) query = "" },
-                        modifier = Modifier.align(Alignment.CenterEnd).size(42.dp)
-                    ) { Icon(Icons.Default.Search, contentDescription = "Axtarış", tint = Color.White) }
+                    Row(Modifier.align(Alignment.CenterEnd), verticalAlignment = Alignment.CenterVertically) {
+                        Image(
+                            painter = painterResource(R.drawable.texno_support_badge),
+                            contentDescription = "TEXNO DƏSTƏK QRUPU",
+                            modifier = Modifier.size(34.dp).clip(CircleShape).clickable { showGroupChat = true },
+                            contentScale = ContentScale.Crop
+                        )
+                        IconButton(
+                            onClick = { searchOpen = !searchOpen; if (!searchOpen) query = "" },
+                            modifier = Modifier.size(42.dp)
+                        ) { Icon(Icons.Default.Search, contentDescription = "Axtarış", tint = Color.White) }
+                    }
                 }
                 Spacer(Modifier.height(8.dp))
                 Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -1997,6 +2178,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                     letterSpacing = 0.5.sp
                 )
             }
+        }
         }
     }
 }
