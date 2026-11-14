@@ -616,7 +616,7 @@ private fun GroupChatScreen(onClose: () -> Unit) {
     var showManagementPanel by remember { mutableStateOf(false) }
     var showDeleteAllConfirm by remember { mutableStateOf(false) }
     var managementBusy by remember { mutableStateOf(false) }
-    var showGroupRules by remember { mutableStateOf(!prefs.getBoolean("group_rules_seen", false)) }
+    var showGroupRules by remember { mutableStateOf(!prefs.getBoolean("group_rules_seen_v2", false)) }
     var groupRules by remember { mutableStateOf("1. Bir-birinizə hörmətlə yanaşın.\\n2. Təhqir və söyüş yazmayın.\\n3. Reklam və spam paylaşmayın.\\n4. Şəxsi məlumatları icazəsiz paylaşmayın.\\n5. Qrupda mövzuya uyğun mesajlar yazın.") }
     var rulesDraft by remember { mutableStateOf("") }
     var showRulesEditor by remember { mutableStateOf(false) }
@@ -778,9 +778,12 @@ private fun GroupChatScreen(onClose: () -> Unit) {
         Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
             Text("‹", color = Color.White, fontSize = 34.sp, modifier = Modifier.clickable { onClose() }.padding(horizontal = 8.dp))
             Image(painter = painterResource(R.drawable.texno_support_badge), contentDescription = "TEXNO DƏSTƏK QRUPU", modifier = Modifier.size(42.dp).clip(CircleShape), contentScale = ContentScale.Crop)
-            Column(Modifier.weight(1f).padding(start = 10.dp)) {
+            Column(
+                Modifier.weight(1f).padding(start = 10.dp).clickable { showGroupRules = true },
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
                 Text("TEXNO DƏSTƏK QRUPU", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Black)
-                Text("Ümumi söhbət", color = Color(0xFFBDBDBD), fontSize = 11.sp)
+                Text("Ümumi söhbət  •  Qrup qaydaları", color = Color(0xFFBDBDBD), fontSize = 11.sp)
             }
             if (isGroupAdmin) {
                 Text("⋮", color = Color.White, fontSize = 26.sp,
@@ -827,7 +830,7 @@ private fun GroupChatScreen(onClose: () -> Unit) {
             ) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Text("QRUP QAYDALARI", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Black, modifier = Modifier.weight(1f))
-                    Text("✕", color = Color.White, fontSize = 26.sp, modifier = Modifier.clickable { prefs.edit().putBoolean("group_rules_seen", true).apply(); showGroupRules = false }.padding(8.dp))
+                    Text("✕", color = Color.White, fontSize = 26.sp, modifier = Modifier.clickable { prefs.edit().putBoolean("group_rules_seen_v2", true).apply(); showGroupRules = false }.padding(8.dp))
                 }
                 if (showRulesEditor && isGroupAdmin) {
                     OutlinedTextField(
