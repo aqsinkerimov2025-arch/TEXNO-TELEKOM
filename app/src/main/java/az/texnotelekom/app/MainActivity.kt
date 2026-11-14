@@ -706,13 +706,13 @@ private fun GroupChatScreen(onClose: () -> Unit) {
             } catch (e: Exception) { status = "Səs yazısı başlatılmadı: ${e.localizedMessage}" }
         } else status = "Səs yazmaq üçün mikrofon icazəsi lazımdır."
     }
-    LaunchedEffect(messagesLoaded, messages.lastOrNull()?.id, nameConfirmed, showGroupRules) {
+    LaunchedEffect(messagesLoaded, messages.firstOrNull()?.id, nameConfirmed, showGroupRules) {
         if (messagesLoaded && nameConfirmed && !showGroupRules && messages.isNotEmpty()) {
             if (!initialMessagesPositioned) {
-                messageListState.scrollToItem(messages.lastIndex)
+                messageListState.scrollToItem(0)
                 initialMessagesPositioned = true
             } else {
-                messageListState.animateScrollToItem(messages.lastIndex)
+                messageListState.animateScrollToItem(0)
             }
         }
     }
@@ -871,6 +871,7 @@ private fun GroupChatScreen(onClose: () -> Unit) {
             LazyColumn(
                 state = messageListState,
                 modifier = Modifier.weight(1f).fillMaxWidth(),
+                reverseLayout = true,
                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -879,7 +880,7 @@ private fun GroupChatScreen(onClose: () -> Unit) {
                         Text("Hələ mesaj yoxdur. İlk mesajı sən göndər!", color = Color.LightGray, modifier = Modifier.fillMaxWidth().padding(top = 30.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                     }
                 }
-                items(messages, key = { it.id }) { item ->
+                items(messages.asReversed(), key = { it.id }) { item ->
                     val adminMessage = item.uid == ADMIN_UID
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = if (adminMessage) Arrangement.Start else Arrangement.End) {
                         Card(
