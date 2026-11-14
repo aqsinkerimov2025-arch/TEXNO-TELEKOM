@@ -779,11 +779,18 @@ private fun GroupChatScreen(onClose: () -> Unit) {
             Text("‹", color = Color.White, fontSize = 34.sp, modifier = Modifier.clickable { onClose() }.padding(horizontal = 8.dp))
             Image(painter = painterResource(R.drawable.texno_support_badge), contentDescription = "TEXNO DƏSTƏK QRUPU", modifier = Modifier.size(42.dp).clip(CircleShape), contentScale = ContentScale.Crop)
             Column(
-                Modifier.weight(1f).padding(start = 10.dp).clickable { showGroupRules = true },
-                verticalArrangement = Arrangement.spacedBy(2.dp)
+                Modifier.weight(1f).padding(start = 10.dp),
+                verticalArrangement = Arrangement.spacedBy(3.dp)
             ) {
                 Text("TEXNO DƏSTƏK QRUPU", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Black)
-                Text("Ümumi söhbət  •  Qrup qaydaları", color = Color(0xFFBDBDBD), fontSize = 11.sp)
+                Text("Ümumi söhbət", color = Color(0xFFBDBDBD), fontSize = 11.sp)
+                Text(
+                    "📋 QRUP QAYDALARI",
+                    color = Color(0xFFFFD36A),
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.clickable { showGroupRules = true }
+                )
             }
             if (isGroupAdmin) {
                 Text("⋮", color = Color.White, fontSize = 26.sp,
