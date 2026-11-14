@@ -706,7 +706,7 @@ private fun GroupChatScreen(onClose: () -> Unit) {
             } catch (e: Exception) { status = "Səs yazısı başlatılmadı: ${e.localizedMessage}" }
         } else status = "Səs yazmaq üçün mikrofon icazəsi lazımdır."
     }
-    LaunchedEffect(messagesLoaded, messages.firstOrNull()?.id, nameConfirmed, showGroupRules) {
+    LaunchedEffect(messagesLoaded, messages.lastOrNull()?.id, nameConfirmed, showGroupRules) {
         if (messagesLoaded && nameConfirmed && !showGroupRules && messages.isNotEmpty()) {
             if (!initialMessagesPositioned) {
                 messageListState.scrollToItem(0)
