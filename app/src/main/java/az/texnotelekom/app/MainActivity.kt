@@ -564,27 +564,28 @@ private fun SupportBadgeLogo(
                 style = AndroidPaint.Style.FILL
             }
             native.drawRoundRect(
-                size.width * 0.235f,
-                size.height * 0.405f,
-                size.width * 0.765f,
-                size.height * 0.755f,
-                size.width * 0.035f,
-                size.height * 0.035f,
+                size.width * 0.19f,
+                size.height * 0.385f,
+                size.width * 0.81f,
+                size.height * 0.775f,
+                size.width * 0.045f,
+                size.height * 0.045f,
                 panel
             )
             val titlePaint = AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG).apply {
                 color = android.graphics.Color.WHITE
                 textAlign = AndroidPaint.Align.CENTER
-                typeface = Typeface.create("sans-serif", Typeface.BOLD)
-                textSize = size.height * 0.118f
+                typeface = Typeface.create("sans-serif-condensed", Typeface.BOLD)
+                textSize = size.height * 0.095f
                 isSubpixelText = true
             }
             val subPaint = AndroidPaint(titlePaint).apply {
                 color = android.graphics.Color.rgb(255, 205, 0)
-                textSize = size.height * 0.112f
+                textSize = size.height * 0.095f
             }
-            native.drawText("TEXNO", size.width * 0.5f, size.height * 0.555f, titlePaint)
-            native.drawText("QRUPU", size.width * 0.5f, size.height * 0.685f, subPaint)
+            // Smaller lettering and wider line spacing keep the two words clearly separated.
+            native.drawText("TEXNO", size.width * 0.5f, size.height * 0.535f, titlePaint)
+            native.drawText("QRUPU", size.width * 0.5f, size.height * 0.695f, subPaint)
         }
     }
 }
