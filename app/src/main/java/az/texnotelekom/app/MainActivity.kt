@@ -611,6 +611,34 @@ private fun GroupChatScreen(onClose: () -> Unit) {
     var showManagementPanel by remember { mutableStateOf(false) }
     var showDeleteAllConfirm by remember { mutableStateOf(false) }
     var managementBusy by remember { mutableStateOf(false) }
+    var showGroupRules by remember { mutableStateOf(true) }
+    var groupRules by remember { mutableStateOf("1. Bir-birinizə hörmətlə yanaşın.\\n2. Təhqir və söyüş yazmayın.\\n3. Reklam və spam paylaşmayın.\\n4. Şəxsi məlumatları icazəsiz paylaşmayın.\\n5. Qrupda mövzuya uyğun mesajlar yazın.") }
+    var rulesDraft by remember { mutableStateOf("") }
+    var showRulesEditor by remember { mutableStateOf(false) }
+    var rulesSaving by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        db.collection("group_settings").document("rules").get()
+            .addOnSuccessListener { doc ->
+                val saved = doc.getString("text")
+                if (!saved.isNullOrBlank()) groupRules = saved
+            }
+    }
+    fun saveGroupRules() {
+        if (!isGroupAdmin || rulesSaving) return
+        rulesSaving = true
+        db.collection("group_settings").document("rules")
+            .set(mapOf("text" to rulesDraft.trim(), "updated_at" to FieldValue.serverTimestamp()))
+            .addOnSuccessListener {
+                groupRules = rulesDraft.trim()
+                showRulesEditor = false
+                rulesSaving = false
+                status = "Qaydalar yadda saxlanıldı."
+            }
+            .addOnFailureListener {
+                rulesSaving = false
+                status = "Qaydalar yadda saxlanılmadı: ${it.localizedMessage}"
+            }
+    }
     fun deleteAllGroupMessages() {
         if (!isGroupAdmin || managementBusy) return
         managementBusy = true
@@ -778,7 +806,37 @@ private fun GroupChatScreen(onClose: () -> Unit) {
                 }
             )
         }
-        if (!nameConfirmed) {
+        if (showGroupRules) {
+            Column(
+                Modifier.weight(1f).fillMaxWidth().background(Color(0xFF151515)).padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Text("QRUP QAYDALARI", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Black, modifier = Modifier.weight(1f))
+                    Text("✕", color = Color.White, fontSize = 26.sp, modifier = Modifier.clickable { showGroupRules = false }.padding(8.dp))
+                }
+                if (showRulesEditor && isGroupAdmin) {
+                    OutlinedTextField(
+                        value = rulesDraft,
+                        onValueChange = { rulesDraft = it },
+                        modifier = Modifier.weight(1f).fillMaxWidth(),
+                        placeholder = { Text("Qrup qaydalarını yazın") },
+                        textStyle = androidx.compose.ui.text.TextStyle(color = Color.White)
+                    )
+                    Button(onClick = { saveGroupRules() }, enabled = !rulesSaving, modifier = Modifier.fillMaxWidth()) {
+                        Text(if (rulesSaving) "YADDA SAXLANILIR..." else "QAYDALARI YADDA SAXLA")
+                    }
+                } else {
+                    Text(groupRules, color = Color(0xFFE6E6E6), fontSize = 15.sp, lineHeight = 24.sp, modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()))
+                    if (isGroupAdmin) {
+                        OutlinedButton(onClick = { rulesDraft = groupRules; showRulesEditor = true }, modifier = Modifier.fillMaxWidth()) {
+                            Text("QAYDALARI REDAKTƏ ET")
+                        }
+                    }
+                    Text("Oxuduqdan sonra yuxarı sağdakı ✕ düyməsinə toxunaraq qrupa keçin.", color = Color(0xFFBDBDBD), fontSize = 12.sp)
+                }
+            }
+        } else if (!nameConfirmed) {
             Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("Qrupa xoş gəlmisiniz", color = Color.White, fontSize = 21.sp, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(12.dp))
