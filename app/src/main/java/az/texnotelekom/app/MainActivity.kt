@@ -609,6 +609,8 @@ private fun GroupChatScreen(onClose: () -> Unit) {
     var status by remember { mutableStateOf("") }
     val messages = remember { mutableStateListOf<GroupChatMessage>() }
     val messageListState = rememberLazyListState()
+    var messagesLoaded by remember { mutableStateOf(false) }
+    var initialMessagesPositioned by remember { mutableStateOf(false) }
     val auth = FirebaseAuth.getInstance()
     val isGroupAdmin = auth.currentUser?.uid == ADMIN_UID
     var showManagementPanel by remember { mutableStateOf(false) }
@@ -704,8 +706,15 @@ private fun GroupChatScreen(onClose: () -> Unit) {
             } catch (e: Exception) { status = "Səs yazısı başlatılmadı: ${e.localizedMessage}" }
         } else status = "Səs yazmaq üçün mikrofon icazəsi lazımdır."
     }
-    LaunchedEffect(messages.lastOrNull()?.id) {
-        if (messages.isNotEmpty()) messageListState.animateScrollToItem(messages.lastIndex)
+    LaunchedEffect(messagesLoaded, messages.lastOrNull()?.id, nameConfirmed, showGroupRules) {
+        if (messagesLoaded && nameConfirmed && !showGroupRules && messages.isNotEmpty()) {
+            if (!initialMessagesPositioned) {
+                messageListState.scrollToItem(messages.lastIndex)
+                initialMessagesPositioned = true
+            } else {
+                messageListState.animateScrollToItem(messages.lastIndex)
+            }
+        }
     }
 
     DisposableEffect(Unit) {
@@ -714,15 +723,17 @@ private fun GroupChatScreen(onClose: () -> Unit) {
             .limit(200)
             .addSnapshotListener { snap, error ->
                 if (error == null && snap != null) {
-                    messages.clear()
-                    snap.documents.forEach { d ->
-                        messages.add(GroupChatMessage(
+                    val loadedMessages = snap.documents.map { d ->
+                        GroupChatMessage(
                             d.id, d.getString("uid") ?: "", d.getString("nickname") ?: "İstifadəçi",
                             d.getString("text") ?: "", d.getString("image_url") ?: "", d.getString("audio_url") ?: "",
                             d.getTimestamp("created_at")?.toDate()?.time ?: 0L,
                             d.getString("reply_to_id") ?: "", d.getString("reply_to_nickname") ?: "", d.getString("reply_to_text") ?: ""
-                        ))
+                        )
                     }
+                    messages.clear()
+                    messages.addAll(loadedMessages)
+                    messagesLoaded = true
                 } else if (error != null) status = "Mesajlar yüklənmədi: ${error.localizedMessage}"
             }
         onDispose {
