@@ -778,24 +778,22 @@ private fun GroupChatScreen(onClose: () -> Unit) {
         Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
             Text("‹", color = Color.White, fontSize = 34.sp, modifier = Modifier.clickable { onClose() }.padding(horizontal = 8.dp))
             Image(painter = painterResource(R.drawable.texno_support_badge), contentDescription = "TEXNO DƏSTƏK QRUPU", modifier = Modifier.size(42.dp).clip(CircleShape), contentScale = ContentScale.Crop)
-            Column(
-                Modifier.weight(1f).padding(start = 10.dp),
-                verticalArrangement = Arrangement.spacedBy(3.dp)
-            ) {
+            Column(Modifier.weight(1f).padding(start = 10.dp)) {
                 Text("TEXNO DƏSTƏK QRUPU", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Black)
                 Text("Ümumi söhbət", color = Color(0xFFBDBDBD), fontSize = 11.sp)
-                Text(
-                    "📋 QRUP QAYDALARI",
-                    color = Color(0xFFFFD36A),
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.clickable { showGroupRules = true }
-                )
             }
             if (isGroupAdmin) {
                 Text("⋮", color = Color.White, fontSize = 26.sp,
                     modifier = Modifier.clickable { showManagementPanel = !showManagementPanel }.padding(horizontal = 8.dp))
             }
+        }
+        Row(
+            Modifier.fillMaxWidth().clickable { showGroupRules = true }.padding(start = 70.dp, end = 16.dp, top = 0.dp, bottom = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("📋", fontSize = 13.sp)
+            Spacer(Modifier.width(6.dp))
+            Text("QRUP QAYDALARI", color = Color(0xFFFFD36A), fontSize = 12.sp, fontWeight = FontWeight.Bold)
         }
         if (isGroupAdmin && showManagementPanel) {
             Card(
