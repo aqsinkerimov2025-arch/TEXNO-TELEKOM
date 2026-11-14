@@ -1739,7 +1739,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                     Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                                         Text(if (loggedIn) sender else "Siz", color = Color.LightGray, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                         if (body.isNotBlank()) Text(body, color = Color.White, fontSize = 14.sp)
-                                        if (audio.isNotBlank()) TextButton(onClick = { try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(audio))) } catch (_: Exception) { error = "Səs açıla bilmədi." } }) { Text("▶ Səs mesajını dinlə", color = Color.White) }
+                                        if (audio.isNotBlank()) GroupVoiceMessagePlayer(audio, System.currentTimeMillis())
                                     }
                                 }
                             }
