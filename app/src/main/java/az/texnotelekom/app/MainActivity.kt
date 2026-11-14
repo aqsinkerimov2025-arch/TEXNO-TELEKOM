@@ -796,7 +796,7 @@ private fun GroupChatScreen(onClose: () -> Unit) {
                 if (status.isNotBlank()) Text(status, color = Color(0xFFFF8A80), fontSize = 12.sp)
             }
         } else {
-            Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(messageScrollState).padding(horizontal = 12.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(messageScrollState).padding(horizontal = 12.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.Bottom)) {
                 if (messages.isEmpty()) Text("Hələ mesaj yoxdur. İlk mesajı sən göndər!", color = Color.LightGray, modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 30.dp))
                 messages.forEach { item ->
                     val adminMessage = item.uid == ADMIN_UID
