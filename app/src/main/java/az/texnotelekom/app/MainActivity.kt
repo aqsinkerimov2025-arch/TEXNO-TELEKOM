@@ -605,6 +605,7 @@ private fun GroupChatScreen(onClose: () -> Unit) {
     var voiceFile by remember { mutableStateOf<File?>(null) }
     var status by remember { mutableStateOf("") }
     val messages = remember { mutableStateListOf<GroupChatMessage>() }
+    val messageScrollState = rememberScrollState()
     val auth = FirebaseAuth.getInstance()
     val isGroupAdmin = auth.currentUser?.uid == ADMIN_UID
     var showManagementPanel by remember { mutableStateOf(false) }
@@ -672,6 +673,10 @@ private fun GroupChatScreen(onClose: () -> Unit) {
             } catch (e: Exception) { status = "Səs yazısı başlatılmadı: ${e.localizedMessage}" }
         } else status = "Səs yazmaq üçün mikrofon icazəsi lazımdır."
     }
+    LaunchedEffect(messages.size) {
+        messageScrollState.animateScrollTo(messageScrollState.maxValue)
+    }
+
     DisposableEffect(Unit) {
         val registration = db.collection("group_messages")
             .orderBy("created_at", com.google.firebase.firestore.Query.Direction.ASCENDING)
@@ -791,7 +796,7 @@ private fun GroupChatScreen(onClose: () -> Unit) {
                 if (status.isNotBlank()) Text(status, color = Color(0xFFFF8A80), fontSize = 12.sp)
             }
         } else {
-            Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 12.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(messageScrollState).padding(horizontal = 12.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (messages.isEmpty()) Text("Hələ mesaj yoxdur. İlk mesajı sən göndər!", color = Color.LightGray, modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 30.dp))
                 messages.forEach { item ->
                     val adminMessage = item.uid == ADMIN_UID
