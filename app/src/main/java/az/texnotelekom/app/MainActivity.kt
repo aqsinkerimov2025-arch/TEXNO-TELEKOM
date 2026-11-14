@@ -1262,29 +1262,21 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
         ) {
             Spacer(Modifier.height(12.dp))
             Column(Modifier.fillMaxWidth().padding(top = 4.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                     if (isAuthorizedDevice) {
                         Text(
                             "ADMİN",
-                            modifier = Modifier.padding(start = 6.dp).clickable { adminOpen = !adminOpen; error = ""; message = "" },
+                            modifier = Modifier.align(Alignment.Center).clickable { adminOpen = !adminOpen; error = ""; message = "" },
                             color = Color.White,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Black,
                             letterSpacing = 1.sp
                         )
-                    } else {
-                        Spacer(Modifier.width(8.dp))
                     }
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        IconButton(
-                            onClick = { searchOpen = !searchOpen; if (!searchOpen) query = "" },
-                            modifier = Modifier.size(42.dp)
-                        ) { Icon(Icons.Default.Search, contentDescription = "Axtarış", tint = Color.White) }
-                    }
+                    IconButton(
+                        onClick = { searchOpen = !searchOpen; if (!searchOpen) query = "" },
+                        modifier = Modifier.align(Alignment.CenterEnd).size(42.dp)
+                    ) { Icon(Icons.Default.Search, contentDescription = "Axtarış", tint = Color.White) }
                 }
                 Spacer(Modifier.height(8.dp))
                 Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
