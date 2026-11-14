@@ -9,6 +9,8 @@ import android.media.MediaRecorder
 import java.io.File
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Paint as AndroidPaint
+import android.graphics.Typeface
 import android.util.Base64
 import java.io.ByteArrayOutputStream
 import android.net.Uri
@@ -70,6 +72,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -561,6 +564,34 @@ private fun SupportBadgeLogo(
                 close()
             }
             drawPath(cap, Color(0xFF050505))
+
+            val native = drawContext.canvas.nativeCanvas
+            val panel = AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG).apply {
+                color = android.graphics.Color.BLACK
+                style = AndroidPaint.Style.FILL
+            }
+            native.drawRoundRect(
+                size.width * 0.235f,
+                size.height * 0.405f,
+                size.width * 0.765f,
+                size.height * 0.755f,
+                size.width * 0.035f,
+                size.height * 0.035f,
+                panel
+            )
+            val titlePaint = AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG).apply {
+                color = android.graphics.Color.WHITE
+                textAlign = AndroidPaint.Align.CENTER
+                typeface = Typeface.create("sans-serif", Typeface.BOLD)
+                textSize = size.height * 0.118f
+                isSubpixelText = true
+            }
+            val subPaint = AndroidPaint(titlePaint).apply {
+                color = android.graphics.Color.rgb(255, 205, 0)
+                textSize = size.height * 0.112f
+            }
+            native.drawText("TEXNO", size.width * 0.5f, size.height * 0.555f, titlePaint)
+            native.drawText("QRUPU", size.width * 0.5f, size.height * 0.685f, subPaint)
         }
     }
 }
