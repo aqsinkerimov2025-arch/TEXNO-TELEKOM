@@ -551,11 +551,13 @@ private fun SupportBadgeLogo(
             contentScale = ContentScale.Crop
         )
         Canvas(Modifier.matchParentSize()) {
+            val canvasWidth = this.size.width
+            val canvasHeight = this.size.height
             // Cover the remaining gray strip at the very bottom of the source badge.
             drawRect(
                 color = Color(0xFF050505),
-                topLeft = Offset(0f, size.height * 0.795f),
-                size = androidx.compose.ui.geometry.Size(size.width, size.height * 0.205f)
+                topLeft = Offset(0f, canvasHeight * 0.795f),
+                size = androidx.compose.ui.geometry.Size(canvasWidth, canvasHeight * 0.205f)
             )
 
             val native = drawContext.canvas.nativeCanvas
@@ -564,28 +566,28 @@ private fun SupportBadgeLogo(
                 style = AndroidPaint.Style.FILL
             }
             native.drawRoundRect(
-                size.width * 0.19f,
-                size.height * 0.385f,
-                size.width * 0.81f,
-                size.height * 0.775f,
-                size.width * 0.045f,
-                size.height * 0.045f,
+                canvasWidth * 0.19f,
+                canvasHeight * 0.385f,
+                canvasWidth * 0.81f,
+                canvasHeight * 0.775f,
+                canvasWidth * 0.045f,
+                canvasHeight * 0.045f,
                 panel
             )
             val titlePaint = AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG).apply {
                 color = android.graphics.Color.WHITE
                 textAlign = AndroidPaint.Align.CENTER
                 typeface = Typeface.create("sans-serif-condensed", Typeface.BOLD)
-                textSize = size.height * 0.095f
+                textSize = canvasHeight * 0.095f
                 isSubpixelText = true
             }
             val subPaint = AndroidPaint(titlePaint).apply {
                 color = android.graphics.Color.rgb(255, 205, 0)
-                textSize = size.height * 0.095f
+                textSize = canvasHeight * 0.095f
             }
             // Smaller lettering and wider line spacing keep the two words clearly separated.
-            native.drawText("TEXNO", size.width * 0.5f, size.height * 0.535f, titlePaint)
-            native.drawText("QRUPU", size.width * 0.5f, size.height * 0.695f, subPaint)
+            native.drawText("TEXNO", canvasWidth * 0.5f, canvasHeight * 0.535f, titlePaint)
+            native.drawText("QRUPU", canvasWidth * 0.5f, canvasHeight * 0.695f, subPaint)
         }
     }
 }
