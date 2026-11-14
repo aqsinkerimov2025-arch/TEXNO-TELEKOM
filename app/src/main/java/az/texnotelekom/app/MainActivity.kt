@@ -551,19 +551,12 @@ private fun SupportBadgeLogo(
             contentScale = ContentScale.Crop
         )
         Canvas(Modifier.matchParentSize()) {
-            val cap = androidx.compose.ui.graphics.Path().apply {
-                moveTo(this@Canvas.size.width * 0.20f, this@Canvas.size.height * 0.83f)
-                quadraticTo(
-                    this@Canvas.size.width * 0.50f,
-                    this@Canvas.size.height * 1.02f,
-                    this@Canvas.size.width * 0.80f,
-                    this@Canvas.size.height * 0.83f
-                )
-                lineTo(this@Canvas.size.width, this@Canvas.size.height)
-                lineTo(0f, this@Canvas.size.height)
-                close()
-            }
-            drawPath(cap, Color(0xFF050505))
+            // Cover the remaining gray strip at the very bottom of the source badge.
+            drawRect(
+                color = Color(0xFF050505),
+                topLeft = Offset(0f, size.height * 0.795f),
+                size = androidx.compose.ui.geometry.Size(size.width, size.height * 0.205f)
+            )
 
             val native = drawContext.canvas.nativeCanvas
             val panel = AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG).apply {
