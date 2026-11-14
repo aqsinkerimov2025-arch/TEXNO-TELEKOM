@@ -39,11 +39,17 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.AttachFile
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.filled.EmojiEmotions
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Search
@@ -1733,22 +1739,52 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                 }
                             }
                         }
-                        OutlinedTextField(
-                            value = feedbackDraft,
-                            onValueChange = { feedbackDraft = it },
-                            modifier = Modifier.fillMaxWidth(),
-                            placeholder = { Text("Mesaj yaz...") },
-                            minLines = 2,
-                            maxLines = 4,
-                            enabled = !feedbackBusy,
-                            colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White, focusedBorderColor = Color.White, unfocusedBorderColor = Color.Gray, cursorColor = Color.White)
-                        )
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Button(onClick = { if (feedbackRecording) stopAndSendFeedbackVoice() else feedbackAudioPermission.launch(android.Manifest.permission.RECORD_AUDIO) }, enabled = !feedbackBusy, modifier = Modifier.weight(1f)) {
-                                Text(if (feedbackRecording) "■ Səsi göndər" else "🎙 Səs yaz")
+                        Row(
+                            modifier = Modifier.fillMaxWidth().background(Color(0xFFF4F0E8), RoundedCornerShape(30.dp)).padding(horizontal = 8.dp, vertical = 7.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(5.dp)
+                        ) {
+                            IconButton(onClick = { feedbackDraft += "🙂" }, modifier = Modifier.size(38.dp)) {
+                                Icon(Icons.Default.EmojiEmotions, contentDescription = "Emoji", tint = Color(0xFF60666B))
                             }
-                            Button(onClick = { sendFeedbackText() }, enabled = !feedbackBusy && feedbackDraft.isNotBlank(), modifier = Modifier.weight(1f)) {
-                                Text(if (feedbackBusy) "Göndərilir..." else "Göndər")
+                            BasicTextField(
+                                value = feedbackDraft,
+                                onValueChange = { feedbackDraft = it },
+                                modifier = Modifier.weight(1f).padding(vertical = 10.dp),
+                                singleLine = true,
+                                enabled = !feedbackBusy && !feedbackRecording,
+                                textStyle = TextStyle(color = Color(0xFF202124), fontSize = 16.sp),
+                                cursorBrush = androidx.compose.ui.graphics.SolidColor(Color(0xFF159B68)),
+                                decorationBox = { innerTextField ->
+                                    Box {
+                                        if (feedbackDraft.isEmpty()) Text("Mesaj", color = Color(0xFF777D80), fontSize = 16.sp)
+                                        innerTextField()
+                                    }
+                                }
+                            )
+                            IconButton(onClick = {
+                                try { context.startActivity(Intent(Intent.ACTION_GET_CONTENT).setType("*/*")) }
+                                catch (_: Exception) { error = "Fayl seçimi açıla bilmədi." }
+                            }, modifier = Modifier.size(36.dp)) {
+                                Icon(Icons.Default.AttachFile, contentDescription = "Fayl seç", tint = Color(0xFF60666B))
+                            }
+                            IconButton(onClick = {
+                                try { context.startActivity(Intent("android.media.action.IMAGE_CAPTURE")) }
+                                catch (_: Exception) { error = "Kamera açıla bilmədi." }
+                            }, modifier = Modifier.size(36.dp)) {
+                                Icon(Icons.Default.CameraAlt, contentDescription = "Kamera", tint = Color(0xFF60666B))
+                            }
+                            IconButton(
+                                onClick = {
+                                    if (feedbackDraft.isNotBlank()) sendFeedbackText()
+                                    else if (feedbackRecording) stopAndSendFeedbackVoice()
+                                    else feedbackAudioPermission.launch(android.Manifest.permission.RECORD_AUDIO)
+                                },
+                                enabled = !feedbackBusy,
+                                modifier = Modifier.size(48.dp).background(Color(0xFF20A66A), RoundedCornerShape(50))
+                            ) {
+                                if (feedbackDraft.isNotBlank()) Icon(Icons.Default.Send, contentDescription = "Göndər", tint = Color.White)
+                                else Icon(Icons.Default.Mic, contentDescription = if (feedbackRecording) "Səsi göndər" else "Səs yaz", tint = Color.White)
                             }
                         }
                         if (feedbackRecording) Text("Səs yazılır... Bitirmək və göndərmək üçün düyməyə toxun.", color = Color(0xFFFFD54F), fontSize = 12.sp)
