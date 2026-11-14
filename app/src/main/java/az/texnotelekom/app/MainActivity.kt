@@ -31,6 +31,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -529,6 +530,41 @@ private fun ProgramIcon(value: String, description: String, size: Int) {
     }
 }
 
+@Composable
+private fun SupportBadgeLogo(
+    size: androidx.compose.ui.unit.Dp,
+    modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null
+) {
+    Box(
+        modifier = modifier.size(size).clip(CircleShape).then(
+            if (onClick != null) Modifier.clickable { onClick() } else Modifier
+        )
+    ) {
+        Image(
+            painter = painterResource(R.drawable.texno_support_badge),
+            contentDescription = "TEXNO DƏSTƏK QRUPU",
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+        Canvas(Modifier.matchParentSize()) {
+            val cap = androidx.compose.ui.graphics.Path().apply {
+                moveTo(this@Canvas.size.width * 0.20f, this@Canvas.size.height * 0.83f)
+                quadraticTo(
+                    this@Canvas.size.width * 0.50f,
+                    this@Canvas.size.height * 1.02f,
+                    this@Canvas.size.width * 0.80f,
+                    this@Canvas.size.height * 0.83f
+                )
+                lineTo(this@Canvas.size.width, this@Canvas.size.height)
+                lineTo(0f, this@Canvas.size.height)
+                close()
+            }
+            drawPath(cap, Color(0xFF050505))
+        }
+    }
+}
+
 class MainActivity : ComponentActivity() {
     private var updateDownloadId: Long = -1L
     private var pendingUpdateUrl: String? = null
@@ -777,7 +813,7 @@ private fun GroupChatScreen(onClose: () -> Unit) {
     Column(Modifier.fillMaxSize().background(Color(0xFF101010)).statusBarsPadding().navigationBarsPadding().imePadding()) {
         Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
             Text("‹", color = Color.White, fontSize = 34.sp, modifier = Modifier.clickable { onClose() }.padding(horizontal = 8.dp))
-            Image(painter = painterResource(R.drawable.texno_support_badge), contentDescription = "TEXNO DƏSTƏK QRUPU", modifier = Modifier.size(42.dp).clip(CircleShape), contentScale = ContentScale.Crop)
+            SupportBadgeLogo(size = 42.dp)
             Column(Modifier.weight(1f).padding(start = 10.dp)) {
                 Text("TEXNO DƏSTƏK QRUPU", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Black)
                 Text("Ümumi söhbət", color = Color(0xFFBDBDBD), fontSize = 11.sp)
@@ -1621,12 +1657,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                         )
                     }
                     Row(Modifier.align(Alignment.CenterEnd), verticalAlignment = Alignment.CenterVertically) {
-                        Image(
-                            painter = painterResource(R.drawable.texno_support_badge),
-                            contentDescription = "TEXNO DƏSTƏK QRUPU",
-                            modifier = Modifier.size(45.dp).clip(CircleShape).clickable { showGroupChat = true },
-                            contentScale = ContentScale.Crop
-                        )
+                        SupportBadgeLogo(size = 45.dp, onClick = { showGroupChat = true })
                         IconButton(
                             onClick = { searchOpen = !searchOpen; if (!searchOpen) query = "" },
                             modifier = Modifier.size(42.dp)
