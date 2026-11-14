@@ -1616,7 +1616,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                         Image(
                             painter = painterResource(R.drawable.texno_support_badge),
                             contentDescription = "TEXNO DƏSTƏK QRUPU",
-                            modifier = Modifier.size(34.dp).clip(CircleShape).clickable { showGroupChat = true },
+                            modifier = Modifier.size(45.dp).clip(CircleShape).clickable { showGroupChat = true },
                             contentScale = ContentScale.Crop
                         )
                         IconButton(
