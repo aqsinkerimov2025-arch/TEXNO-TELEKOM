@@ -1311,10 +1311,20 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                         maxLines = 1
                     )
                 }
-                Box(
-                    Modifier.fillMaxWidth().padding(top = 8.dp).clickable { revealDeviceCodeButton = !revealDeviceCodeButton },
-                    contentAlignment = Alignment.Center
-                ) { TexnoTelekomLogo(size = 78.dp) }
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp).clickable { revealDeviceCodeButton = !revealDeviceCodeButton },
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TexnoTelekomLogo(size = 78.dp)
+                    Spacer(Modifier.width(14.dp))
+                    Image(
+                        painter = painterResource(id = R.drawable.texno_melumat_logo),
+                        contentDescription = "TEXNOMƏLUMAT loqosu",
+                        modifier = Modifier.size(78.dp),
+                        contentScale = ContentScale.Fit
+                    )
+                }
                 if (searchOpen) {
                     OutlinedTextField(
                         value = query,
