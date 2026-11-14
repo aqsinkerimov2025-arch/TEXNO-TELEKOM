@@ -1326,12 +1326,17 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                 ) {
                     TexnoTelekomLogo(size = 78.dp)
                     Spacer(Modifier.width(14.dp))
-                    Image(
-                        painter = painterResource(id = R.drawable.texno_melumat_logo),
-                        contentDescription = "TEXNOMƏLUMAT loqosu",
+                    Box(
                         modifier = Modifier.size(78.dp).clip(CircleShape),
-                        contentScale = ContentScale.Crop
-                    )
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.texno_melumat_logo),
+                            contentDescription = "TEXNOMƏLUMAT loqosu",
+                            modifier = Modifier.size(112.dp),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
                 }
                 if (searchOpen) {
                     OutlinedTextField(
