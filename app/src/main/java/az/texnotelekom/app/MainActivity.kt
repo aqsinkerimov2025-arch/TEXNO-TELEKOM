@@ -51,6 +51,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.Modifier
@@ -1321,8 +1323,8 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                     Image(
                         painter = painterResource(id = R.drawable.texno_melumat_logo),
                         contentDescription = "TEXNOMƏLUMAT loqosu",
-                        modifier = Modifier.size(78.dp),
-                        contentScale = ContentScale.Fit
+                        modifier = Modifier.size(78.dp).clip(CircleShape),
+                        contentScale = ContentScale.Crop
                     )
                 }
                 if (searchOpen) {
