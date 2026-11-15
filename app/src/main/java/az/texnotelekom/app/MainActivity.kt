@@ -1456,8 +1456,10 @@ private fun GroupManagementAdminPanel() {
     var subtitle by remember { mutableStateOf("Ümumi söhbət") }
     var subtitleDraft by remember { mutableStateOf("") }
     var editingSubtitle by remember { mutableStateOf(false) }
-    var managerUid by remember { mutableStateOf("") }
     var managers by remember { mutableStateOf<List<String>>(emptyList()) }
+    var groupUsers by remember { mutableStateOf<List<Pair<String, String>>>(emptyList()) }
+    var selectedUser by remember { mutableStateOf<Pair<String, String>?>(null) }
+    var showUserPicker by remember { mutableStateOf(false) }
     var exceptionUid by remember { mutableStateOf("") }
     var showException by remember { mutableStateOf(false) }
     var showClearConfirm by remember { mutableStateOf(false) }
@@ -1494,6 +1496,13 @@ private fun GroupManagementAdminPanel() {
             slowMode = (d.getLong("slow_mode_seconds") ?: 0L).toInt()
         }
         db.collection("group_managers").get().addOnSuccessListener { managers = it.documents.map { doc -> doc.id }.filter { it != ADMIN_UID } }
+        db.collection("group_messages").get().addOnSuccessListener { snap ->
+            groupUsers = snap.documents.mapNotNull { doc ->
+                val userId = doc.getString("uid").orEmpty()
+                val name = doc.getString("nickname").orEmpty().trim()
+                if (userId.isNotBlank() && name.isNotBlank() && userId != ADMIN_UID) userId to name else null
+            }.distinctBy { it.first }.sortedBy { it.second.lowercase() }
+        }
         db.collection("group_settings").document("rules").get()
             .addOnSuccessListener { rules = it.getString("text") ?: "" }
     }
@@ -1547,27 +1556,58 @@ private fun GroupManagementAdminPanel() {
         }
         HorizontalDivider()
         Text("ADMİNLƏRİ İDARƏ ET", color = Color(0xFFFFD36A), fontWeight = FontWeight.Bold)
+
         managers.forEach { manager ->
+            val displayName = groupUsers.firstOrNull { it.first == manager }?.second ?: "Adı tapılmadı"
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(manager, color = Color.LightGray, fontSize = 11.sp, modifier = Modifier.weight(1f))
+                Text(displayName, color = Color.LightGray, fontSize = 13.sp, modifier = Modifier.weight(1f))
                 TextButton(onClick = {
-                    db.collection("group_managers").document(manager).delete().addOnSuccessListener { managers = managers - manager; status = "Adminlik ləğv edildi." }
+                    db.collection("group_managers").document(manager).delete().addOnSuccessListener { managers = managers - manager; status = "${displayName} adlı istifadəçinin adminliyi ləğv edildi." }
                 }) { Text("LƏĞV ET", color = Color(0xFFFF7777)) }
             }
         }
-        var showAddManager by remember { mutableStateOf(false) }
-        if (showAddManager) {
-            OutlinedTextField(managerUid, { managerUid = it }, modifier = Modifier.fillMaxWidth(), label = { Text("İstifadəçinin UID-si") }, singleLine = true)
-            Button(onClick = {
-                val clean = managerUid.trim()
-                if (clean.isNotBlank() && clean != ADMIN_UID) db.collection("group_managers").document(clean)
-                    .set(mapOf("uid" to clean, "added_at" to FieldValue.serverTimestamp()))
-                    .addOnSuccessListener { managers = (managers + clean).distinct(); managerUid = ""; showAddManager = false; status = "İstifadəçiyə adminlik verildi." }
-                    .addOnFailureListener { status = "Adminlik verilmədi: ${it.localizedMessage}" }
-            }, modifier = Modifier.fillMaxWidth()) { Text("ADMİN ET") }
-            TextButton(onClick = { showAddManager = false }) { Text("LƏĞV ET") }
-        } else if (isOwner || isManager) {
-            OutlinedButton(onClick = { showAddManager = true }, modifier = Modifier.fillMaxWidth()) { Text("＋ İSTİFADƏÇİYƏ ADMİNLİK VER") }
+        if (isOwner || isManager) {
+            OutlinedButton(onClick = { showUserPicker = true }, modifier = Modifier.fillMaxWidth()) {
+                Text("＋ QRUP ÜZVLƏRİNDƏN ADMİN SEÇ")
+            }
+        }
+        if (showUserPicker) {
+            AlertDialog(
+                onDismissRequest = { showUserPicker = false },
+                title = { Text("Qrup üzvünü seç") },
+                text = {
+                    if (groupUsers.isEmpty()) {
+                        Text("Hələ qrupda mesaj yazan istifadəçi tapılmadı.")
+                    } else {
+                        LazyColumn(Modifier.heightIn(max = 420.dp)) {
+                            items(groupUsers) { user ->
+                                Row(Modifier.fillMaxWidth().clickable { selectedUser = user }.padding(vertical = 9.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    Text(user.second, color = Color.White, modifier = Modifier.weight(1f))
+                                    if (selectedUser?.first == user.first) Text("✓", color = Color(0xFFFFD36A))
+                                }
+                                HorizontalDivider(color = Color(0xFF444444))
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        val user = selectedUser
+                        if (user != null && user.first != ADMIN_UID) {
+                            db.collection("group_managers").document(user.first)
+                                .set(mapOf("uid" to user.first, "nickname" to user.second, "added_at" to FieldValue.serverTimestamp()))
+                                .addOnSuccessListener {
+                                    managers = (managers + user.first).distinct()
+                                    showUserPicker = false
+                                    selectedUser = null
+                                    status = "${user.second} adlı istifadəçiyə adminlik verildi."
+                                }
+                                .addOnFailureListener { status = "Adminlik verilmədi: ${it.localizedMessage}" }
+                        }
+                    }, enabled = selectedUser != null) { Text("ADMİN ET") }
+                },
+                dismissButton = { TextButton(onClick = { showUserPicker = false; selectedUser = null }) { Text("LƏĞV ET") } }
+            )
         }
         OutlinedButton(onClick = { showException = true }, modifier = Modifier.fillMaxWidth()) { Text("＋ İSTİSNA ƏLAVƏ ET") }
         if (showException) {
