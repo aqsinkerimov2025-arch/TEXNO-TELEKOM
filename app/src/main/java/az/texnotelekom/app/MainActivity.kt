@@ -203,6 +203,7 @@ private fun GroupVideoPlayer(url: String) {
     val context = LocalContext.current
     var started by remember(url) { mutableStateOf(false) }
     var showFullscreen by remember(url) { mutableStateOf(false) }
+    BackHandler(enabled = showFullscreen) { showFullscreen = false }
     var inlinePlayer by remember(url) { mutableStateOf<VideoView?>(null) }
 
     Box(
