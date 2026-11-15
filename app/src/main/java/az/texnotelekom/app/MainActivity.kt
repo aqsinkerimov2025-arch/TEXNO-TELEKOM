@@ -1385,7 +1385,43 @@ private fun GroupChatScreen(backgroundColor: Color, onClose: () -> Unit) {
         }
     }
 
-    Column(Modifier.fillMaxSize().background(backgroundColor).statusBarsPadding().navigationBarsPadding().imePadding()) {
+    val homeBackgroundBrush = Brush.linearGradient(
+        colorStops = arrayOf(
+            0.00f to Color(0xFF24104F),
+            0.12f to Color(0xFF302078),
+            0.23f to Color(0xFF263F9C),
+            0.38f to Color(0xFF315BC2),
+            0.52f to Color(0xFF182F78),
+            0.66f to Color(0xFF243D91),
+            0.79f to Color(0xFF49309A),
+            0.91f to Color(0xFF302078),
+            1.00f to Color(0xFF24104F)
+        ),
+        start = Offset.Zero,
+        end = Offset(900f, 1500f)
+    )
+    Column(
+        Modifier.fillMaxSize()
+            .background(homeBackgroundBrush)
+            .drawBehind {
+                drawRect(brush = Brush.radialGradient(
+                    colors = listOf(Color(0xFFB8C9FF).copy(alpha = 0.30f), Color(0xFF6D8EFF).copy(alpha = 0.20f), Color.Transparent),
+                    center = Offset(size.width * 0.28f, size.height * 0.78f),
+                    radius = size.maxDimension * 0.62f
+                ))
+                drawRect(brush = Brush.radialGradient(
+                    colors = listOf(Color(0xFF9A7CFF).copy(alpha = 0.28f), Color(0xFF416BDF).copy(alpha = 0.18f), Color.Transparent),
+                    center = Offset(size.width * 0.86f, size.height * 0.42f),
+                    radius = size.maxDimension * 0.58f
+                ))
+                drawRect(brush = Brush.linearGradient(
+                    colors = listOf(Color.Transparent, Color(0xFFB7C9FF).copy(alpha = 0.12f), Color.Transparent),
+                    start = Offset(0f, size.height * 0.84f),
+                    end = Offset(size.width, size.height * 0.58f)
+                ))
+            }
+            .statusBarsPadding().navigationBarsPadding().imePadding()
+    ) {
         Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
             Text("‹", color = Color.White, fontSize = 34.sp, modifier = Modifier.clickable { onClose() }.padding(horizontal = 8.dp))
             SupportBadgeLogo(size = 42.dp)
@@ -1441,7 +1477,7 @@ private fun GroupChatScreen(backgroundColor: Color, onClose: () -> Unit) {
         }
         if (showGroupRules) {
             Column(
-                Modifier.weight(1f).fillMaxWidth().background(backgroundColor).padding(20.dp),
+                Modifier.weight(1f).fillMaxWidth().background(Color.Transparent).padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
