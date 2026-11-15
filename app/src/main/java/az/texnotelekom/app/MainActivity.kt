@@ -202,42 +202,55 @@ private fun uploadGroupVideo(context: Context, uri: Uri, callback: (Result<Strin
 @Composable
 private fun GroupVideoPlayer(url: String) {
     val context = LocalContext.current
-    var started by remember(url) { mutableStateOf(false) }
     var showFullscreen by remember(url) { mutableStateOf(false) }
-    BackHandler(enabled = showFullscreen) { showFullscreen = false }
-    var inlinePlayer by remember(url) { mutableStateOf<VideoView?>(null) }
+    var fullscreenPlayer by remember(url) { mutableStateOf<VideoView?>(null) }
+    var isPrepared by remember(url) { mutableStateOf(false) }
+    var isPlaying by remember(url) { mutableStateOf(false) }
+    var hasCompleted by remember(url) { mutableStateOf(false) }
+
+    fun closeFullscreen() {
+        fullscreenPlayer?.pause()
+        showFullscreen = false
+        isPlaying = false
+    }
+    BackHandler(enabled = showFullscreen) { closeFullscreen() }
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(220.dp)
             .clip(RoundedCornerShape(12.dp))
-            .clickable { showFullscreen = true }
+            .background(Color.Black),
+        contentAlignment = Alignment.Center
     ) {
         AndroidView(
             modifier = Modifier.fillMaxSize(),
             factory = {
                 VideoView(context).apply {
-                    inlinePlayer = this
-                    setMediaController(MediaController(context).also { it.setAnchorView(this) })
                     setVideoURI(Uri.parse(url))
-                    setOnPreparedListener { player -> player.isLooping = false }
-                }
-            },
-            update = { view ->
-                if (showFullscreen) {
-                    if (view.isPlaying) view.pause()
-                } else if (!started) {
-                    started = true
-                    view.start()
+                    setOnPreparedListener { player ->
+                        player.isLooping = false
+                        seekTo(1)
+                        pause()
+                    }
                 }
             }
+        )
+        Text(
+            "⛶",
+            color = Color.White,
+            fontSize = 54.sp,
+            modifier = Modifier
+                .align(Alignment.Center)
+                .clickable { showFullscreen = true }
+                .background(Color.Black.copy(alpha = 0.42f), CircleShape)
+                .padding(horizontal = 18.dp, vertical = 8.dp)
         )
     }
 
     if (showFullscreen) {
         Dialog(
-            onDismissRequest = { showFullscreen = false },
+            onDismissRequest = { closeFullscreen() },
             properties = DialogProperties(
                 usePlatformDefaultWidth = false,
                 decorFitsSystemWindows = false
@@ -253,24 +266,46 @@ private fun GroupVideoPlayer(url: String) {
                     modifier = Modifier.fillMaxSize(),
                     factory = {
                         VideoView(context).apply {
-                            setMediaController(MediaController(context).also { it.setAnchorView(this) })
+                            fullscreenPlayer = this
                             setVideoURI(Uri.parse(url))
                             setOnPreparedListener { player ->
                                 player.isLooping = false
-                                start()
+                                seekTo(1)
+                                isPrepared = true
+                            }
+                            setOnCompletionListener {
+                                isPlaying = false
+                                hasCompleted = true
                             }
                         }
                     }
                 )
+                if (isPrepared && !isPlaying) {
+                    Text(
+                        "▶",
+                        color = Color.White,
+                        fontSize = 48.sp,
+                        modifier = Modifier
+                            .background(Color.Black.copy(alpha = 0.48f), CircleShape)
+                            .clickable {
+                                val player = fullscreenPlayer
+                                if (player != null) {
+                                    if (hasCompleted) {
+                                        player.seekTo(0)
+                                        hasCompleted = false
+                                    }
+                                    player.start()
+                                    isPlaying = true
+                                }
+                            }
+                            .padding(horizontal = 26.dp, vertical = 18.dp)
+                    )
+                }
             }
         }
     }
-
-    LaunchedEffect(showFullscreen) {
-        if (showFullscreen) inlinePlayer?.pause()
-        else if (started) inlinePlayer?.start()
-    }
 }
+
 
 private data class StickerUpload(val url: String, val mimeType: String, val fileName: String)
 
