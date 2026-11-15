@@ -1460,6 +1460,11 @@ private fun GroupManagementAdminPanel() {
     var groupUsers by remember { mutableStateOf<List<Pair<String, String>>>(emptyList()) }
     var selectedUser by remember { mutableStateOf<Pair<String, String>?>(null) }
     var showUserPicker by remember { mutableStateOf(false) }
+    var grantMedia by remember { mutableStateOf(false) }
+    var grantAddUsers by remember { mutableStateOf(false) }
+    var grantPin by remember { mutableStateOf(false) }
+    var grantEditTags by remember { mutableStateOf(false) }
+    var grantChangeInfo by remember { mutableStateOf(false) }
     var exceptionUid by remember { mutableStateOf("") }
     var showException by remember { mutableStateOf(false) }
     var showClearConfirm by remember { mutableStateOf(false) }
@@ -1566,27 +1571,48 @@ private fun GroupManagementAdminPanel() {
                 }) { Text("LƏĞV ET", color = Color(0xFFFF7777)) }
             }
         }
-        if (isOwner || isManager) {
-            OutlinedButton(onClick = { showUserPicker = true }, modifier = Modifier.fillMaxWidth()) {
+        if (isOwner) {
+            OutlinedButton(onClick = {
+                selectedUser = null
+                grantMedia = false; grantAddUsers = false; grantPin = false; grantEditTags = false; grantChangeInfo = false
+                showUserPicker = true
+            }, modifier = Modifier.fillMaxWidth()) {
                 Text("＋ QRUP ÜZVLƏRİNDƏN ADMİN SEÇ")
             }
         }
         if (showUserPicker) {
             AlertDialog(
                 onDismissRequest = { showUserPicker = false },
-                title = { Text("Qrup üzvünü seç") },
+                title = { Text("Qrup üzvünü və icazələri seç") },
                 text = {
-                    if (groupUsers.isEmpty()) {
-                        Text("Hələ qrupda mesaj yazan istifadəçi tapılmadı.")
-                    } else {
-                        LazyColumn(Modifier.heightIn(max = 420.dp)) {
-                            items(groupUsers) { user ->
-                                Row(Modifier.fillMaxWidth().clickable { selectedUser = user }.padding(vertical = 9.dp), verticalAlignment = Alignment.CenterVertically) {
-                                    Text(user.second, color = Color.White, modifier = Modifier.weight(1f))
-                                    if (selectedUser?.first == user.first) Text("✓", color = Color(0xFFFFD36A))
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        if (groupUsers.isEmpty()) {
+                            Text("Hələ qrupda mesaj yazan istifadəçi tapılmadı.")
+                        } else {
+                            LazyColumn(Modifier.heightIn(max = 220.dp)) {
+                                items(groupUsers) { user ->
+                                    Row(Modifier.fillMaxWidth().clickable { selectedUser = user }.padding(vertical = 9.dp), verticalAlignment = Alignment.CenterVertically) {
+                                        Text(user.second, color = Color.White, modifier = Modifier.weight(1f))
+                                        if (selectedUser?.first == user.first) Text("✓", color = Color(0xFFFFD36A))
+                                    }
+                                    HorizontalDivider(color = Color(0xFF444444))
                                 }
-                                HorizontalDivider(color = Color(0xFF444444))
                             }
+                        }
+                        if (selectedUser != null) {
+                            Text("VERİLƏCƏK İCAZƏLƏR", color = Color(0xFFFFD36A), fontWeight = FontWeight.Bold)
+                            @Composable
+                            fun Permission(label: String, checked: Boolean, change: (Boolean) -> Unit) {
+                                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                    Text(label, color = Color.White, fontSize = 13.sp, modifier = Modifier.weight(1f))
+                                    Switch(checked = checked, onCheckedChange = change)
+                                }
+                            }
+                            Permission("Media göndərmək", grantMedia) { grantMedia = it }
+                            Permission("İstifadəçi əlavə etmək", grantAddUsers) { grantAddUsers = it }
+                            Permission("Mesajları sabitləmək", grantPin) { grantPin = it }
+                            Permission("Öz etiketlərini redaktə etmək", grantEditTags) { grantEditTags = it }
+                            Permission("Qrup məlumatlarını dəyişmək", grantChangeInfo) { grantChangeInfo = it }
                         }
                     }
                 },
@@ -1595,12 +1621,23 @@ private fun GroupManagementAdminPanel() {
                         val user = selectedUser
                         if (user != null && user.first != ADMIN_UID) {
                             db.collection("group_managers").document(user.first)
-                                .set(mapOf("uid" to user.first, "nickname" to user.second, "added_at" to FieldValue.serverTimestamp()))
+                                .set(mapOf(
+                                    "uid" to user.first,
+                                    "nickname" to user.second,
+                                    "added_at" to FieldValue.serverTimestamp(),
+                                    "permissions" to mapOf(
+                                        "media" to grantMedia,
+                                        "add_users" to grantAddUsers,
+                                        "pin_messages" to grantPin,
+                                        "edit_own_tags" to grantEditTags,
+                                        "change_group_info" to grantChangeInfo
+                                    )
+                                ))
                                 .addOnSuccessListener {
                                     managers = (managers + user.first).distinct()
                                     showUserPicker = false
                                     selectedUser = null
-                                    status = "${user.second} adlı istifadəçiyə adminlik verildi."
+                                    status = "${user.second} adlı istifadəçiyə seçilmiş icazələr verildi."
                                 }
                                 .addOnFailureListener { status = "Adminlik verilmədi: ${it.localizedMessage}" }
                         }
