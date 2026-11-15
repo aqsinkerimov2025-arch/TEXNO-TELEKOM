@@ -314,7 +314,9 @@ private fun GroupVideoPlayer(url: String) {
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .fillMaxWidth()
-                        .background(Color.Black.copy(alpha = 0.82f))
+                        // Keep the YouTube-style controls above Android's system navigation bar.
+                        .navigationBarsPadding()
+                        .background(Color.Black.copy(alpha = 0.92f))
                         .padding(horizontal = 10.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(7.dp)
