@@ -958,6 +958,8 @@ private fun GroupChatScreen(onClose: () -> Unit) {
     val messageListState = rememberLazyListState()
     var messagesLoaded by remember { mutableStateOf(false) }
     var initialMessagesPositioned by remember { mutableStateOf(false) }
+    var groupMembers by remember { mutableStateOf<List<Triple<String, String, Boolean>>>(emptyList()) }
+    var showMembersDialog by remember { mutableStateOf(false) }
     val auth = FirebaseAuth.getInstance()
     val isOwner = auth.currentUser?.uid == ADMIN_UID
     var isGroupAdmin by remember { mutableStateOf(isOwner) }
@@ -1204,6 +1206,41 @@ private fun GroupChatScreen(onClose: () -> Unit) {
         }
     }
 
+    DisposableEffect(nameConfirmed, nickname, auth.currentUser?.uid) {
+        val currentUser = auth.currentUser
+        if (!nameConfirmed || currentUser == null || nickname.trim().length < 2) {
+            onDispose { }
+        } else {
+            val presenceRef = db.collection("group_presence").document(currentUser.uid)
+            presenceRef.set(
+                mapOf(
+                    "uid" to currentUser.uid,
+                    "nickname" to nickname.trim().take(24),
+                    "online" to true,
+                    "last_seen" to FieldValue.serverTimestamp()
+                ),
+                com.google.firebase.firestore.SetOptions.merge()
+            )
+            val presenceListener = db.collection("group_presence")
+                .addSnapshotListener { snapshot, error ->
+                    if (error == null && snapshot != null) {
+                        groupMembers = snapshot.documents.mapNotNull { doc ->
+                            val userId = doc.getString("uid") ?: doc.id
+                            val name = doc.getString("nickname")?.trim().orEmpty()
+                            if (name.isBlank()) null else Triple(userId, name, doc.getBoolean("online") ?: false)
+                        }.distinctBy { it.first }.sortedBy { it.second.lowercase() }
+                    }
+                }
+            onDispose {
+                presenceListener.remove()
+                presenceRef.set(
+                    mapOf("online" to false, "last_seen" to FieldValue.serverTimestamp()),
+                    com.google.firebase.firestore.SetOptions.merge()
+                )
+            }
+        }
+    }
+
     DisposableEffect(Unit) {
         val registration = db.collection("group_messages")
             .orderBy("created_at", com.google.firebase.firestore.Query.Direction.ASCENDING)
@@ -1297,6 +1334,16 @@ private fun GroupChatScreen(onClose: () -> Unit) {
             }
         }
         Row(
+            Modifier.fillMaxWidth().clickable { showMembersDialog = true }.padding(start = 70.dp, end = 16.dp, top = 0.dp, bottom = 7.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("👥 Üzvlər: ${groupMembers.size}", color = Color(0xFFE0E0E0), fontSize = 11.sp)
+            Spacer(Modifier.width(12.dp))
+            Text("🟢 Onlayn: ${groupMembers.count { it.third }}", color = Color(0xFF72D99A), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.weight(1f))
+            Text("SİYAHI", color = Color(0xFFFFD36A), fontSize = 10.sp, fontWeight = FontWeight.Bold)
+        }
+        Row(
             Modifier.fillMaxWidth().clickable { showGroupRules = true }.padding(start = 70.dp, end = 16.dp, top = 0.dp, bottom = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -1305,6 +1352,32 @@ private fun GroupChatScreen(onClose: () -> Unit) {
             Text("QRUP QAYDALARI", color = Color(0xFFFFD36A), fontSize = 12.sp, fontWeight = FontWeight.Bold)
         }
         HorizontalDivider(color = Color(0xFF303030))
+        if (showMembersDialog) {
+            AlertDialog(
+                onDismissRequest = { showMembersDialog = false },
+                title = {
+                    Column {
+                        Text("QRUP İSTİFADƏÇİLƏRİ")
+                        Text("Cəmi: ${groupMembers.size} · Aktiv: ${groupMembers.count { it.third }}", fontSize = 12.sp, color = Color(0xFF72D99A))
+                    }
+                },
+                text = {
+                    if (groupMembers.isEmpty()) Text("Hələ qrup üzvü yoxdur.")
+                    else LazyColumn(Modifier.heightIn(max = 440.dp)) {
+                        items(groupMembers, key = { it.first }) { member ->
+                            Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Text(member.second, color = Color.White, modifier = Modifier.weight(1f))
+                                Text(if (member.third) "ONLAYN" else "OFLAYN",
+                                    color = if (member.third) Color(0xFF72D99A) else Color(0xFFAAAAAA),
+                                    fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+                            HorizontalDivider(color = Color(0xFF444444))
+                        }
+                    }
+                },
+                confirmButton = { TextButton(onClick = { showMembersDialog = false }) { Text("BAĞLA") } }
+            )
+        }
         if (showGroupRules) {
             Column(
                 Modifier.weight(1f).fillMaxWidth().background(Color(0xFF151515)).padding(20.dp),
