@@ -1822,6 +1822,8 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     var phoneInfoStickerBusy by remember { mutableStateOf(false) }
     var phoneInfoBusy by remember { mutableStateOf(false) }
     var adminOpen by remember { mutableStateOf(false) }
+    var showGroupManagementAdmin by remember { mutableStateOf(false) }
+    BackHandler(enabled = showGroupManagementAdmin) { showGroupManagementAdmin = false }
     var showSiteTextEditor by remember { mutableStateOf(false) }
     var designAdminOpen by remember { mutableStateOf(false) }
     var showDeviceInfo by remember { mutableStateOf(false) }
@@ -2327,6 +2329,22 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     ) {
         if (showGroupChat) {
             GroupChatScreen(onClose = { showGroupChat = false })
+        } else if (showGroupManagementAdmin && loggedIn && isAuthorizedDevice) {
+            Column(
+                Modifier.fillMaxSize()
+                    .background(liveBg)
+                    .statusBarsPadding()
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Text("‹", color = Color.White, fontSize = 32.sp,
+                        modifier = Modifier.clickable { showGroupManagementAdmin = false }.padding(end = 12.dp))
+                    Text("QRUP RƏHBƏRLİYİ", color = Color(0xFFFFD36A), fontSize = 20.sp, fontWeight = FontWeight.Black)
+                }
+                GroupManagementAdminPanel()
+            }
         } else {
         Column(
             Modifier.fillMaxSize()
@@ -2531,14 +2549,8 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                     }
                             }, enabled = email.isNotBlank() && password.isNotBlank()) { Text("Daxil ol") }
                         } else {
-                            var showGroupManagementAdmin by remember { mutableStateOf(false) }
-                            OutlinedButton(onClick = { showGroupManagementAdmin = !showGroupManagementAdmin }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFFD36A))) {
-                                Text(if (showGroupManagementAdmin) "QRUP RƏHBƏRLİYİNİ BAĞLA ▲" else "QRUP RƏHBƏRLİYİ ▼", fontWeight = FontWeight.Bold)
-                            }
-                            if (showGroupManagementAdmin) {
-                                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF242424)), modifier = Modifier.fillMaxWidth()) {
-                                    Column(Modifier.fillMaxWidth().padding(14.dp)) { GroupManagementAdminPanel() }
-                                }
+                            OutlinedButton(onClick = { showGroupManagementAdmin = true }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFFD36A))) {
+                                Text("QRUP RƏHBƏRLİYİ", fontWeight = FontWeight.Bold)
                             }
                             OutlinedButton(onClick = { designAdminOpen = true }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)) { Text("Canlı dizayn bölməsi") }
                             OutlinedButton(onClick = { showSiteTextEditor = !showSiteTextEditor }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)) {
