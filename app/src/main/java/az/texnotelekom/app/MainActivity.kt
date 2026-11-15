@@ -2037,6 +2037,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     var infoLine2 by remember { mutableStateOf("2️⃣ GOOGLE PLAY'DA OLMAYAN TƏTBİQLƏRİ") }
     var infoLine3 by remember { mutableStateOf("3️⃣ ŞİKAYƏT VƏ REKLAM ÜÇÜN ƏLAQƏ") }
     var whatsappPhone by remember { mutableStateOf("+994558053305") }
+    var homeSignature by remember { mutableStateOf("MR_R3HB3R") }
     val programs = remember { mutableStateListOf<AppItem>() }
     val games = remember { mutableStateListOf<AppItem>() }
     var showGameForm by remember { mutableStateOf(false) }
@@ -2174,6 +2175,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                     infoLine2 = snapshot.getString("line2") ?: infoLine2
                     infoLine3 = snapshot.getString("line3") ?: infoLine3
                     whatsappPhone = snapshot.getString("phone") ?: whatsappPhone
+                    homeSignature = snapshot.getString("home_signature") ?: homeSignature
                     designBgHex = snapshot.getString("design_background") ?: designBgHex
                     designPanelHex = snapshot.getString("design_panel") ?: designPanelHex
                     designAccentHex = snapshot.getString("design_accent") ?: designAccentHex
@@ -2279,6 +2281,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
             "line2" to infoLine2.trim(),
             "line3" to infoLine3.trim(),
             "phone" to whatsappPhone.trim(),
+            "home_signature" to homeSignature.trim(),
             "updated_at" to FieldValue.serverTimestamp()
         )
         db.collection("site_settings").document("content").set(values, SetOptions.merge())
@@ -2709,6 +2712,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                         OutlinedTextField(infoLine2, { infoLine2 = it }, label = { Text("2-ci məlumat sətri") }, modifier = Modifier.fillMaxWidth())
                                         OutlinedTextField(infoLine3, { infoLine3 = it }, label = { Text("3-cü məlumat sətri") }, modifier = Modifier.fillMaxWidth())
                                         OutlinedTextField(whatsappPhone, { whatsappPhone = it }, label = { Text("WhatsApp nömrəsi") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone), modifier = Modifier.fillMaxWidth())
+                                        OutlinedTextField(homeSignature, { homeSignature = it }, label = { Text("Ana ekran proqramist yazısı") }, modifier = Modifier.fillMaxWidth())
                                         Button(onClick = { saveSiteTexts() }, modifier = Modifier.fillMaxWidth()) { Text("Yazıları yadda saxla") }
                                     }
                                 }
@@ -3262,7 +3266,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                     letterSpacing = 2.sp
                 )
                 Text(
-                    "PROQRAMİST { MR_R3HB3R }",
+                    "PROQRAMİST { $homeSignature }",
                     color = Color(0xFFBDBDBD),
                     fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold,
