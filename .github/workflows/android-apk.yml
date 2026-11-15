@@ -1,4 +1,5 @@
 name: Build TEXNO-TELEKOM APK
+# Rebuild with custom draggable fullscreen video seekbar
 # Rebuild after removing group subtitle length limit
 # Build after multiline group subtitle editor update
 # Rebuild for PAYLAŞIMLAR heading update
