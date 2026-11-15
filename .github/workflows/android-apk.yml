@@ -1,4 +1,5 @@
 name: Build TEXNO-TELEKOM APK
+# Rebuild after moving Games below Programs
 # Rebuild after fixing Programs visibility and back navigation
 # Rebuild after moving Programs below TEXNO-MƏLUMAT
 # Rebuild after editable home signature setting
