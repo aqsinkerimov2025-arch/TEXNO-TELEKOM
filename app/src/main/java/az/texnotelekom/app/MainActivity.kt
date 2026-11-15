@@ -1279,6 +1279,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     val context = LocalContext.current
     val db = remember { FirebaseFirestore.getInstance() }
     var showGroupChat by remember { mutableStateOf(false) }
+    BackHandler(enabled = showGroupChat) { showGroupChat = false }
     var groupNickname by remember { mutableStateOf(context.getSharedPreferences("texno_group_chat", Context.MODE_PRIVATE).getString("nickname", "") ?: "") }
     var groupNameConfirmed by remember { mutableStateOf(groupNickname.trim().length >= 2) }
     var groupDraft by remember { mutableStateOf("") }
