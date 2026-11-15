@@ -963,6 +963,60 @@ private fun GroupChatScreen(onClose: () -> Unit) {
     var showManagementPanel by remember { mutableStateOf(false) }
     var showDeleteAllConfirm by remember { mutableStateOf(false) }
     var managementBusy by remember { mutableStateOf(false) }
+    var antiSpamEnabled by remember { mutableStateOf(false) }
+    var allowMedia by remember { mutableStateOf(true) }
+    var allowAddUsers by remember { mutableStateOf(true) }
+    var allowPinMessages by remember { mutableStateOf(false) }
+    var allowEditOwnTags by remember { mutableStateOf(false) }
+    var allowChangeGroupInfo by remember { mutableStateOf(false) }
+    var starsEnabled by remember { mutableStateOf(false) }
+    var slowModeSeconds by remember { mutableIntStateOf(0) }
+    var managerUidDraft by remember { mutableStateOf("") }
+    var showAddManagerDialog by remember { mutableStateOf(false) }
+    var exceptionUidDraft by remember { mutableStateOf("") }
+    var showExceptionDialog by remember { mutableStateOf(false) }
+    var removedUsersCount by remember { mutableIntStateOf(0) }
+    LaunchedEffect(isGroupAdmin) {
+        if (!isGroupAdmin) return@LaunchedEffect
+        db.collection("group_settings").document("admin_controls").get()
+            .addOnSuccessListener { doc ->
+                antiSpamEnabled = doc.getBoolean("anti_spam") ?: false
+                allowMedia = doc.getBoolean("allow_media") ?: true
+                allowAddUsers = doc.getBoolean("allow_add_users") ?: true
+                allowPinMessages = doc.getBoolean("allow_pin_messages") ?: false
+                allowEditOwnTags = doc.getBoolean("allow_edit_own_tags") ?: false
+                allowChangeGroupInfo = doc.getBoolean("allow_change_group_info") ?: false
+                starsEnabled = doc.getBoolean("stars_enabled") ?: false
+                slowModeSeconds = (doc.getLong("slow_mode_seconds") ?: 0L).toInt()
+            }
+        db.collection("group_removed_users").get()
+            .addOnSuccessListener { removedUsersCount = it.size() }
+    }
+    fun saveAdminControl(field: String, value: Any) {
+        if (!isGroupAdmin) return
+        db.collection("group_settings").document("admin_controls")
+            .set(mapOf(field to value, "updated_at" to FieldValue.serverTimestamp()), com.google.firebase.firestore.SetOptions.merge())
+            .addOnFailureListener { status = "Parametr yadda saxlanmadı: ${it.localizedMessage}" }
+    }
+    fun addGroupManager(uid: String) {
+        val cleanUid = uid.trim()
+        if (!isGroupAdmin || cleanUid.isBlank() || cleanUid == auth.currentUser?.uid) return
+        db.collection("group_managers").document(cleanUid)
+            .set(mapOf("uid" to cleanUid, "added_at" to FieldValue.serverTimestamp(),
+                "permissions" to mapOf("media" to allowMedia, "add_users" to allowAddUsers,
+                    "pin_messages" to allowPinMessages, "edit_own_tags" to allowEditOwnTags,
+                    "change_group_info" to allowChangeGroupInfo)))
+            .addOnSuccessListener { showAddManagerDialog = false; managerUidDraft = ""; status = "Rəhbər əlavə edildi." }
+            .addOnFailureListener { status = "Rəhbər əlavə edilmədi: ${it.localizedMessage}" }
+    }
+    fun addGroupException(uid: String) {
+        val cleanUid = uid.trim()
+        if (!isGroupAdmin || cleanUid.isBlank()) return
+        db.collection("group_exceptions").document(cleanUid)
+            .set(mapOf("uid" to cleanUid, "created_at" to FieldValue.serverTimestamp()))
+            .addOnSuccessListener { showExceptionDialog = false; exceptionUidDraft = ""; status = "İstisna əlavə edildi." }
+            .addOnFailureListener { status = "İstisna əlavə edilmədi: ${it.localizedMessage}" }
+    }
     var showGroupRules by remember { mutableStateOf(!prefs.getBoolean("group_rules_seen_v2", false)) }
     var groupRules by remember { mutableStateOf("1. Bir-birinizə hörmətlə yanaşın.\\n2. Təhqir və söyüş yazmayın.\\n3. Reklam və spam paylaşmayın.\\n4. Şəxsi məlumatları icazəsiz paylaşmayın.\\n5. Qrupda mövzuya uyğun mesajlar yazın.") }
     var rulesDraft by remember { mutableStateOf("") }
@@ -1220,8 +1274,59 @@ private fun GroupChatScreen(onClose: () -> Unit) {
                 colors = CardDefaults.cardColors(containerColor = Color(0xFF242424)),
                 shape = RoundedCornerShape(14.dp)
             ) {
-                Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
                     Text("RƏHBƏRLİK PANELİ", color = Color(0xFFFFD36A), fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                    @Composable
+                    fun ControlSwitch(title: String, checked: Boolean, onChange: (Boolean) -> Unit) {
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                            Text(title, color = Color.White, fontSize = 13.sp, modifier = Modifier.weight(1f))
+                            androidx.compose.material3.Switch(checked = checked, onCheckedChange = onChange)
+                        }
+                    }
+                    ControlSwitch("Aqressiv Anti-Spam", antiSpamEnabled) {
+                        antiSpamEnabled = it; saveAdminControl("anti_spam", it)
+                    }
+                    ControlSwitch("Media göndərmə", allowMedia) {
+                        allowMedia = it; saveAdminControl("allow_media", it)
+                    }
+                    ControlSwitch("İstifadəçi əlavə etmək", allowAddUsers) {
+                        allowAddUsers = it; saveAdminControl("allow_add_users", it)
+                    }
+                    ControlSwitch("Mesajları sabitləmək", allowPinMessages) {
+                        allowPinMessages = it; saveAdminControl("allow_pin_messages", it)
+                    }
+                    ControlSwitch("Öz etiketlərini redaktə etmək", allowEditOwnTags) {
+                        allowEditOwnTags = it; saveAdminControl("allow_edit_own_tags", it)
+                    }
+                    ControlSwitch("Qrup məlumatlarını dəyişmək", allowChangeGroupInfo) {
+                        allowChangeGroupInfo = it; saveAdminControl("allow_change_group_info", it)
+                    }
+                    ControlSwitch("Mesajları ulduzla ödənişli etmək", starsEnabled) {
+                        starsEnabled = it; saveAdminControl("stars_enabled", it)
+                    }
+                    Text("YAVAŞ REJİM", color = Color(0xFFFFD36A), fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    val slowOptions = listOf(0 to "Bağlı", 5 to "5 san", 10 to "10 san", 30 to "30 san",
+                        60 to "1 dəq", 300 to "5 dəq", 900 to "15 dəq", 3600 to "1 saat")
+                    androidx.compose.foundation.layout.FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(5.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        slowOptions.forEach { (seconds, label) ->
+                            androidx.compose.material3.FilterChip(
+                                selected = slowModeSeconds == seconds,
+                                onClick = { slowModeSeconds = seconds; saveAdminControl("slow_mode_seconds", seconds) },
+                                label = { Text(label, fontSize = 11.sp) }
+                            )
+                        }
+                    }
+                    Text("Rəhbərləri idarə et", color = Color(0xFFFFD36A), fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    OutlinedButton(onClick = { showAddManagerDialog = true }, modifier = Modifier.fillMaxWidth()) {
+                        Text("＋ RƏHBƏR ƏLAVƏ ET")
+                    }
+                    OutlinedButton(onClick = { showExceptionDialog = true }, modifier = Modifier.fillMaxWidth()) {
+                        Text("＋ İSTİSNA ƏLAVƏ ET")
+                    }
+                    Text("Çıxarılan istifadəçilər: $removedUsersCount", color = Color.LightGray, fontSize = 12.sp)
                     Button(
                         onClick = { showDeleteAllConfirm = true },
                         enabled = !managementBusy,
@@ -1234,6 +1339,38 @@ private fun GroupChatScreen(onClose: () -> Unit) {
             }
         }
         HorizontalDivider(color = Color(0xFF303030))
+        if (showAddManagerDialog && isGroupAdmin) {
+            AlertDialog(
+                onDismissRequest = { showAddManagerDialog = false },
+                title = { Text("Rəhbər əlavə et") },
+                text = {
+                    OutlinedTextField(
+                        value = managerUidDraft,
+                        onValueChange = { managerUidDraft = it },
+                        label = { Text("İstifadəçinin UID-si") },
+                        singleLine = true
+                    )
+                },
+                confirmButton = { TextButton(onClick = { addGroupManager(managerUidDraft) }) { Text("Əlavə et") } },
+                dismissButton = { TextButton(onClick = { showAddManagerDialog = false }) { Text("Ləğv et") } }
+            )
+        }
+        if (showExceptionDialog && isGroupAdmin) {
+            AlertDialog(
+                onDismissRequest = { showExceptionDialog = false },
+                title = { Text("İstisna əlavə et") },
+                text = {
+                    OutlinedTextField(
+                        value = exceptionUidDraft,
+                        onValueChange = { exceptionUidDraft = it },
+                        label = { Text("İstifadəçinin UID-si") },
+                        singleLine = true
+                    )
+                },
+                confirmButton = { TextButton(onClick = { addGroupException(exceptionUidDraft) }) { Text("Əlavə et") } },
+                dismissButton = { TextButton(onClick = { showExceptionDialog = false }) { Text("Ləğv et") } }
+            )
+        }
         if (showDeleteAllConfirm && isGroupAdmin) {
             AlertDialog(
                 onDismissRequest = { if (!managementBusy) showDeleteAllConfirm = false },
