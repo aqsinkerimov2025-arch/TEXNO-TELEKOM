@@ -1554,7 +1554,7 @@ private fun GroupChatScreen(backgroundColor: Color, onClose: () -> Unit) {
                                 if (item.createdAt > 0L) {
                                     Text(
                                         java.text.SimpleDateFormat("dd.MM.yyyy HH:mm", java.util.Locale.getDefault()).format(java.util.Date(item.createdAt)),
-                                        color = Color(0xFFBDBDBD),
+                                        color = Color.White,
                                         fontSize = 10.sp,
                                         modifier = Modifier.align(Alignment.End)
                                     )
@@ -1888,6 +1888,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     var feedbackRecorder by remember { mutableStateOf<MediaRecorder?>(null) }
     var feedbackFile by remember { mutableStateOf<File?>(null) }
     var showFeedback by remember { mutableStateOf(false) }
+    var showClearFeedbackConfirm by remember { mutableStateOf(false) }
     val feedbackItems = remember { mutableStateListOf<String>() }
     fun startFeedbackRecording() {
         try {
@@ -2565,7 +2566,40 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                             }
                         }
                     }
-                    Text("MESAJLAR", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Text("MESAJLAR", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 17.sp, modifier = Modifier.weight(1f))
+                        if (loggedIn) TextButton(onClick = { showClearFeedbackConfirm = true }) {
+                            Text("HAMISINI SİL", color = Color(0xFFFF8A80), fontWeight = FontWeight.Bold)
+                        }
+                    }
+                    if (showClearFeedbackConfirm) {
+                        AlertDialog(
+                            onDismissRequest = { showClearFeedbackConfirm = false },
+                            title = { Text("Bütün mesajlar silinsin?") },
+                            text = { Text("ADMİNLƏ-ƏLAQƏ bölməsindəki bütün mesaj və səs yazıları silinəcək. Bu əməliyyat geri qaytarılmır.") },
+                            confirmButton = {
+                                TextButton(onClick = {
+                                    db.collection("admin_feedback").get().addOnSuccessListener { snap ->
+                                        val chunks = snap.documents.chunked(400)
+                                        fun deleteFeedbackChunk(index: Int) {
+                                            if (index >= chunks.size) {
+                                                showClearFeedbackConfirm = false
+                                                message = "Bütün mesajlar silindi."
+                                                return
+                                            }
+                                            val batch = db.batch()
+                                            chunks[index].forEach { batch.delete(it.reference) }
+                                            batch.commit()
+                                                .addOnSuccessListener { deleteFeedbackChunk(index + 1) }
+                                                .addOnFailureListener { error = "Mesajlar silinmədi: ${it.localizedMessage}" }
+                                        }
+                                        deleteFeedbackChunk(0)
+                                    }.addOnFailureListener { error = "Mesajlar yüklənmədi: ${it.localizedMessage}" }
+                                }) { Text("SİL", color = Color(0xFFD32F2F)) }
+                            },
+                            dismissButton = { TextButton(onClick = { showClearFeedbackConfirm = false }) { Text("LƏĞV ET") } }
+                        )
+                    }
                     if (feedbackItems.isEmpty()) Text("Hələ mesaj göndərilməyib.", color = Color.LightGray, fontSize = 13.sp)
                     else feedbackItems.reversed().forEach { item ->
                         val parts = item.split("|", limit = 5)
@@ -2589,6 +2623,12 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                 }
                                 if (body.isNotBlank()) Text(body, color = Color.White, fontSize = 16.sp)
                                 if (audio.isNotBlank()) GroupVoiceMessagePlayer(audio, sentAt.takeIf { it > 0L } ?: System.currentTimeMillis())
+                                if (sentAt > 0L) Text(
+                                    java.text.SimpleDateFormat("dd.MM.yyyy HH:mm", java.util.Locale.getDefault()).format(java.util.Date(sentAt)),
+                                    color = Color.White,
+                                    fontSize = 11.sp,
+                                    modifier = Modifier.align(Alignment.End)
+                                )
                             }
                         }
                     }
