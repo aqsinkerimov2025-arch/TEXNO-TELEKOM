@@ -2536,7 +2536,40 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                 }
                 .statusBarsPadding().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)
         ) {
-            if (showPrograms) {
+            if (showPhoneInfo) {
+                Row(Modifier.fillMaxWidth().padding(vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text("‹", color = Color.White, fontSize = 32.sp, modifier = Modifier.clickable { showPhoneInfo = false }.padding(end = 12.dp))
+                    Text("TEXNO-MƏLUMAT", color = Color.White, fontSize = 21.sp, fontWeight = FontWeight.Black)
+                }
+                if (phoneInfos.isEmpty()) {
+                    Text("Hələ TEXNO-MƏLUMAT paylaşımı yoxdur.", color = Color.LightGray, modifier = Modifier.padding(vertical = 12.dp))
+                }
+                phoneInfos.forEach { info ->
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF202020)),
+                        shape = RoundedCornerShape(24.dp),
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 7.dp)
+                    ) {
+                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            if (info.imageUrl.isNotBlank()) {
+                                AsyncImage(model = info.imageUrl, contentDescription = info.title, modifier = Modifier.fillMaxWidth().heightIn(max = 320.dp), contentScale = ContentScale.Fit)
+                            }
+                            if (info.stickerUrl.isNotBlank() && !info.body.contains(INLINE_STICKER_TOKEN)) {
+                                StickerPreview(info.stickerUrl, info.stickerMime, Modifier.fillMaxWidth().height(220.dp))
+                            }
+                            Text(info.title.ifBlank { "TEXNO-MƏLUMAT" }, color = Color.White, fontWeight = FontWeight.Black, fontSize = 19.sp, lineHeight = 25.sp)
+                            if (info.body.isNotBlank()) {
+                                TextWithInlineSticker(info.body, info.stickerUrl, info.stickerMime, Color(0xFFE0E0E0), 15.sp, 22.sp)
+                            }
+                            if (loggedIn) {
+                                TextButton(onClick = { db.collection("phone_information").document(info.id).delete() }) {
+                                    Text("Sil", color = Color(0xFFFF8A80))
+                                }
+                            }
+                        }
+                    }
+                }
+            } else if (showPrograms) {
                 Row(Modifier.fillMaxWidth().padding(vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text("‹", color = Color.White, fontSize = 32.sp, modifier = Modifier.clickable { showPrograms = false }.padding(end = 12.dp))
                     Text("PROQRAMLAR", color = Color.White, fontSize = 21.sp, fontWeight = FontWeight.Black)
