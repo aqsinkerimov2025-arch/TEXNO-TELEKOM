@@ -22,6 +22,8 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
+import kotlinx.coroutines.delay
 import android.provider.OpenableColumns
 import java.net.HttpURLConnection
 import java.net.URL
@@ -628,6 +630,16 @@ private fun GroupChatScreen(onClose: () -> Unit) {
     var reply by remember { mutableStateOf<GroupChatMessage?>(null) }
     var busy by remember { mutableStateOf(false) }
     var recording by remember { mutableStateOf(false) }
+    var recordingPaused by remember { mutableStateOf(false) }
+    var recordingSeconds by remember { mutableIntStateOf(0) }
+    var recordingStartMs by remember { mutableLongStateOf(0L) }
+    var recordingPausedMs by remember { mutableLongStateOf(0L) }
+    LaunchedEffect(recording, recordingPaused) {
+        while (recording && !recordingPaused) {
+            recordingSeconds = ((SystemClock.elapsedRealtime() - recordingStartMs) / 1000L).toInt()
+            delay(250)
+        }
+    }
     var recorder by remember { mutableStateOf<MediaRecorder?>(null) }
     var voiceFile by remember { mutableStateOf<File?>(null) }
     var status by remember { mutableStateOf("") }
@@ -726,7 +738,7 @@ private fun GroupChatScreen(onClose: () -> Unit) {
                 rec.setAudioSamplingRate(44100)
                 rec.setOutputFile(file.absolutePath)
                 rec.prepare(); rec.start()
-                voiceFile = file; recorder = rec; recording = true; status = "Səs yazılır..."
+                voiceFile = file; recorder = rec; recordingSeconds = 0; recordingPausedMs = 0L; recordingStartMs = SystemClock.elapsedRealtime(); recordingPaused = false; recording = true; status = ""
             } catch (e: Exception) { status = "Səs yazısı başlatılmadı: ${e.localizedMessage}" }
         } else status = "Səs yazmaq üçün mikrofon icazəsi lazımdır."
     }
@@ -777,12 +789,38 @@ private fun GroupChatScreen(onClose: () -> Unit) {
             .addOnSuccessListener { draft = ""; reply = null; busy = false; status = "" }
             .addOnFailureListener { busy = false; status = "Mesaj göndərilmədi: ${it.localizedMessage}" }
     }
+    fun cancelVoice() {
+        try { recorder?.stop() } catch (_: Exception) { }
+        try { recorder?.release() } catch (_: Exception) { }
+        recorder = null
+        voiceFile?.delete()
+        voiceFile = null
+        recording = false
+        recordingPaused = false
+        recordingSeconds = 0
+        status = ""
+    }
+    fun toggleVoicePause() {
+        val rec = recorder ?: return
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            try {
+                if (recordingPaused) {
+                    rec.resume()
+                    recordingStartMs = SystemClock.elapsedRealtime() - recordingSeconds * 1000L
+                    recordingPaused = false
+                } else {
+                    rec.pause()
+                    recordingPaused = true
+                }
+            } catch (e: Exception) { status = "Səs yazısı dayandırıla bilmədi: ${e.localizedMessage}" }
+        }
+    }
     fun finishVoice() {
         val rec = recorder ?: return
         val file = voiceFile
         try { rec.stop() } catch (_: Exception) { }
         try { rec.release() } catch (_: Exception) { }
-        recorder = null; recording = false
+        recorder = null; recording = false; recordingPaused = false
         if (file == null || !file.exists() || file.length() < 500) { status = "Səs yazısı boşdur."; return }
         busy = true
         uploadGroupAudio(file) { result ->
@@ -938,11 +976,38 @@ private fun GroupChatScreen(onClose: () -> Unit) {
                     Text("✕", color = Color.White, modifier = Modifier.clickable { reply = null }.padding(8.dp))
                 }
             }
-            Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 8.dp).background(Color(0xFFF4F0E8), RoundedCornerShape(28.dp)).padding(horizontal = 6.dp, vertical = 5.dp), verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = { imagePicker.launch("image/*") }, enabled = !busy, modifier = Modifier.size(38.dp)) { Text("📎", fontSize = 20.sp) }
-                BasicTextField(value = draft, onValueChange = { draft = it }, modifier = Modifier.weight(1f).padding(vertical = 10.dp), singleLine = true, enabled = !busy && !recording, textStyle = TextStyle(color = Color(0xFF202124), fontSize = 15.sp), cursorBrush = androidx.compose.ui.graphics.SolidColor(Color(0xFF159B68)), decorationBox = { inner -> Box { if (draft.isEmpty()) Text("Mesaj", color = Color.Gray); inner() } })
-                IconButton(onClick = { if (draft.isNotBlank()) sendText() else if (recording) finishVoice() else micPermission.launch(android.Manifest.permission.RECORD_AUDIO) }, enabled = !busy, modifier = Modifier.size(46.dp).background(Color(0xFF20A66A), CircleShape)) {
-                    Text(if (draft.isNotBlank()) "➤" else if (recording) "■" else "🎙", color = Color.White, fontSize = 19.sp)
+            if (recording) {
+                Column(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 8.dp).background(Color(0xFFF9F9F9), RoundedCornerShape(22.dp)).padding(10.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("%d:%02d".format(recordingSeconds / 60, recordingSeconds % 60), color = Color.Black, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                        Spacer(Modifier.width(12.dp))
+                        Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(3.dp), verticalAlignment = Alignment.CenterVertically) {
+                            val bars = listOf(5, 8, 4, 10, 7, 14, 20, 29, 17, 11, 6, 9, 4, 7, 5)
+                            bars.forEach { height ->
+                                Box(Modifier.width(3.dp).height(height.dp).background(Color(0xFF73777A), RoundedCornerShape(2.dp)))
+                            }
+                        }
+                    }
+                    Spacer(Modifier.height(8.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        IconButton(onClick = { cancelVoice() }, modifier = Modifier.size(44.dp).background(Color(0xFFFFE6E9), CircleShape)) {
+                            Icon(Icons.Default.Delete, contentDescription = "Səs yazısını sil", tint = Color(0xFFD91B49))
+                        }
+                        Button(onClick = { toggleVoicePause() }, modifier = Modifier.weight(1f), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF0F0F0)), enabled = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                            Text(if (recordingPaused) "▶ Davam et" else "Ⅱ Dayandır", color = Color.Black)
+                        }
+                        IconButton(onClick = { finishVoice() }, modifier = Modifier.size(46.dp).background(Color(0xFF20A66A), CircleShape)) {
+                            Icon(Icons.Default.Send, contentDescription = "Səs mesajını göndər", tint = Color.White)
+                        }
+                    }
+                }
+            } else {
+                Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 8.dp).background(Color(0xFFF4F0E8), RoundedCornerShape(28.dp)).padding(horizontal = 6.dp, vertical = 5.dp), verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = { imagePicker.launch("image/*") }, enabled = !busy, modifier = Modifier.size(38.dp)) { Text("📎", fontSize = 20.sp) }
+                    BasicTextField(value = draft, onValueChange = { draft = it }, modifier = Modifier.weight(1f).padding(vertical = 10.dp), singleLine = true, enabled = !busy, textStyle = TextStyle(color = Color(0xFF202124), fontSize = 15.sp), cursorBrush = androidx.compose.ui.graphics.SolidColor(Color(0xFF159B68)), decorationBox = { inner -> Box { if (draft.isEmpty()) Text("Mesaj", color = Color.Gray); inner() } })
+                    IconButton(onClick = { if (draft.isNotBlank()) sendText() else micPermission.launch(android.Manifest.permission.RECORD_AUDIO) }, enabled = !busy, modifier = Modifier.size(46.dp).background(Color(0xFF20A66A), CircleShape)) {
+                        Text(if (draft.isNotBlank()) "➤" else "🎙", color = Color.White, fontSize = 19.sp)
+                    }
                 }
             }
             if (status.isNotBlank()) Text(status, color = Color(0xFFFFD36A), fontSize = 11.sp, modifier = Modifier.padding(horizontal = 14.dp, vertical = 3.dp))
