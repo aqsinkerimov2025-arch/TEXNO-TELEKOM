@@ -1,6 +1,6 @@
 name: Build TEXNO-TELEKOM APK
 # Rebuild for PAYLAŞIMLAR heading update
-# Rebuild for TEXNO-MƏLUMAT grouped section UI
+# Rebuild APK for group management and video player updates
 # Rebuild APK after TEXNO-MƏLUMAT publishing fix
 on:
   workflow_dispatch:
