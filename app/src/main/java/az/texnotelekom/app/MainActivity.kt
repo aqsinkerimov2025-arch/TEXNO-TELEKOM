@@ -1822,6 +1822,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     var phoneInfoStickerBusy by remember { mutableStateOf(false) }
     var phoneInfoBusy by remember { mutableStateOf(false) }
     var adminOpen by remember { mutableStateOf(false) }
+    BackHandler(enabled = adminOpen && !showGroupManagementAdmin) { adminOpen = false }
     var showGroupManagementAdmin by remember { mutableStateOf(false) }
     BackHandler(enabled = showGroupManagementAdmin) { showGroupManagementAdmin = false }
     var showSiteTextEditor by remember { mutableStateOf(false) }
@@ -2390,6 +2391,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                 }
                 .statusBarsPadding().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)
         ) {
+            if (!adminOpen || !isAuthorizedDevice) {
             Spacer(Modifier.height(12.dp))
             Column(Modifier.fillMaxWidth().padding(top = 4.dp)) {
                 Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
@@ -2530,7 +2532,13 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                 )
             }
 
+            }
             if (adminOpen && isAuthorizedDevice) {
+                Column(Modifier.fillMaxSize().background(Color.Black).padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Text("‹", color = Color.White, fontSize = 32.sp, modifier = Modifier.clickable { adminOpen = false }.padding(end = 12.dp))
+                        Text("ADMIN PANEL", color = Color.White, fontWeight = FontWeight.Black, fontSize = 20.sp)
+                    }
                 Card(colors = CardDefaults.cardColors(containerColor = Color.Black), modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         if (!loggedIn) {
@@ -2687,6 +2695,8 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                 }
             }
 
+            }
+            if (!adminOpen || !isAuthorizedDevice) {
             if (designAdminOpen && isAuthorizedDevice && loggedIn) {
                 Card(colors = CardDefaults.cardColors(containerColor = livePanel), modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -3124,6 +3134,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                     fontWeight = FontWeight.SemiBold,
                     letterSpacing = 0.5.sp
                 )
+            }
             }
         }
         }
