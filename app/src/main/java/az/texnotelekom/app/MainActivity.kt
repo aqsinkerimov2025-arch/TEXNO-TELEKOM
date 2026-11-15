@@ -261,15 +261,6 @@ private fun GroupVideoPlayer(url: String) {
                         }
                     }
                 )
-                Text(
-                    "✕",
-                    color = Color.White,
-                    fontSize = 26.sp,
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(18.dp)
-                        .clickable { showFullscreen = false }
-                )
             }
         }
     }
