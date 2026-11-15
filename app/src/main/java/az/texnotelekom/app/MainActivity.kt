@@ -411,16 +411,18 @@ private fun GroupVideoPlayer(url: String) {
                         }
                     }
                     Slider(
-                        value = (playbackPosition.toFloat() / playbackDuration.toFloat()).coerceIn(0f, 1f),
-                        onValueChange = { fraction ->
+                        value = playbackPosition.coerceIn(0L, playbackDuration).toFloat(),
+                        onValueChange = { position ->
                             isSeeking = true
-                            playbackPosition = (fraction * playbackDuration).toLong()
+                            playbackPosition = position.toLong().coerceIn(0L, playbackDuration)
                         },
                         onValueChangeFinished = {
-                            player.seekTo(playbackPosition)
+                            player.seekTo(playbackPosition.coerceIn(0L, playbackDuration))
                             isSeeking = false
                         },
-                        modifier = Modifier.fillMaxWidth().height(if (fullscreen) 52.dp else 26.dp),
+                        valueRange = 0f..playbackDuration.toFloat().coerceAtLeast(1f),
+                        modifier = Modifier.fillMaxWidth().height(if (fullscreen) 68.dp else 36.dp)
+                            .padding(horizontal = if (fullscreen) 6.dp else 0.dp),
                         colors = SliderDefaults.colors(
                             thumbColor = Color.White,
                             activeTrackColor = Color(0xFFE53935),
