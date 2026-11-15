@@ -310,7 +310,11 @@ private fun GroupVideoPlayer(url: String) {
                         // Keep the return icon visibly over the video, above Android navigation.
                         .padding(end = 22.dp, bottom = 72.dp)
                         .size(width = 64.dp, height = 48.dp)
-                        .clickable { showFullscreen = false },
+                        .clickable {
+                            player.pause()
+                            isPlaying = false
+                            showFullscreen = false
+                        },
                     contentAlignment = Alignment.Center
                 ) {
                     Canvas(modifier = Modifier.size(width = 40.dp, height = 40.dp)) {
