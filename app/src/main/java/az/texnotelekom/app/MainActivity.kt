@@ -21,7 +21,7 @@ import android.provider.MediaStore
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.media.MediaController
+import android.widget.MediaController
 import android.widget.VideoView
 import android.content.ContentValues
 import android.os.Handler
