@@ -1002,52 +1002,11 @@ private fun GroupChatScreen(onClose: () -> Unit) {
                     }
                 }
             } else {
-                if (recording) {
-                    Column(
-                        Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 8.dp)
-                            .background(Color.White, RoundedCornerShape(20.dp)).padding(10.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                            Text("%d:%02d".format(voiceSeconds / 60, voiceSeconds % 60), color = Color(0xFF202124), fontWeight = FontWeight.Bold)
-                            Spacer(Modifier.width(12.dp))
-                            Row(Modifier.weight(1f), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
-                                repeat(27) { index ->
-                                    Box(Modifier.width(2.dp).height((5 + (index * 13 % 21)).dp).background(Color(0xFF747A7D), RoundedCornerShape(2.dp)))
-                                }
-                            }
-                        }
-                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            IconButton(onClick = {
-                                try { recorder?.stop() } catch (_: Exception) { }
-                                try { recorder?.release() } catch (_: Exception) { }
-                                recorder = null; recording = false; voicePaused = false; voiceSeconds = 0
-                                voiceFile?.delete(); voiceFile = null; status = ""
-                            }, modifier = Modifier.size(42.dp).background(Color(0xFFFFE9EC), CircleShape)) {
-                                Icon(Icons.Default.Delete, contentDescription = "Səs yazısını sil", tint = Color(0xFFC90043))
-                            }
-                            Button(
-                                onClick = {
-                                    try {
-                                        if (voicePaused) recorder?.resume() else recorder?.pause()
-                                        voicePaused = !voicePaused
-                                    } catch (e: Exception) { status = "Səs yazısını dayandırmaq mümkün olmadı: ${e.localizedMessage}" }
-                                },
-                                modifier = Modifier.weight(1f),
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF3F3F3), contentColor = Color.Black)
-                            ) { Text(if (voicePaused) "▶ Davam et" else "Ⅱ Dayandır") }
-                            IconButton(onClick = { finishVoice() }, enabled = !busy, modifier = Modifier.size(46.dp).background(Color(0xFF20A66A), CircleShape)) {
-                                Icon(Icons.Default.Send, contentDescription = "Səsi göndər", tint = Color.White)
-                            }
-                        }
-                    }
-                } else {
-                    Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 8.dp).background(Color(0xFFF4F0E8), RoundedCornerShape(28.dp)).padding(horizontal = 6.dp, vertical = 5.dp), verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(onClick = { imagePicker.launch("image/*") }, enabled = !busy, modifier = Modifier.size(38.dp)) { Text("📎", fontSize = 20.sp) }
-                        BasicTextField(value = draft, onValueChange = { draft = it }, modifier = Modifier.weight(1f).padding(vertical = 10.dp), singleLine = true, enabled = !busy, textStyle = TextStyle(color = Color(0xFF202124), fontSize = 15.sp), cursorBrush = androidx.compose.ui.graphics.SolidColor(Color(0xFF159B68)), decorationBox = { inner -> Box { if (draft.isEmpty()) Text("Mesaj", color = Color.Gray); inner() } })
-                        IconButton(onClick = { if (draft.isNotBlank()) sendText() else micPermission.launch(android.Manifest.permission.RECORD_AUDIO) }, enabled = !busy, modifier = Modifier.size(46.dp).background(Color(0xFF20A66A), CircleShape)) {
-                            Text(if (draft.isNotBlank()) "➤" else "🎙", color = Color.White, fontSize = 19.sp)
-                        }
+                Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 8.dp).background(Color(0xFFF4F0E8), RoundedCornerShape(28.dp)).padding(horizontal = 6.dp, vertical = 5.dp), verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = { imagePicker.launch("image/*") }, enabled = !busy, modifier = Modifier.size(38.dp)) { Text("📎", fontSize = 20.sp) }
+                    BasicTextField(value = draft, onValueChange = { draft = it }, modifier = Modifier.weight(1f).padding(vertical = 10.dp), singleLine = true, enabled = !busy, textStyle = TextStyle(color = Color(0xFF202124), fontSize = 15.sp), cursorBrush = androidx.compose.ui.graphics.SolidColor(Color(0xFF159B68)), decorationBox = { inner -> Box { if (draft.isEmpty()) Text("Mesaj", color = Color.Gray); inner() } })
+                    IconButton(onClick = { if (draft.isNotBlank()) sendText() else micPermission.launch(android.Manifest.permission.RECORD_AUDIO) }, enabled = !busy, modifier = Modifier.size(46.dp).background(Color(0xFF20A66A), CircleShape)) {
+                        Text(if (draft.isNotBlank()) "➤" else "🎙", color = Color.White, fontSize = 19.sp)
                     }
                 }
             }
