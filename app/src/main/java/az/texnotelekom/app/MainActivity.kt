@@ -17,9 +17,11 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Build
 import android.provider.Settings
+import android.provider.MediaStore
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.ContentValues
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
@@ -627,6 +629,7 @@ private fun GroupChatScreen(onClose: () -> Unit) {
     var nickname by remember { mutableStateOf(prefs.getString("nickname", "") ?: "") }
     var nameConfirmed by remember { mutableStateOf(nickname.trim().length >= 2) }
     var draft by remember { mutableStateOf("") }
+    var showEmojiPicker by remember { mutableStateOf(false) }
     var reply by remember { mutableStateOf<GroupChatMessage?>(null) }
     var busy by remember { mutableStateOf(false) }
     var recording by remember { mutableStateOf(false) }
@@ -720,20 +723,38 @@ private fun GroupChatScreen(onClose: () -> Unit) {
                 status = "Mesajlar yüklənmədi: ${it.localizedMessage}"
             }
     }
+    fun uploadAndSendGroupImage(uri: Uri) {
+        busy = true
+        uploadPhoneImage(context, uri) { result ->
+            result.onSuccess { url ->
+                val user = auth.currentUser
+                if (user == null) { busy = false; status = "Qrupa qoşulmaq mümkün olmadı."; return@onSuccess }
+                val data = hashMapOf<String, Any>("uid" to user.uid, "nickname" to nickname.trim().take(24), "text" to "", "image_url" to url, "audio_url" to "", "created_at" to FieldValue.serverTimestamp())
+                reply?.let { data["reply_to_id"] = it.id; data["reply_to_nickname"] = it.nickname; data["reply_to_text"] = it.text.ifBlank { "📷 Şəkil" }.take(180) }
+                db.collection("group_messages").add(data)
+                    .addOnSuccessListener { busy = false; reply = null; status = "" }
+                    .addOnFailureListener { busy = false; status = "Şəkil göndərilmədi: ${it.localizedMessage}" }
+            }.onFailure { busy = false; status = "Şəkil yüklənmədi: ${it.localizedMessage}" }
+        }
+    }
     val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        if (uri != null) {
-            busy = true
-            uploadPhoneImage(context, uri) { result ->
-                result.onSuccess { url ->
-                    val user = auth.currentUser
-                    if (user == null) { busy = false; status = "Qrupa qoşulmaq mümkün olmadı."; return@onSuccess }
-                    val data = hashMapOf<String, Any>("uid" to user.uid, "nickname" to nickname.trim().take(24), "text" to "", "image_url" to url, "audio_url" to "", "created_at" to FieldValue.serverTimestamp())
-                    reply?.let { data["reply_to_id"] = it.id; data["reply_to_nickname"] = it.nickname; data["reply_to_text"] = it.text.ifBlank { "📷 Şəkil" }.take(180) }
-                    db.collection("group_messages").add(data)
-                        .addOnSuccessListener { busy = false; reply = null; status = "" }
-                        .addOnFailureListener { busy = false; status = "Şəkil göndərilmədi: ${it.localizedMessage}" }
-                }.onFailure { busy = false; status = "Şəkil yüklənmədi: ${it.localizedMessage}" }
-            }
+        if (uri != null) uploadAndSendGroupImage(uri)
+    }
+    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap ->
+        if (bitmap != null) {
+            try {
+                val values = ContentValues().apply {
+                    put(MediaStore.Images.Media.DISPLAY_NAME, "texno_group_${System.currentTimeMillis()}.jpg")
+                    put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/TexnoTelekom")
+                }
+                val uri = context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+                    ?: throw Exception("Şəkil yadda saxlanılmadı.")
+                context.contentResolver.openOutputStream(uri)?.use { output ->
+                    if (!bitmap.compress(Bitmap.CompressFormat.JPEG, 90, output)) throw Exception("Şəkil hazırlanmadı.")
+                } ?: throw Exception("Şəkil yadda saxlanılmadı.")
+                uploadAndSendGroupImage(uri)
+            } catch (e: Exception) { status = "Kamera xətası: ${e.localizedMessage}" }
         }
     }
     val micPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -1012,10 +1033,25 @@ private fun GroupChatScreen(onClose: () -> Unit) {
                     }
                 }
             } else {
-                Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 8.dp).background(Color(0xFFF4F0E8), RoundedCornerShape(28.dp)).padding(horizontal = 6.dp, vertical = 5.dp), verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = { imagePicker.launch("image/*") }, enabled = !busy, modifier = Modifier.size(38.dp)) { Text("📎", fontSize = 20.sp) }
+                if (showEmojiPicker) {
+                    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp, vertical = 3.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        listOf("😀", "😂", "🥰", "😍", "😊", "👍", "❤️", "🔥", "🙏", "👏", "😎", "🎉", "😢", "🤔", "😘").forEach { emoji ->
+                            Text(emoji, fontSize = 25.sp, modifier = Modifier.clickable { draft += emoji })
+                        }
+                    }
+                }
+                Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 8.dp).background(Color(0xFFF4F0E8), RoundedCornerShape(28.dp)).padding(horizontal = 4.dp, vertical = 5.dp), verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = { showEmojiPicker = !showEmojiPicker }, enabled = !busy, modifier = Modifier.size(38.dp)) {
+                        Icon(Icons.Default.EmojiEmotions, contentDescription = "Smayliklər", tint = Color(0xFF666B70))
+                    }
                     BasicTextField(value = draft, onValueChange = { draft = it }, modifier = Modifier.weight(1f).padding(vertical = 10.dp), singleLine = true, enabled = !busy, textStyle = TextStyle(color = Color(0xFF202124), fontSize = 15.sp), cursorBrush = androidx.compose.ui.graphics.SolidColor(Color(0xFF159B68)), decorationBox = { inner -> Box { if (draft.isEmpty()) Text("Mesaj", color = Color.Gray); inner() } })
-                    IconButton(onClick = { if (draft.isNotBlank()) sendText() else micPermission.launch(android.Manifest.permission.RECORD_AUDIO) }, enabled = !busy, modifier = Modifier.size(46.dp).background(Color(0xFF20A66A), CircleShape)) {
+                    IconButton(onClick = { imagePicker.launch("image/*") }, enabled = !busy, modifier = Modifier.size(36.dp)) {
+                        Icon(Icons.Default.AttachFile, contentDescription = "Şəkil və fayl seç", tint = Color(0xFF666B70))
+                    }
+                    IconButton(onClick = { cameraLauncher.launch(null) }, enabled = !busy, modifier = Modifier.size(36.dp)) {
+                        Icon(Icons.Default.CameraAlt, contentDescription = "Kamera", tint = Color(0xFF666B70))
+                    }
+                    IconButton(onClick = { if (draft.isNotBlank()) { sendText(); showEmojiPicker = false } else micPermission.launch(android.Manifest.permission.RECORD_AUDIO) }, enabled = !busy, modifier = Modifier.size(46.dp).background(Color(0xFF20A66A), CircleShape)) {
                         Text(if (draft.isNotBlank()) "➤" else "🎙", color = Color.White, fontSize = 19.sp)
                     }
                 }
