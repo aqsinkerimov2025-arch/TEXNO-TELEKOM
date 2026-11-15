@@ -3089,6 +3089,39 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                 }
 
             if (!showPhoneInfo) {
+            Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF202020)), shape = RoundedCornerShape(26.dp), modifier = Modifier.fillMaxWidth().clickable { showGames = !showGames }) {
+                Row(Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 20.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text("🎮 OYUNLAR", color = Color(0xFFFFFFFF), fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                        Spacer(Modifier.height(5.dp))
+                        Text(if (showGames) "Oyunlar bölməsini bağlamaq üçün toxunun" else "Oyunların APK versiyalarına baxmaq üçün daxil olun", color = Color(0xFFBDBDBD), fontSize = 13.sp)
+                    }
+                    Text(if (showGames) "↑" else "➜", color = Color(0xFFFFFFFF), fontSize = 30.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+            if (showGames) {
+                Spacer(Modifier.height(10.dp))
+                if (games.isEmpty()) Text("Hələ oyun əlavə edilməyib.", color = Color.LightGray)
+                games.filter { it.isActive || loggedIn }.forEach { g ->
+                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF202020)), modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
+                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                if (g.iconUrl.isNotBlank()) ProgramIcon(g.iconUrl, g.name, 64)
+                                Column(Modifier.weight(1f).padding(start = 12.dp)) {
+                                    Text(g.name, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                                    if (g.version.isNotBlank()) Text("Versiya: ${g.version}", color = Color(0xFFFFFFFF), fontSize = 12.sp)
+                                }
+                            }
+                            if (g.description.isNotBlank()) Text(g.description, color = Color(0xFFE0E0E0), fontSize = 14.sp)
+                            if (g.downloadUrl.isNotBlank()) Button(onClick = { try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(g.downloadUrl))) } catch (_: Exception) { error = "Oyun APK linki açıla bilmədi." } }) { Text("OYUNU YÜKLƏ (APK)") }
+                        }
+                    }
+                }
+            }
+            }
+            }
+
+            if (!showPhoneInfo) {
             Spacer(Modifier.height(18.dp))
             if (!showGames && posts.isNotEmpty()) {
                 Text("Kanal paylaşımları", color = Color(0xFFFFFFFF), fontSize = 23.sp, fontWeight = FontWeight.Bold)
@@ -3225,38 +3258,6 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                     }
                     }
                 }
-            }
-            }
-            if (!showPhoneInfo) {
-            Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF202020)), shape = RoundedCornerShape(26.dp), modifier = Modifier.fillMaxWidth().clickable { showGames = !showGames }) {
-                Row(Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 20.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Text("🎮 OYUNLAR", color = Color(0xFFFFFFFF), fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                        Spacer(Modifier.height(5.dp))
-                        Text(if (showGames) "Oyunlar bölməsini bağlamaq üçün toxunun" else "Oyunların APK versiyalarına baxmaq üçün daxil olun", color = Color(0xFFBDBDBD), fontSize = 13.sp)
-                    }
-                    Text(if (showGames) "↑" else "➜", color = Color(0xFFFFFFFF), fontSize = 30.sp, fontWeight = FontWeight.Bold)
-                }
-            }
-            if (showGames) {
-                Spacer(Modifier.height(10.dp))
-                if (games.isEmpty()) Text("Hələ oyun əlavə edilməyib.", color = Color.LightGray)
-                games.filter { it.isActive || loggedIn }.forEach { g ->
-                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF202020)), modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
-                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                if (g.iconUrl.isNotBlank()) ProgramIcon(g.iconUrl, g.name, 64)
-                                Column(Modifier.weight(1f).padding(start = 12.dp)) {
-                                    Text(g.name, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                                    if (g.version.isNotBlank()) Text("Versiya: ${g.version}", color = Color(0xFFFFFFFF), fontSize = 12.sp)
-                                }
-                            }
-                            if (g.description.isNotBlank()) Text(g.description, color = Color(0xFFE0E0E0), fontSize = 14.sp)
-                            if (g.downloadUrl.isNotBlank()) Button(onClick = { try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(g.downloadUrl))) } catch (_: Exception) { error = "Oyun APK linki açıla bilmədi." } }) { Text("OYUNU YÜKLƏ (APK)") }
-                        }
-                    }
-                }
-            }
             }
             }
             Spacer(Modifier.height(28.dp))
