@@ -642,6 +642,16 @@ private fun GroupChatScreen(onClose: () -> Unit) {
     }
     var recorder by remember { mutableStateOf<MediaRecorder?>(null) }
     var voiceFile by remember { mutableStateOf<File?>(null) }
+    val liveWaveform = remember { mutableStateListOf<Int>() }
+    LaunchedEffect(recording, recordingPaused) {
+        while (recording && !recordingPaused) {
+            val amplitude = try { recorder?.maxAmplitude ?: 0 } catch (_: Exception) { 0 }
+            val level = kotlin.math.sqrt((amplitude.coerceIn(0, 32767) / 32767f).toDouble()).toFloat()
+            liveWaveform.add((4 + level * 27).toInt())
+            if (liveWaveform.size > 34) liveWaveform.removeAt(0)
+            delay(90)
+        }
+    }
     var status by remember { mutableStateOf("") }
     val messages = remember { mutableStateListOf<GroupChatMessage>() }
     val messageListState = rememberLazyListState()
@@ -738,7 +748,7 @@ private fun GroupChatScreen(onClose: () -> Unit) {
                 rec.setAudioSamplingRate(44100)
                 rec.setOutputFile(file.absolutePath)
                 rec.prepare(); rec.start()
-                voiceFile = file; recorder = rec; recordingSeconds = 0; recordingPausedMs = 0L; recordingStartMs = SystemClock.elapsedRealtime(); recordingPaused = false; recording = true; status = ""
+                voiceFile = file; recorder = rec; liveWaveform.clear(); recordingSeconds = 0; recordingPausedMs = 0L; recordingStartMs = SystemClock.elapsedRealtime(); recordingPaused = false; recording = true; status = ""
             } catch (e: Exception) { status = "Səs yazısı başlatılmadı: ${e.localizedMessage}" }
         } else status = "Səs yazmaq üçün mikrofon icazəsi lazımdır."
     }
@@ -982,7 +992,7 @@ private fun GroupChatScreen(onClose: () -> Unit) {
                         Text("%d:%02d".format(recordingSeconds / 60, recordingSeconds % 60), color = Color.Black, fontSize = 17.sp, fontWeight = FontWeight.Bold)
                         Spacer(Modifier.width(12.dp))
                         Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(3.dp), verticalAlignment = Alignment.CenterVertically) {
-                            val bars = listOf(5, 8, 4, 10, 7, 14, 20, 29, 17, 11, 6, 9, 4, 7, 5)
+                            val bars = liveWaveform.toList()
                             bars.forEach { height ->
                                 Box(Modifier.width(3.dp).height(height.dp).background(Color(0xFF73777A), RoundedCornerShape(2.dp)))
                             }
