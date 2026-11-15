@@ -1822,8 +1822,8 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     var phoneInfoStickerBusy by remember { mutableStateOf(false) }
     var phoneInfoBusy by remember { mutableStateOf(false) }
     var adminOpen by remember { mutableStateOf(false) }
-    BackHandler(enabled = adminOpen && !showGroupManagementAdmin) { adminOpen = false }
     var showGroupManagementAdmin by remember { mutableStateOf(false) }
+    BackHandler(enabled = adminOpen && !showGroupManagementAdmin) { adminOpen = false }
     BackHandler(enabled = showGroupManagementAdmin) { showGroupManagementAdmin = false }
     var showSiteTextEditor by remember { mutableStateOf(false) }
     var designAdminOpen by remember { mutableStateOf(false) }
