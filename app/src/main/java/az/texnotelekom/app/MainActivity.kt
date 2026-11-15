@@ -961,6 +961,10 @@ private fun GroupChatScreen(onClose: () -> Unit) {
     val auth = FirebaseAuth.getInstance()
     val isGroupAdmin = auth.currentUser?.uid == ADMIN_UID
     var showManagementPanel by remember { mutableStateOf(false) }
+    var groupSubtitle by remember { mutableStateOf("Ümumi söhbət") }
+    var groupSubtitleDraft by remember { mutableStateOf("") }
+    var editingGroupSubtitle by remember { mutableStateOf(false) }
+    var groupSubtitleSaving by remember { mutableStateOf(false) }
     var showDeleteAllConfirm by remember { mutableStateOf(false) }
     var managementBusy by remember { mutableStateOf(false) }
     var antiSpamEnabled by remember { mutableStateOf(false) }
@@ -976,6 +980,30 @@ private fun GroupChatScreen(onClose: () -> Unit) {
     var exceptionUidDraft by remember { mutableStateOf("") }
     var showExceptionDialog by remember { mutableStateOf(false) }
     var removedUsersCount by remember { mutableIntStateOf(0) }
+    LaunchedEffect(Unit) {
+        db.collection("group_settings").document("group_subtitle").get()
+            .addOnSuccessListener { doc ->
+                groupSubtitle = doc.getString("text") ?: "Ümumi söhbət"
+            }
+    }
+    fun saveGroupSubtitle(value: String) {
+        if (!isGroupAdmin || groupSubtitleSaving) return
+        groupSubtitleSaving = true
+        val cleanValue = value.trim().take(60)
+        db.collection("group_settings").document("group_subtitle")
+            .set(mapOf("text" to cleanValue, "updated_at" to FieldValue.serverTimestamp()))
+            .addOnSuccessListener {
+                groupSubtitle = cleanValue
+                groupSubtitleDraft = cleanValue
+                editingGroupSubtitle = false
+                groupSubtitleSaving = false
+                status = if (cleanValue.isBlank()) "Qrupun alt yazısı silindi." else "Qrupun alt yazısı yeniləndi."
+            }
+            .addOnFailureListener {
+                groupSubtitleSaving = false
+                status = "Alt yazı yadda saxlanmadı: ${it.localizedMessage}"
+            }
+    }
     LaunchedEffect(isGroupAdmin) {
         if (!isGroupAdmin) return@LaunchedEffect
         db.collection("group_settings").document("admin_controls").get()
@@ -1244,7 +1272,7 @@ private fun GroupChatScreen(onClose: () -> Unit) {
             SupportBadgeLogo(size = 42.dp)
             Column(Modifier.weight(1f).padding(start = 10.dp)) {
                 Text("TEXNO DƏSTƏK QRUPU", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Black)
-                Text("Ümumi söhbət", color = Color(0xFFBDBDBD), fontSize = 11.sp)
+                if (groupSubtitle.isNotBlank()) Text(groupSubtitle, color = Color(0xFFBDBDBD), fontSize = 11.sp)
                 if (isGroupAdmin) {
                     Text(
                         "⚙ RƏHBƏRLİK PANELİ",
@@ -1276,6 +1304,44 @@ private fun GroupChatScreen(onClose: () -> Unit) {
             ) {
                 Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
                     Text("RƏHBƏRLİK PANELİ", color = Color(0xFFFFD36A), fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                    Text("QRUPUN ALT YAZISINI İDARƏ ET", color = Color(0xFFFFD36A), fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    if (editingGroupSubtitle) {
+                        OutlinedTextField(
+                            value = groupSubtitleDraft,
+                            onValueChange = { groupSubtitleDraft = it.take(60) },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            label = { Text("Yeni söz və ya ifadə") },
+                            placeholder = { Text("Məsələn: Ümumi söhbət") }
+                        )
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Button(
+                                onClick = { saveGroupSubtitle(groupSubtitleDraft) },
+                                enabled = !groupSubtitleSaving,
+                                modifier = Modifier.weight(1f)
+                            ) { Text(if (groupSubtitleSaving) "YADDA SAXLANIR..." else "YADDA SAXLA") }
+                            OutlinedButton(
+                                onClick = { editingGroupSubtitle = false; groupSubtitleDraft = groupSubtitle },
+                                enabled = !groupSubtitleSaving,
+                                modifier = Modifier.weight(1f)
+                            ) { Text("LƏĞV ET") }
+                        }
+                    } else {
+                        Text(
+                            "Hazırkı yazı: ${groupSubtitle.ifBlank { "(boşdur)" }}",
+                            color = Color.LightGray,
+                            fontSize = 12.sp
+                        )
+                        OutlinedButton(
+                            onClick = { groupSubtitleDraft = groupSubtitle; editingGroupSubtitle = true },
+                            modifier = Modifier.fillMaxWidth()
+                        ) { Text("ALT YAZINI REDAKTƏ ET") }
+                        OutlinedButton(
+                            onClick = { groupSubtitleDraft = ""; saveGroupSubtitle("") },
+                            enabled = !groupSubtitleSaving && groupSubtitle.isNotBlank(),
+                            modifier = Modifier.fillMaxWidth()
+                        ) { Text("ALT YAZINI SİL") }
+                    }
                     @Composable
                     fun ControlSwitch(title: String, checked: Boolean, onChange: (Boolean) -> Unit) {
                         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
