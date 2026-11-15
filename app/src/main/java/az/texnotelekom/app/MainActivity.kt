@@ -307,8 +307,8 @@ private fun GroupVideoPlayer(url: String) {
                 Box(
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
-                        .navigationBarsPadding()
-                        .padding(end = 22.dp, bottom = 18.dp)
+                        // Keep the return icon visibly over the video, above Android navigation.
+                        .padding(end = 22.dp, bottom = 72.dp)
                         .size(width = 64.dp, height = 48.dp)
                         .clickable { showFullscreen = false },
                     contentAlignment = Alignment.Center
