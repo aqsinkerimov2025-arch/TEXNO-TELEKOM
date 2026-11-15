@@ -249,7 +249,7 @@ private fun GroupVideoPlayer(url: String) {
                 contentAlignment = Alignment.Center
             ) {
                 AndroidView(
-                    modifier = Modifier.fillMaxWidth().aspectRatio(16f / 9f),
+                    modifier = Modifier.fillMaxSize(),
                     factory = {
                         VideoView(context).apply {
                             setMediaController(MediaController(context).also { it.setAnchorView(this) })
