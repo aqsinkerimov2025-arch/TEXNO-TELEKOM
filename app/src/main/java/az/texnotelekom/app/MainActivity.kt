@@ -371,6 +371,45 @@ private fun GroupVideoPlayer(url: String) {
                             fontWeight = FontWeight.SemiBold
                         )
                     }
+                    if (fullscreen) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                "↶ 10 san",
+                                color = Color.White,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(20.dp))
+                                    .clickable {
+                                        val target = (player.currentPosition - 10_000L).coerceAtLeast(0L)
+                                        player.seekTo(target)
+                                        playbackPosition = target
+                                        hasEnded = false
+                                    }
+                                    .padding(horizontal = 18.dp, vertical = 10.dp)
+                            )
+                            Spacer(Modifier.width(28.dp))
+                            Text(
+                                "10 san ↷",
+                                color = Color.White,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(20.dp))
+                                    .clickable {
+                                        val target = (player.currentPosition + 10_000L).coerceAtMost(playbackDuration)
+                                        player.seekTo(target)
+                                        playbackPosition = target
+                                        hasEnded = false
+                                    }
+                                    .padding(horizontal = 18.dp, vertical = 10.dp)
+                            )
+                        }
+                    }
                     Slider(
                         value = (playbackPosition.toFloat() / playbackDuration.toFloat()).coerceIn(0f, 1f),
                         onValueChange = { fraction ->
@@ -381,7 +420,7 @@ private fun GroupVideoPlayer(url: String) {
                             player.seekTo(playbackPosition)
                             isSeeking = false
                         },
-                        modifier = Modifier.fillMaxWidth().height(if (fullscreen) 34.dp else 26.dp),
+                        modifier = Modifier.fillMaxWidth().height(if (fullscreen) 52.dp else 26.dp),
                         colors = SliderDefaults.colors(
                             thumbColor = Color.White,
                             activeTrackColor = Color(0xFFE53935),
