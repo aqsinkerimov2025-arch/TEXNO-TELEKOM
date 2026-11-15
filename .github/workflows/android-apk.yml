@@ -1,4 +1,5 @@
 name: Build TEXNO-TELEKOM APK
+# Rebuild after moving Programs below TEXNO-MƏLUMAT
 # Rebuild after editable home signature setting
 # Rebuild after home footer branding update
 # Rebuild after full group subtitle display fix
