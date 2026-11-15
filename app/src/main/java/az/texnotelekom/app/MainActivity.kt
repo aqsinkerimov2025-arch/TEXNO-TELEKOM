@@ -1543,13 +1543,14 @@ private fun GroupChatScreen(backgroundColor: Color, onClose: () -> Unit) {
                             shape = RoundedCornerShape(16.dp),
                             modifier = Modifier.fillMaxWidth(0.88f).clickable { reply = item }
                         ) {
-                            Column(Modifier.padding(11.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                            Column(Modifier.fillMaxWidth().padding(11.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
                                 Text(item.nickname, color = Color(0xFFFFD36A), fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                 if (item.replyToNickname.isNotBlank()) Text("↪ ${item.replyToNickname}: ${item.replyToText}", color = Color(0xFFBDBDBD), fontSize = 11.sp)
                                 if (item.text.isNotBlank()) Text(item.text, color = Color.White, fontSize = 14.sp)
                                 if (item.imageUrl.isNotBlank()) AsyncImage(model = item.imageUrl, contentDescription = "Qrup şəkli", modifier = Modifier.fillMaxWidth().heightIn(max = 240.dp), contentScale = ContentScale.Fit)
                                 if (item.videoUrl.isNotBlank()) GroupVideoPlayer(item.videoUrl)
                                 if (item.audioUrl.isNotBlank()) GroupVoiceMessagePlayer(item.audioUrl, item.createdAt)
+                                Text("Cavab vermək üçün toxun", color = Color(0xFFBDBDBD), fontSize = 9.sp)
                                 if (item.createdAt > 0L) {
                                     Text(
                                         java.text.SimpleDateFormat("dd.MM.yyyy HH:mm", java.util.Locale.getDefault()).format(java.util.Date(item.createdAt)),
@@ -1558,7 +1559,6 @@ private fun GroupChatScreen(backgroundColor: Color, onClose: () -> Unit) {
                                         modifier = Modifier.align(Alignment.End)
                                     )
                                 }
-                                Text("Cavab vermək üçün toxun", color = Color(0xFFBDBDBD), fontSize = 9.sp)
                             }
                         }
                     }
