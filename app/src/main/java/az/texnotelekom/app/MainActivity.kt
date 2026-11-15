@@ -1045,7 +1045,7 @@ private fun GroupChatScreen(onClose: () -> Unit) {
     fun saveGroupSubtitle(value: String) {
         if (!isGroupAdmin || groupSubtitleSaving) return
         groupSubtitleSaving = true
-        val cleanValue = value.trim().take(60)
+        val cleanValue = value.trim()
         db.collection("group_settings").document("group_subtitle")
             .set(mapOf("text" to cleanValue, "updated_at" to FieldValue.serverTimestamp()))
             .addOnSuccessListener {
@@ -1629,7 +1629,7 @@ private fun GroupManagementAdminPanel() {
     fun saveSubtitle(value: String) {
         db.collection("group_settings").document("group_subtitle")
             .set(mapOf("text" to value.trim().take(60), "updated_at" to FieldValue.serverTimestamp()))
-            .addOnSuccessListener { subtitle = value.trim().take(60); editingSubtitle = false; status = "Qrupun alt yazısı yadda saxlandı." }
+            .addOnSuccessListener { subtitle = value.trim(); editingSubtitle = false; status = "Qrupun alt yazısı yadda saxlandı." }
             .addOnFailureListener { status = "Xəta: ${it.localizedMessage}" }
     }
     fun saveControl(key: String, value: Any) {
@@ -1641,7 +1641,7 @@ private fun GroupManagementAdminPanel() {
         Text("QRUP RƏHBƏRLİYİ", color = Color(0xFFFFD36A), fontWeight = FontWeight.Black, fontSize = 18.sp)
         Text("Qrupun alt yazısı", color = Color(0xFFFFD36A), fontWeight = FontWeight.Bold)
         if (editingSubtitle) {
-            OutlinedTextField(subtitleDraft, { subtitleDraft = it.take(60) }, modifier = Modifier.fillMaxWidth(), singleLine = false, minLines = 2, maxLines = 4, label = { Text("Yeni alt yazı") })
+            OutlinedTextField(subtitleDraft, { subtitleDraft = it }, modifier = Modifier.fillMaxWidth(), singleLine = false, minLines = 3, maxLines = 8, label = { Text("Yeni alt yazı") })
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(onClick = { saveSubtitle(subtitleDraft) }, modifier = Modifier.weight(1f)) { Text("YADDA SAXLA") }
                 OutlinedButton(onClick = { editingSubtitle = false }, modifier = Modifier.weight(1f)) { Text("LƏĞV ET") }
