@@ -2027,7 +2027,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
             .addSnapshotListener { snap, e ->
                 if (e == null && snap != null) {
                     feedbackItems.clear()
-                    snap.documents.forEach { d -> feedbackItems.add("${d.getString("nickname") ?: "İstifadəçi"}|${d.getString("text") ?: ""}|${d.getString("audio_url") ?: ""}|${d.getTimestamp("created_at")?.toDate()?.time ?: 0L}") }
+                    snap.documents.forEach { d -> feedbackItems.add("${d.getString("nickname") ?: "İstifadəçi"}|${d.getString("text") ?: ""}|${d.getString("audio_url") ?: ""}|${d.getTimestamp("created_at")?.toDate()?.time ?: 0L}|${d.id}") }
                 }
             }
         onDispose { registration.remove() }
@@ -3369,69 +3369,87 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
             }
 
             if (!showPhoneInfo) {
-            Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF181818)), shape = RoundedCornerShape(22.dp), modifier = Modifier.fillMaxWidth()) {
-                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Row(Modifier.fillMaxWidth().clickable { showFeedback = !showFeedback }, verticalAlignment = Alignment.CenterVertically) {
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF181818)),
+                    shape = RoundedCornerShape(22.dp),
+                    modifier = Modifier.fillMaxWidth().clickable { showFeedback = true }
+                ) {
+                    Row(Modifier.fillMaxWidth().padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
                             Text("ADMİNLƏ-ƏLAQƏ", color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold)
                             Text("Şikayət və təkliflərini mesaj və ya səslə göndər", color = Color.LightGray, fontSize = 12.sp)
                         }
-                        Text(if (showFeedback) "▲" else "▼", color = Color.White)
+                        Text("➜", color = Color.White, fontSize = 28.sp)
                     }
-                    if (showFeedback) {
-                        Card(
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFF101010)),
-                            shape = RoundedCornerShape(18.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Column(
-                                Modifier.fillMaxWidth().padding(18.dp),
-                                verticalArrangement = Arrangement.spacedBy(14.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Text("MR_R3HB3R", color = Color.White, fontSize = 23.sp, fontWeight = FontWeight.Black)
-                                HorizontalDivider(color = Color.DarkGray)
-                                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                                    Text("ADI", color = Color.LightGray, modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold)
-                                    Text("АГШИН", color = Color.White, fontWeight = FontWeight.Bold)
-                                }
-                                HorizontalDivider(color = Color.DarkGray)
-                                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                                    Text("CİNSİ", color = Color.LightGray, modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold)
-                                    Text("Kişi", color = Color.White, fontWeight = FontWeight.Bold)
-                                }
-                                HorizontalDivider(color = Color.DarkGray)
-                                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                                    Text("RÜTBƏSİ", color = Color.LightGray, modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold)
-                                    Text("⚜️ PLATFORM SAHİBİ", color = Color.White, fontWeight = FontWeight.Bold)
-                                }
-                            }
+                }
+            }
+            if (showFeedback) {
+                Dialog(
+                    onDismissRequest = { showFeedback = false },
+                    properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)
+                ) {
+                    Column(
+                        Modifier.fillMaxSize().background(liveBg).statusBarsPadding().navigationBarsPadding().imePadding().padding(horizontal = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Row(Modifier.fillMaxWidth().padding(vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Text("‹", color = Color.White, fontSize = 34.sp, modifier = Modifier.clickable { showFeedback = false }.padding(end = 14.dp))
+                            Text("ADMİNLƏ-ƏLAQƏ", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Black)
                         }
-                        Spacer(Modifier.height(10.dp))
-                        Text("MESAJLAR", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 17.sp)
-                        if (feedbackItems.isEmpty()) {
-                            Text("Hələ mesaj göndərilməyib.", color = Color.LightGray, fontSize = 13.sp)
-                        } else {
-                            feedbackItems.reversed().forEach { item ->
-                                val parts = item.split("|", limit = 3)
-                                val sender = parts.getOrNull(0).orEmpty()
-                                val body = parts.getOrNull(1).orEmpty()
-                                val audio = parts.getOrNull(2).orEmpty()
-                                val sentAt = parts.getOrNull(3)?.toLongOrNull() ?: 0L
-                                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF242424)), shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth()) {
-                                    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                                            Text(if (loggedIn) sender else "Siz", color = Color.LightGray, fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-                                            if (sentAt > 0L) Text(
-                                                java.text.SimpleDateFormat("dd.MM.yyyy HH:mm", java.util.Locale.getDefault()).format(java.util.Date(sentAt)),
-                                                color = Color(0xFFBDBDBD), fontSize = 10.sp
-                                            )
-                                        }
-                                        if (body.isNotBlank()) Text(body, color = Color.White, fontSize = 14.sp)
-                                        if (audio.isNotBlank()) GroupVoiceMessagePlayer(audio, sentAt.takeIf { it > 0L } ?: System.currentTimeMillis())
+                        Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF101010)), shape = RoundedCornerShape(18.dp), modifier = Modifier.fillMaxWidth()) {
+                                Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text("MR_R3HB3R", color = Color.White, fontSize = 23.sp, fontWeight = FontWeight.Black)
+                                    HorizontalDivider(color = Color.DarkGray)
+                                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                        Text("ADI", color = Color.LightGray, modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold)
+                                        Text("АГШИН", color = Color.White, fontWeight = FontWeight.Bold)
+                                    }
+                                    HorizontalDivider(color = Color.DarkGray)
+                                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                        Text("CİNSİ", color = Color.LightGray, modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold)
+                                        Text("Kişi", color = Color.White, fontWeight = FontWeight.Bold)
+                                    }
+                                    HorizontalDivider(color = Color.DarkGray)
+                                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                        Text("RÜTBƏSİ", color = Color.LightGray, modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold)
+                                        Text("⚜️ PLATFORM SAHİBİ", color = Color.White, fontWeight = FontWeight.Bold)
                                     }
                                 }
                             }
+                            Text("MESAJLAR", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                            if (feedbackItems.isEmpty()) {
+                                Text("Hələ mesaj göndərilməyib.", color = Color.LightGray, fontSize = 13.sp)
+                            } else {
+                                feedbackItems.reversed().forEach { item ->
+                                    val parts = item.split("|", limit = 5)
+                                    val sender = parts.getOrNull(0).orEmpty()
+                                    val body = parts.getOrNull(1).orEmpty()
+                                    val audio = parts.getOrNull(2).orEmpty()
+                                    val sentAt = parts.getOrNull(3)?.toLongOrNull() ?: 0L
+                                    val feedbackId = parts.getOrNull(4).orEmpty()
+                                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF242424)), shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth()) {
+                                        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                                Text(sender, color = Color(0xFFFFD36A), fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                                                if (sentAt > 0L) Text(java.text.SimpleDateFormat("dd.MM.yyyy HH:mm", java.util.Locale.getDefault()).format(java.util.Date(sentAt)), color = Color(0xFFBDBDBD), fontSize = 10.sp)
+                                                if (loggedIn && feedbackId.isNotBlank()) {
+                                                    IconButton(onClick = {
+                                                        db.collection("admin_feedback").document(feedbackId).delete()
+                                                            .addOnSuccessListener { message = "Mesaj silindi." }
+                                                            .addOnFailureListener { error = "Mesaj silinmədi: ${it.localizedMessage}" }
+                                                    }, modifier = Modifier.size(34.dp)) {
+                                                        Icon(Icons.Default.Delete, contentDescription = "Mesajı sil", tint = Color(0xFFFF8A80))
+                                                    }
+                                                }
+                                            }
+                                            if (body.isNotBlank()) Text(body, color = Color.White, fontSize = 14.sp)
+                                            if (audio.isNotBlank()) GroupVoiceMessagePlayer(audio, sentAt.takeIf { it > 0L } ?: System.currentTimeMillis())
+                                        }
+                                    }
+                                }
+                            }
+                            if (error.isNotBlank()) Text(error, color = Color(0xFFFF8A80), fontSize = 12.sp)
                         }
                         Row(
                             modifier = Modifier.fillMaxWidth().background(Color(0xFFF4F0E8), RoundedCornerShape(30.dp)).padding(horizontal = 8.dp, vertical = 7.dp),
@@ -3482,11 +3500,8 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                             }
                         }
                         if (feedbackRecording) Text("Səs yazılır... Bitirmək və göndərmək üçün düyməyə toxun.", color = Color(0xFFFFD54F), fontSize = 12.sp)
-                        if (error.isNotBlank()) Text(error, color = Color(0xFFFF8A80), fontSize = 12.sp)
-                    }
                     }
                 }
-            }
             }
 
 
