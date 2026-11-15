@@ -211,9 +211,23 @@ private fun GroupVideoPlayer(url: String) {
     var isPrepared by remember(url) { mutableStateOf(false) }
     var isPlaying by remember(url) { mutableStateOf(false) }
     var hasCompleted by remember(url) { mutableStateOf(false) }
+    var playbackPosition by remember(url) { mutableIntStateOf(0) }
+    var resumeInFullscreen by remember(url) { mutableStateOf(false) }
 
     fun closeFullscreen() {
-        fullscreenPlayer?.pause()
+        val full = fullscreenPlayer
+        if (full != null) {
+            playbackPosition = full.currentPosition
+            val wasPlaying = full.isPlaying
+            full.pause()
+            previewPlayer?.let { preview ->
+                preview.seekTo(playbackPosition)
+                if (wasPlaying) preview.start()
+            }
+            previewPlaying = wasPlaying
+            if (hasCompleted) previewCompleted = true
+        }
+        fullscreenPlayer = null
         showFullscreen = false
         isPlaying = false
     }
@@ -246,27 +260,41 @@ private fun GroupVideoPlayer(url: String) {
             }
         )
 
-        if (!previewPlaying) {
-            Text(
-                "▶",
-                color = Color.White,
-                fontSize = 38.sp,
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .background(Color.Black.copy(alpha = 0.52f), CircleShape)
-                    .clickable {
-                        val player = previewPlayer
-                        if (previewPrepared && player != null) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .clickable {
+                    val player = previewPlayer
+                    if (previewPrepared && player != null) {
+                        if (previewPlaying) {
+                            playbackPosition = player.currentPosition
+                            player.pause()
+                            previewPlaying = false
+                        } else {
                             if (previewCompleted) {
                                 player.seekTo(0)
+                                playbackPosition = 0
                                 previewCompleted = false
+                            } else if (playbackPosition > 0) {
+                                player.seekTo(playbackPosition)
                             }
                             player.start()
                             previewPlaying = true
                         }
                     }
-                    .padding(horizontal = 22.dp, vertical = 14.dp)
-            )
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            if (!previewPlaying) {
+                Text(
+                    "▶",
+                    color = Color.White,
+                    fontSize = 38.sp,
+                    modifier = Modifier
+                        .background(Color.Black.copy(alpha = 0.52f), CircleShape)
+                        .padding(horizontal = 22.dp, vertical = 14.dp)
+                )
+            }
         }
 
         Text(
@@ -278,9 +306,14 @@ private fun GroupVideoPlayer(url: String) {
                 .padding(10.dp)
                 .background(Color.Black.copy(alpha = 0.58f), CircleShape)
                 .clickable {
-                    previewPlayer?.pause()
-                    previewPlaying = false
-                    showFullscreen = true
+                    val player = previewPlayer
+                    if (previewPrepared && player != null) {
+                        playbackPosition = player.currentPosition
+                        resumeInFullscreen = player.isPlaying
+                        player.pause()
+                        previewPlaying = false
+                        showFullscreen = true
+                    }
                 }
                 .padding(horizontal = 12.dp, vertical = 7.dp)
         )
@@ -297,8 +330,7 @@ private fun GroupVideoPlayer(url: String) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black),
-                contentAlignment = Alignment.Center
+                    .background(Color.Black)
             ) {
                 AndroidView(
                     modifier = Modifier.fillMaxSize(),
@@ -308,36 +340,56 @@ private fun GroupVideoPlayer(url: String) {
                             setVideoURI(Uri.parse(url))
                             setOnPreparedListener { player ->
                                 player.isLooping = false
-                                seekTo(1)
+                                seekTo(playbackPosition)
                                 isPrepared = true
+                                if (resumeInFullscreen) {
+                                    start()
+                                    isPlaying = true
+                                } else {
+                                    pause()
+                                    isPlaying = false
+                                }
                             }
                             setOnCompletionListener {
                                 isPlaying = false
                                 hasCompleted = true
+                                resumeInFullscreen = false
                             }
                         }
                     }
                 )
-                if (isPrepared && !isPlaying) {
-                    Text(
-                        "▶",
-                        color = Color.White,
-                        fontSize = 48.sp,
-                        modifier = Modifier
-                            .background(Color.Black.copy(alpha = 0.48f), CircleShape)
-                            .clickable {
-                                val player = fullscreenPlayer
-                                if (player != null) {
-                                    if (hasCompleted) {
-                                        player.seekTo(0)
-                                        hasCompleted = false
-                                    }
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clickable {
+                            val player = fullscreenPlayer
+                            if (isPrepared && player != null) {
+                                if (player.isPlaying) {
+                                    playbackPosition = player.currentPosition
+                                    player.pause()
+                                    isPlaying = false
+                                    resumeInFullscreen = false
+                                } else if (!hasCompleted) {
+                                    player.seekTo(playbackPosition)
                                     player.start()
                                     isPlaying = true
+                                    resumeInFullscreen = true
                                 }
                             }
-                            .padding(horizontal = 26.dp, vertical = 18.dp)
-                    )
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (isPrepared && !isPlaying) {
+                        Text(
+                            "▶",
+                            color = Color.White,
+                            fontSize = 48.sp,
+                            modifier = Modifier
+                                .background(Color.Black.copy(alpha = 0.48f), CircleShape)
+                                .padding(horizontal = 26.dp, vertical = 18.dp)
+                        )
+                    }
                 }
             }
         }
