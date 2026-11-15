@@ -301,6 +301,20 @@ private fun GroupVideoPlayer(url: String) {
                         .clickable { showFullscreen = true }
                         .padding(horizontal = 12.dp, vertical = 7.dp)
                 )
+            } else {
+                // Dedicated in-app control to leave fullscreen and return to the group.
+                Text(
+                    "⌄",
+                    color = Color.White,
+                    fontSize = 38.sp,
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .navigationBarsPadding()
+                        .padding(end = 22.dp, bottom = 18.dp)
+                        .background(Color.Black.copy(alpha = 0.62f), CircleShape)
+                        .clickable { showFullscreen = false }
+                        .padding(horizontal = 15.dp, vertical = 5.dp)
+                )
             }
         }
     }
