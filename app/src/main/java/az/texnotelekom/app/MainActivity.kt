@@ -545,50 +545,11 @@ private fun SupportBadgeLogo(
         )
     ) {
         Image(
-            painter = painterResource(R.drawable.texno_support_badge),
+            painter = painterResource(R.drawable.texno_support_badge_clean),
             contentDescription = "TEXNO DƏSTƏK QRUPU",
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
         )
-        Canvas(Modifier.matchParentSize()) {
-            val canvasWidth = this.size.width
-            val canvasHeight = this.size.height
-            // Cover the remaining gray strip at the very bottom of the source badge.
-            drawRect(
-                color = Color(0xFF050505),
-                topLeft = Offset(0f, canvasHeight * 0.795f),
-                size = androidx.compose.ui.geometry.Size(canvasWidth, canvasHeight * 0.205f)
-            )
-
-            val native = drawContext.canvas.nativeCanvas
-            val panel = AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG).apply {
-                color = android.graphics.Color.BLACK
-                style = AndroidPaint.Style.FILL
-            }
-            native.drawRoundRect(
-                canvasWidth * 0.19f,
-                canvasHeight * 0.385f,
-                canvasWidth * 0.81f,
-                canvasHeight * 0.775f,
-                canvasWidth * 0.045f,
-                canvasHeight * 0.045f,
-                panel
-            )
-            val titlePaint = AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG).apply {
-                color = android.graphics.Color.WHITE
-                textAlign = AndroidPaint.Align.CENTER
-                typeface = Typeface.create("sans-serif-condensed", Typeface.BOLD)
-                textSize = canvasHeight * 0.095f
-                isSubpixelText = true
-            }
-            val subPaint = AndroidPaint(titlePaint).apply {
-                color = android.graphics.Color.rgb(255, 205, 0)
-                textSize = canvasHeight * 0.095f
-            }
-            // Smaller lettering and wider line spacing keep the two words clearly separated.
-            native.drawText("TEXNO", canvasWidth * 0.5f, canvasHeight * 0.535f, titlePaint)
-            native.drawText("QRUPU", canvasWidth * 0.5f, canvasHeight * 0.695f, subPaint)
-        }
     }
 }
 
