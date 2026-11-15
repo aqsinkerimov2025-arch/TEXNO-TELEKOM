@@ -353,6 +353,7 @@ private fun GroupVideoPlayer(url: String) {
                         .fillMaxWidth()
                         .background(Color.Black.copy(alpha = 0.72f))
                         .padding(horizontal = if (fullscreen) 18.dp else 10.dp, vertical = if (fullscreen) 12.dp else 6.dp)
+                        .padding(bottom = if (fullscreen) 56.dp else 0.dp)
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -411,25 +412,43 @@ private fun GroupVideoPlayer(url: String) {
                             )
                         }
                     }
-                    Slider(
-                        value = playbackPosition.coerceIn(0L, playbackDuration).toFloat(),
-                        onValueChange = { position ->
-                            isSeeking = true
-                            playbackPosition = position.toLong().coerceIn(0L, playbackDuration)
-                        },
-                        onValueChangeFinished = {
-                            player.seekTo(playbackPosition.coerceIn(0L, playbackDuration))
-                            isSeeking = false
-                        },
-                        valueRange = 0f..playbackDuration.toFloat().coerceAtLeast(1f),
-                        modifier = Modifier.fillMaxWidth().height(if (fullscreen) 68.dp else 36.dp)
-                            .padding(horizontal = if (fullscreen) 6.dp else 0.dp),
-                        colors = SliderDefaults.colors(
-                            thumbColor = Color.White,
-                            activeTrackColor = Color(0xFFE53935),
-                            inactiveTrackColor = Color.White.copy(alpha = 0.4f)
-                        )
-                    )
+                    Canvas(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(if (fullscreen) 54.dp else 36.dp)
+                            .pointerInput(playbackDuration) {
+                                fun updateSeek(x: Float) {
+                                    val fraction = (x / size.width.toFloat().coerceAtLeast(1f)).coerceIn(0f, 1f)
+                                    playbackPosition = (fraction * playbackDuration).toLong().coerceIn(0L, playbackDuration)
+                                }
+                                detectHorizontalDragGestures(
+                                    onDragStart = { x ->
+                                        isSeeking = true
+                                        updateSeek(x)
+                                    },
+                                    onHorizontalDrag = { change, _ ->
+                                        change.consume()
+                                        updateSeek(change.position.x)
+                                    },
+                                    onDragEnd = {
+                                        player.seekTo(playbackPosition.coerceIn(0L, playbackDuration))
+                                        isSeeking = false
+                                    },
+                                    onDragCancel = {
+                                        player.seekTo(playbackPosition.coerceIn(0L, playbackDuration))
+                                        isSeeking = false
+                                    }
+                                )
+                            }
+                    ) {
+                        val centerY = size.height / 2f
+                        val inset = 8.dp.toPx()
+                        val trackWidth = (size.width - inset * 2f).coerceAtLeast(1f)
+                        val fraction = (playbackPosition.toFloat() / playbackDuration.toFloat().coerceAtLeast(1f)).coerceIn(0f, 1f)
+                        drawLine(Color.White.copy(alpha = 0.4f), Offset(inset, centerY), Offset(inset + trackWidth, centerY), strokeWidth = 6.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round)
+                        drawLine(Color(0xFFE53935), Offset(inset, centerY), Offset(inset + trackWidth * fraction, centerY), strokeWidth = 6.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round)
+                        drawCircle(Color.White, radius = 7.dp.toPx(), center = Offset(inset + trackWidth * fraction, centerY))
+                    }
                 }
             }
 
