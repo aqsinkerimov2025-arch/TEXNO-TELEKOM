@@ -2109,6 +2109,8 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     var newPhoneInfoNotice by remember { mutableStateOf(false) }
     var newProgramNotice by remember { mutableStateOf(false) }
     var appNoticeItems by remember { mutableStateOf(listOf<Pair<String, String>>()) }
+    var latestAdminFeedbackAt by remember { mutableLongStateOf(0L) }
+    var showAdminFeedbackNotice by remember { mutableStateOf(false) }
     var postTitle by remember { mutableStateOf("") }
     var postVersion by remember { mutableStateOf("") }
     var postVip by remember { mutableStateOf(false) }
@@ -2151,6 +2153,23 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     val gameImagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         gameImage = uri
         if (uri != null) message = "Oyun şəkli seçildi."
+    }
+
+    DisposableEffect(db, loggedIn) {
+        if (!loggedIn) return@DisposableEffect onDispose { }
+        val feedbackNoticeListener = db.collection("admin_feedback")
+            .orderBy("created_at", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .limit(1)
+            .addSnapshotListener { snap, e ->
+                if (e == null && snap != null) {
+                    val latest = snap.documents.firstOrNull()?.getTimestamp("created_at")?.toDate()?.time ?: 0L
+                    latestAdminFeedbackAt = latest
+                    val seen = context.getSharedPreferences("texno_admin_notices", Context.MODE_PRIVATE)
+                        .getLong("last_feedback_seen_at", 0L)
+                    showAdminFeedbackNotice = latest > seen && latest > 0L
+                }
+            }
+        onDispose { feedbackNoticeListener.remove() }
     }
 
     DisposableEffect(db) {
@@ -3304,6 +3323,28 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                 )
             }
 
+            if (loggedIn && showAdminFeedbackNotice && !showFeedback && !showPhoneInfo && !showPrograms && !showGames) {
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFFFE2A1)),
+                    shape = RoundedCornerShape(18.dp),
+                    modifier = Modifier.fillMaxWidth().clickable {
+                        context.getSharedPreferences("texno_admin_notices", Context.MODE_PRIVATE)
+                            .edit().putLong("last_feedback_seen_at", latestAdminFeedbackAt).apply()
+                        showAdminFeedbackNotice = false
+                        showFeedback = true
+                    }
+                ) {
+                    Row(Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text("🔔", fontSize = 25.sp)
+                        Column(Modifier.weight(1f).padding(start = 10.dp)) {
+                            Text("YENİ ADMİN MESAJI", color = Color(0xFF4A2D08), fontWeight = FontWeight.Black, fontSize = 15.sp)
+                            Text("ADMİNLƏ-ƏLAQƏ bölməsinə yeni mesaj gəlib. Baxmaq üçün toxun.", color = Color(0xFF5B451F), fontSize = 12.sp)
+                        }
+                        Text("AÇ", color = Color(0xFF4A2D08), fontWeight = FontWeight.Bold)
+                    }
+                }
+                Spacer(Modifier.height(10.dp))
+            }
             Spacer(Modifier.height(22.dp))
             Card(
                 colors = CardDefaults.cardColors(containerColor = Color(0xFF202020)),
@@ -3546,7 +3587,12 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                 Card(
                     colors = CardDefaults.cardColors(containerColor = Color(0xFF181818)),
                     shape = RoundedCornerShape(22.dp),
-                    modifier = Modifier.fillMaxWidth().clickable { showFeedback = true }
+                    modifier = Modifier.fillMaxWidth().clickable {
+                        context.getSharedPreferences("texno_admin_notices", Context.MODE_PRIVATE)
+                            .edit().putLong("last_feedback_seen_at", latestAdminFeedbackAt).apply()
+                        showAdminFeedbackNotice = false
+                        showFeedback = true
+                    }
                 ) {
                     Row(Modifier.fillMaxWidth().padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
