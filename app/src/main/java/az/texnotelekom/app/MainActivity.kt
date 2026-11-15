@@ -2538,7 +2538,23 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
             }
         } else if (showFeedback) {
             Column(
-                Modifier.fillMaxSize().background(liveBg).statusBarsPadding().navigationBarsPadding().imePadding().padding(horizontal = 16.dp),
+                Modifier.fillMaxSize().background(
+                    Brush.linearGradient(
+                        colorStops = arrayOf(
+                            0.00f to Color(0xFF24104F),
+                            0.12f to Color(0xFF302078),
+                            0.23f to Color(0xFF263F9C),
+                            0.38f to Color(0xFF315BC2),
+                            0.52f to Color(0xFF182F78),
+                            0.66f to Color(0xFF243D91),
+                            0.79f to Color(0xFF49309A),
+                            0.91f to Color(0xFF302078),
+                            1.00f to Color(0xFF24104F)
+                        ),
+                        start = Offset.Zero,
+                        end = Offset(900f, 1500f)
+                    )
+                ).statusBarsPadding().navigationBarsPadding().imePadding().padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Row(Modifier.fillMaxWidth().padding(vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -3517,21 +3533,6 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
             }
             }
 
-            if (!showPhoneInfo) {
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF181818)),
-                    shape = RoundedCornerShape(22.dp),
-                    modifier = Modifier.fillMaxWidth().clickable { showFeedback = true }
-                ) {
-                    Row(Modifier.fillMaxWidth().padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Column(Modifier.weight(1f)) {
-                            Text("ADMİNLƏ-ƏLAQƏ", color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold)
-                            Text("Şikayət və təkliflərini mesaj və ya səslə göndər", color = Color.LightGray, fontSize = 12.sp)
-                        }
-                        Text("➜", color = Color.White, fontSize = 28.sp)
-                    }
-                }
-            }
             if (!showPhoneInfo) {
                 Card(
                     colors = CardDefaults.cardColors(containerColor = Color(0xFF181818)),
