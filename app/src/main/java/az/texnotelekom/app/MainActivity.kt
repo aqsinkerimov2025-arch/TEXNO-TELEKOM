@@ -1640,7 +1640,7 @@ private fun GroupManagementAdminPanel() {
         Text("QRUP RƏHBƏRLİYİ", color = Color(0xFFFFD36A), fontWeight = FontWeight.Black, fontSize = 18.sp)
         Text("Qrupun alt yazısı", color = Color(0xFFFFD36A), fontWeight = FontWeight.Bold)
         if (editingSubtitle) {
-            OutlinedTextField(subtitleDraft, { subtitleDraft = it.take(60) }, modifier = Modifier.fillMaxWidth(), singleLine = true, label = { Text("Yeni alt yazı") })
+            OutlinedTextField(subtitleDraft, { subtitleDraft = it.take(60) }, modifier = Modifier.fillMaxWidth(), singleLine = false, minLines = 2, maxLines = 4, label = { Text("Yeni alt yazı") })
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(onClick = { saveSubtitle(subtitleDraft) }, modifier = Modifier.weight(1f)) { Text("YADDA SAXLA") }
                 OutlinedButton(onClick = { editingSubtitle = false }, modifier = Modifier.weight(1f)) { Text("LƏĞV ET") }
