@@ -1294,19 +1294,6 @@ private fun GroupChatScreen(onClose: () -> Unit) {
             Column(Modifier.weight(1f).padding(start = 10.dp)) {
                 Text("TEXNO DƏSTƏK QRUPU", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Black)
                 if (groupSubtitle.isNotBlank()) Text(groupSubtitle, color = Color(0xFFBDBDBD), fontSize = 11.sp)
-                if (isGroupAdmin) {
-                    Text(
-                        "⚙ RƏHBƏRLİK PANELİ",
-                        color = Color(0xFFFFD36A),
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.clickable { showManagementPanel = !showManagementPanel }
-                    )
-                }
-            }
-            if (isGroupAdmin) {
-                Text("⋮", color = Color.White, fontSize = 26.sp,
-                    modifier = Modifier.clickable { showManagementPanel = !showManagementPanel }.padding(horizontal = 8.dp))
             }
         }
         Row(
@@ -1317,179 +1304,7 @@ private fun GroupChatScreen(onClose: () -> Unit) {
             Spacer(Modifier.width(6.dp))
             Text("QRUP QAYDALARI", color = Color(0xFFFFD36A), fontSize = 12.sp, fontWeight = FontWeight.Bold)
         }
-        if (isGroupAdmin && showManagementPanel) {
-            Card(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF242424)),
-                shape = RoundedCornerShape(14.dp)
-            ) {
-                Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
-                    Text("RƏHBƏRLİK PANELİ", color = Color(0xFFFFD36A), fontWeight = FontWeight.Bold, fontSize = 15.sp)
-                    Text("QRUPUN ALT YAZISINI İDARƏ ET", color = Color(0xFFFFD36A), fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                    if (editingGroupSubtitle) {
-                        OutlinedTextField(
-                            value = groupSubtitleDraft,
-                            onValueChange = { groupSubtitleDraft = it.take(60) },
-                            modifier = Modifier.fillMaxWidth(),
-                            singleLine = true,
-                            label = { Text("Yeni söz və ya ifadə") },
-                            placeholder = { Text("Məsələn: Ümumi söhbət") }
-                        )
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Button(
-                                onClick = { saveGroupSubtitle(groupSubtitleDraft) },
-                                enabled = !groupSubtitleSaving,
-                                modifier = Modifier.weight(1f)
-                            ) { Text(if (groupSubtitleSaving) "YADDA SAXLANIR..." else "YADDA SAXLA") }
-                            OutlinedButton(
-                                onClick = { editingGroupSubtitle = false; groupSubtitleDraft = groupSubtitle },
-                                enabled = !groupSubtitleSaving,
-                                modifier = Modifier.weight(1f)
-                            ) { Text("LƏĞV ET") }
-                        }
-                    } else {
-                        Text(
-                            "Hazırkı yazı: ${groupSubtitle.ifBlank { "(boşdur)" }}",
-                            color = Color.LightGray,
-                            fontSize = 12.sp
-                        )
-                        OutlinedButton(
-                            onClick = { groupSubtitleDraft = groupSubtitle; editingGroupSubtitle = true },
-                            modifier = Modifier.fillMaxWidth()
-                        ) { Text("ALT YAZINI REDAKTƏ ET") }
-                        OutlinedButton(
-                            onClick = { groupSubtitleDraft = ""; saveGroupSubtitle("") },
-                            enabled = !groupSubtitleSaving && groupSubtitle.isNotBlank(),
-                            modifier = Modifier.fillMaxWidth()
-                        ) { Text("ALT YAZINI SİL") }
-                    }
-                    @Composable
-                    fun ControlSwitch(title: String, checked: Boolean, onChange: (Boolean) -> Unit) {
-                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                            Text(title, color = Color.White, fontSize = 13.sp, modifier = Modifier.weight(1f))
-                            androidx.compose.material3.Switch(checked = checked, onCheckedChange = onChange)
-                        }
-                    }
-                    ControlSwitch("Aqressiv Anti-Spam", antiSpamEnabled) {
-                        antiSpamEnabled = it; saveAdminControl("anti_spam", it)
-                    }
-                    ControlSwitch("Media göndərmə", allowMedia) {
-                        allowMedia = it; saveAdminControl("allow_media", it)
-                    }
-                    ControlSwitch("İstifadəçi əlavə etmək", allowAddUsers) {
-                        allowAddUsers = it; saveAdminControl("allow_add_users", it)
-                    }
-                    ControlSwitch("Mesajları sabitləmək", allowPinMessages) {
-                        allowPinMessages = it; saveAdminControl("allow_pin_messages", it)
-                    }
-                    ControlSwitch("Öz etiketlərini redaktə etmək", allowEditOwnTags) {
-                        allowEditOwnTags = it; saveAdminControl("allow_edit_own_tags", it)
-                    }
-                    ControlSwitch("Qrup məlumatlarını dəyişmək", allowChangeGroupInfo) {
-                        allowChangeGroupInfo = it; saveAdminControl("allow_change_group_info", it)
-                    }
-                    ControlSwitch("Mesajları ulduzla ödənişli etmək", starsEnabled) {
-                        starsEnabled = it; saveAdminControl("stars_enabled", it)
-                    }
-                    Text("YAVAŞ REJİM", color = Color(0xFFFFD36A), fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                    val slowOptions = listOf(0 to "Bağlı", 5 to "5 san", 10 to "10 san", 30 to "30 san",
-                        60 to "1 dəq", 300 to "5 dəq", 900 to "15 dəq", 3600 to "1 saat")
-                    androidx.compose.foundation.layout.FlowRow(
-                        horizontalArrangement = Arrangement.spacedBy(5.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        slowOptions.forEach { (seconds, label) ->
-                            androidx.compose.material3.FilterChip(
-                                selected = slowModeSeconds == seconds,
-                                onClick = { slowModeSeconds = seconds; saveAdminControl("slow_mode_seconds", seconds) },
-                                label = { Text(label, fontSize = 11.sp) }
-                            )
-                        }
-                    }
-                    Text("ADMİNLƏRİ İDARƏ ET", color = Color(0xFFFFD36A), fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                    if (groupManagerUids.isNotEmpty()) {
-                        groupManagerUids.forEach { managerUid ->
-                            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                                Text(managerUid, color = Color.LightGray, fontSize = 11.sp, modifier = Modifier.weight(1f))
-                                TextButton(onClick = {
-                                    if (isGroupAdmin) db.collection("group_managers").document(managerUid).delete()
-                                        .addOnSuccessListener {
-                                            groupManagerUids = groupManagerUids - managerUid
-                                            status = "İstifadəçinin adminliyi ləğv edildi."
-                                        }
-                                        .addOnFailureListener { status = "Adminlik ləğv edilmədi: ${it.localizedMessage}" }
-                                }, enabled = isGroupAdmin) { Text("LƏĞV ET", color = Color(0xFFFF7777)) }
-                            }
-                        }
-                    } else {
-                        Text("Hələ əlavə edilmiş admin yoxdur.", color = Color.LightGray, fontSize = 12.sp)
-                    }
-                    if (isGroupAdmin) {
-                        OutlinedButton(onClick = { showAddManagerDialog = true }, modifier = Modifier.fillMaxWidth()) {
-                            Text("＋ İSTİFADƏÇİYƏ ADMİNLİK VER")
-                        }
-                    }
-                    OutlinedButton(onClick = { showExceptionDialog = true }, modifier = Modifier.fillMaxWidth()) {
-                        Text("＋ İSTİSNA ƏLAVƏ ET")
-                    }
-                    Text("Çıxarılan istifadəçilər: $removedUsersCount", color = Color.LightGray, fontSize = 12.sp)
-                    Button(
-                        onClick = { showDeleteAllConfirm = true },
-                        enabled = !managementBusy,
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF9F2929)),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(if (managementBusy) "SİLİNİR..." else "BÜTÜN MESAJLARI SİL")
-                    }
-                }
-            }
-        }
         HorizontalDivider(color = Color(0xFF303030))
-        if (showAddManagerDialog && isGroupAdmin) {
-            AlertDialog(
-                onDismissRequest = { showAddManagerDialog = false },
-                title = { Text("İstifadəçiyə adminlik ver") },
-                text = {
-                    OutlinedTextField(
-                        value = managerUidDraft,
-                        onValueChange = { managerUidDraft = it },
-                        label = { Text("İstifadəçinin UID-sini daxil et") },
-                        singleLine = true
-                    )
-                },
-                confirmButton = { TextButton(onClick = { addGroupManager(managerUidDraft) }) { Text("Admin et") } },
-                dismissButton = { TextButton(onClick = { showAddManagerDialog = false }) { Text("Ləğv et") } }
-            )
-        }
-        if (showExceptionDialog && isGroupAdmin) {
-            AlertDialog(
-                onDismissRequest = { showExceptionDialog = false },
-                title = { Text("İstisna əlavə et") },
-                text = {
-                    OutlinedTextField(
-                        value = exceptionUidDraft,
-                        onValueChange = { exceptionUidDraft = it },
-                        label = { Text("İstifadəçinin UID-si") },
-                        singleLine = true
-                    )
-                },
-                confirmButton = { TextButton(onClick = { addGroupException(exceptionUidDraft) }) { Text("Əlavə et") } },
-                dismissButton = { TextButton(onClick = { showExceptionDialog = false }) { Text("Ləğv et") } }
-            )
-        }
-        if (showDeleteAllConfirm && isGroupAdmin) {
-            AlertDialog(
-                onDismissRequest = { if (!managementBusy) showDeleteAllConfirm = false },
-                title = { Text("Bütün mesajlar silinsin?") },
-                text = { Text("Qrupdakı bütün mətn, şəkil və səs mesajları silinəcək. Bu əməliyyat geri qaytarılmır.") },
-                confirmButton = {
-                    TextButton(onClick = { deleteAllGroupMessages() }, enabled = !managementBusy) { Text("Bəli, hamısını sil") }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showDeleteAllConfirm = false }, enabled = !managementBusy) { Text("Ləğv et") }
-                }
-            )
-        }
         if (showGroupRules) {
             Column(
                 Modifier.weight(1f).fillMaxWidth().background(Color(0xFF151515)).padding(20.dp),
@@ -1628,6 +1443,172 @@ private fun GroupChatScreen(onClose: () -> Unit) {
             }
             if (status.isNotBlank()) Text(status, color = Color(0xFFFFD36A), fontSize = 11.sp, modifier = Modifier.padding(horizontal = 14.dp, vertical = 3.dp))
         }
+    }
+}
+
+
+@Composable
+private fun GroupManagementAdminPanel() {
+    val db = remember { FirebaseFirestore.getInstance() }
+    val auth = remember { FirebaseAuth.getInstance() }
+    val uid = auth.currentUser?.uid.orEmpty()
+    var subtitle by remember { mutableStateOf("Ümumi söhbət") }
+    var subtitleDraft by remember { mutableStateOf("") }
+    var editingSubtitle by remember { mutableStateOf(false) }
+    var managerUid by remember { mutableStateOf("") }
+    var managers by remember { mutableStateOf<List<String>>(emptyList()) }
+    var exceptionUid by remember { mutableStateOf("") }
+    var showException by remember { mutableStateOf(false) }
+    var showClearConfirm by remember { mutableStateOf(false) }
+    var status by remember { mutableStateOf("") }
+    var antiSpam by remember { mutableStateOf(false) }
+    var allowMedia by remember { mutableStateOf(true) }
+    var allowAddUsers by remember { mutableStateOf(true) }
+    var allowPin by remember { mutableStateOf(false) }
+    var allowTags by remember { mutableStateOf(false) }
+    var allowInfo by remember { mutableStateOf(false) }
+    var stars by remember { mutableStateOf(false) }
+    var slowMode by remember { mutableIntStateOf(0) }
+    var rules by remember { mutableStateOf("") }
+    var rulesDraft by remember { mutableStateOf("") }
+    var editingRules by remember { mutableStateOf(false) }
+    var isManager by remember { mutableStateOf(uid == ADMIN_UID) }
+    var isOwner = uid == ADMIN_UID
+
+    LaunchedEffect(uid) {
+        if (uid.isNotBlank() && uid != ADMIN_UID) {
+            db.collection("group_managers").document(uid).get()
+                .addOnSuccessListener { isManager = it.exists() }
+        }
+        db.collection("group_settings").document("group_subtitle").get()
+            .addOnSuccessListener { subtitle = it.getString("text") ?: "Ümumi söhbət" }
+        db.collection("group_settings").document("admin_controls").get().addOnSuccessListener { d ->
+            antiSpam = d.getBoolean("anti_spam") ?: false
+            allowMedia = d.getBoolean("allow_media") ?: true
+            allowAddUsers = d.getBoolean("allow_add_users") ?: true
+            allowPin = d.getBoolean("allow_pin_messages") ?: false
+            allowTags = d.getBoolean("allow_edit_own_tags") ?: false
+            allowInfo = d.getBoolean("allow_change_group_info") ?: false
+            stars = d.getBoolean("stars_enabled") ?: false
+            slowMode = (d.getLong("slow_mode_seconds") ?: 0L).toInt()
+        }
+        db.collection("group_managers").get().addOnSuccessListener { managers = it.documents.map { doc -> doc.id }.filter { it != ADMIN_UID } }
+        db.collection("group_settings").document("rules").get()
+            .addOnSuccessListener { rules = it.getString("text") ?: "" }
+    }
+    fun saveSubtitle(value: String) {
+        db.collection("group_settings").document("group_subtitle")
+            .set(mapOf("text" to value.trim().take(60), "updated_at" to FieldValue.serverTimestamp()))
+            .addOnSuccessListener { subtitle = value.trim().take(60); editingSubtitle = false; status = "Qrupun alt yazısı yadda saxlandı." }
+            .addOnFailureListener { status = "Xəta: ${it.localizedMessage}" }
+    }
+    fun saveControl(key: String, value: Any) {
+        db.collection("group_settings").document("admin_controls")
+            .set(mapOf(key to value, "updated_at" to FieldValue.serverTimestamp()), com.google.firebase.firestore.SetOptions.merge())
+            .addOnFailureListener { status = "Parametr yadda saxlanmadı: ${it.localizedMessage}" }
+    }
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text("QRUP RƏHBƏRLİYİ", color = Color(0xFFFFD36A), fontWeight = FontWeight.Black, fontSize = 18.sp)
+        Text("Qrupun alt yazısı", color = Color(0xFFFFD36A), fontWeight = FontWeight.Bold)
+        if (editingSubtitle) {
+            OutlinedTextField(subtitleDraft, { subtitleDraft = it.take(60) }, modifier = Modifier.fillMaxWidth(), singleLine = true, label = { Text("Yeni alt yazı") })
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(onClick = { saveSubtitle(subtitleDraft) }, modifier = Modifier.weight(1f)) { Text("YADDA SAXLA") }
+                OutlinedButton(onClick = { editingSubtitle = false }, modifier = Modifier.weight(1f)) { Text("LƏĞV ET") }
+            }
+        } else {
+            Text("Hazırkı yazı: ${subtitle.ifBlank { "(boşdur)" }}", color = Color.LightGray)
+            OutlinedButton(onClick = { subtitleDraft = subtitle; editingSubtitle = true }, modifier = Modifier.fillMaxWidth()) { Text("ALT YAZINI REDAKTƏ ET") }
+            OutlinedButton(onClick = { saveSubtitle("") }, modifier = Modifier.fillMaxWidth(), enabled = subtitle.isNotBlank()) { Text("ALT YAZINI SİL") }
+        }
+        HorizontalDivider()
+        Text("QRUP PARAMETRLƏRİ", color = Color(0xFFFFD36A), fontWeight = FontWeight.Bold)
+        @Composable
+        fun Setting(title: String, checked: Boolean, changed: (Boolean) -> Unit) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text(title, color = Color.White, modifier = Modifier.weight(1f), fontSize = 13.sp)
+                Switch(checked = checked, onCheckedChange = changed)
+            }
+        }
+        Setting("Aqressiv Anti-Spam", antiSpam) { antiSpam = it; saveControl("anti_spam", it) }
+        Setting("Media göndərmə", allowMedia) { allowMedia = it; saveControl("allow_media", it) }
+        Setting("İstifadəçi əlavə etmək", allowAddUsers) { allowAddUsers = it; saveControl("allow_add_users", it) }
+        Setting("Mesajları sabitləmək", allowPin) { allowPin = it; saveControl("allow_pin_messages", it) }
+        Setting("Öz etiketlərini redaktə etmək", allowTags) { allowTags = it; saveControl("allow_edit_own_tags", it) }
+        Setting("Qrup məlumatlarını dəyişmək", allowInfo) { allowInfo = it; saveControl("allow_change_group_info", it) }
+        Setting("Mesajları ulduzla ödənişli etmək", stars) { stars = it; saveControl("stars_enabled", it) }
+        Text("YAVAŞ REJİM", color = Color(0xFFFFD36A), fontWeight = FontWeight.Bold)
+        val slowOptions = listOf(0 to "Bağlı", 5 to "5 san", 10 to "10 san", 30 to "30 san", 60 to "1 dəq", 300 to "5 dəq", 900 to "15 dəq", 3600 to "1 saat")
+        androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+            slowOptions.forEach { (seconds, label) ->
+                androidx.compose.material3.FilterChip(selected = slowMode == seconds, onClick = { slowMode = seconds; saveControl("slow_mode_seconds", seconds) }, label = { Text(label, fontSize = 11.sp) })
+            }
+        }
+        HorizontalDivider()
+        Text("ADMİNLƏRİ İDARƏ ET", color = Color(0xFFFFD36A), fontWeight = FontWeight.Bold)
+        managers.forEach { manager ->
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(manager, color = Color.LightGray, fontSize = 11.sp, modifier = Modifier.weight(1f))
+                TextButton(onClick = {
+                    db.collection("group_managers").document(manager).delete().addOnSuccessListener { managers = managers - manager; status = "Adminlik ləğv edildi." }
+                }) { Text("LƏĞV ET", color = Color(0xFFFF7777)) }
+            }
+        }
+        var showAddManager by remember { mutableStateOf(false) }
+        if (showAddManager) {
+            OutlinedTextField(managerUid, { managerUid = it }, modifier = Modifier.fillMaxWidth(), label = { Text("İstifadəçinin UID-si") }, singleLine = true)
+            Button(onClick = {
+                val clean = managerUid.trim()
+                if (clean.isNotBlank() && clean != ADMIN_UID) db.collection("group_managers").document(clean)
+                    .set(mapOf("uid" to clean, "added_at" to FieldValue.serverTimestamp()))
+                    .addOnSuccessListener { managers = (managers + clean).distinct(); managerUid = ""; showAddManager = false; status = "İstifadəçiyə adminlik verildi." }
+                    .addOnFailureListener { status = "Adminlik verilmədi: ${it.localizedMessage}" }
+            }, modifier = Modifier.fillMaxWidth()) { Text("ADMİN ET") }
+            TextButton(onClick = { showAddManager = false }) { Text("LƏĞV ET") }
+        } else if (isOwner || isManager) {
+            OutlinedButton(onClick = { showAddManager = true }, modifier = Modifier.fillMaxWidth()) { Text("＋ İSTİFADƏÇİYƏ ADMİNLİK VER") }
+        }
+        OutlinedButton(onClick = { showException = true }, modifier = Modifier.fillMaxWidth()) { Text("＋ İSTİSNA ƏLAVƏ ET") }
+        if (showException) {
+            OutlinedTextField(exceptionUid, { exceptionUid = it }, modifier = Modifier.fillMaxWidth(), label = { Text("İstifadəçinin UID-si") })
+            Button(onClick = {
+                val clean = exceptionUid.trim()
+                if (clean.isNotBlank()) db.collection("group_exceptions").document(clean)
+                    .set(mapOf("uid" to clean, "created_at" to FieldValue.serverTimestamp()))
+                    .addOnSuccessListener { showException = false; exceptionUid = ""; status = "İstisna əlavə edildi." }
+            }, modifier = Modifier.fillMaxWidth()) { Text("ƏLAVƏ ET") }
+        }
+        HorizontalDivider()
+        Text("QRUP QAYDALARI", color = Color(0xFFFFD36A), fontWeight = FontWeight.Bold)
+        if (editingRules) {
+            OutlinedTextField(rulesDraft, { rulesDraft = it }, modifier = Modifier.fillMaxWidth(), minLines = 4, label = { Text("Qrup qaydaları") })
+            Button(onClick = {
+                db.collection("group_settings").document("rules").set(mapOf("text" to rulesDraft, "updated_at" to FieldValue.serverTimestamp()))
+                    .addOnSuccessListener { rules = rulesDraft; editingRules = false; status = "Qaydalar yadda saxlandı." }
+                    .addOnFailureListener { status = "Qaydalar saxlanmadı: ${it.localizedMessage}" }
+            }, modifier = Modifier.fillMaxWidth()) { Text("QAYDALARI YADDA SAXLA") }
+        } else {
+            Text(rules.ifBlank { "Qaydalar yazılmayıb." }, color = Color.LightGray, fontSize = 12.sp)
+            OutlinedButton(onClick = { rulesDraft = rules; editingRules = true }, modifier = Modifier.fillMaxWidth()) { Text("QAYDALARI REDAKTƏ ET") }
+        }
+        Button(onClick = { showClearConfirm = true }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF9F2929)), modifier = Modifier.fillMaxWidth()) { Text("BÜTÜN QRUP MESAJLARINI SİL") }
+        if (showClearConfirm) {
+            AlertDialog(onDismissRequest = { showClearConfirm = false }, title = { Text("Bütün mesajlar silinsin?") }, text = { Text("Bu əməliyyat geri qaytarılmır.") },
+                confirmButton = { TextButton(onClick = {
+                    db.collection("group_messages").get().addOnSuccessListener { snap ->
+                        val chunks = snap.documents.chunked(400)
+                        fun deleteChunk(index: Int) {
+                            if (index >= chunks.size) { showClearConfirm = false; status = "Qrup mesajları silindi."; return }
+                            val batch = db.batch()
+                            chunks[index].forEach { batch.delete(it.reference) }
+                            batch.commit().addOnSuccessListener { deleteChunk(index + 1) }.addOnFailureListener { status = "Mesajlar silinmədi: ${it.localizedMessage}" }
+                        }
+                        deleteChunk(0)
+                    }
+                }) { Text("SİL") } },
+                dismissButton = { TextButton(onClick = { showClearConfirm = false }) { Text("LƏĞV ET") } })
+        }
+        if (status.isNotBlank()) Text(status, color = Color(0xFFFFD36A), fontSize = 12.sp)
     }
 }
 
@@ -2472,6 +2453,15 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                     }
                             }, enabled = email.isNotBlank() && password.isNotBlank()) { Text("Daxil ol") }
                         } else {
+                            var showGroupManagementAdmin by remember { mutableStateOf(false) }
+                            OutlinedButton(onClick = { showGroupManagementAdmin = !showGroupManagementAdmin }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFFD36A))) {
+                                Text(if (showGroupManagementAdmin) "QRUP RƏHBƏRLİYİNİ BAĞLA ▲" else "QRUP RƏHBƏRLİYİ ▼", fontWeight = FontWeight.Bold)
+                            }
+                            if (showGroupManagementAdmin) {
+                                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF242424)), modifier = Modifier.fillMaxWidth()) {
+                                    Column(Modifier.fillMaxWidth().padding(14.dp)) { GroupManagementAdminPanel() }
+                                }
+                            }
                             OutlinedButton(onClick = { designAdminOpen = true }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)) { Text("Canlı dizayn bölməsi") }
                             OutlinedButton(onClick = { showSiteTextEditor = !showSiteTextEditor }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)) {
                                 Text(if (showSiteTextEditor) "SAYT YAZILARINI BAĞLA ▲" else "SAYT YAZILARINI DÜZƏLT ▼", fontWeight = FontWeight.Bold)
