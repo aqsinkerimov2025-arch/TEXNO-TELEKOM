@@ -203,6 +203,10 @@ private fun uploadGroupVideo(context: Context, uri: Uri, callback: (Result<Strin
 private fun GroupVideoPlayer(url: String) {
     val context = LocalContext.current
     var showFullscreen by remember(url) { mutableStateOf(false) }
+    var previewPlayer by remember(url) { mutableStateOf<VideoView?>(null) }
+    var previewPrepared by remember(url) { mutableStateOf(false) }
+    var previewPlaying by remember(url) { mutableStateOf(false) }
+    var previewCompleted by remember(url) { mutableStateOf(false) }
     var fullscreenPlayer by remember(url) { mutableStateOf<VideoView?>(null) }
     var isPrepared by remember(url) { mutableStateOf(false) }
     var isPlaying by remember(url) { mutableStateOf(false) }
@@ -220,31 +224,65 @@ private fun GroupVideoPlayer(url: String) {
             .fillMaxWidth()
             .height(220.dp)
             .clip(RoundedCornerShape(12.dp))
-            .background(Color.Black),
-        contentAlignment = Alignment.Center
+            .background(Color.Black)
     ) {
         AndroidView(
             modifier = Modifier.fillMaxSize(),
             factory = {
                 VideoView(context).apply {
+                    previewPlayer = this
                     setVideoURI(Uri.parse(url))
                     setOnPreparedListener { player ->
                         player.isLooping = false
                         seekTo(1)
                         pause()
+                        previewPrepared = true
+                    }
+                    setOnCompletionListener {
+                        previewPlaying = false
+                        previewCompleted = true
                     }
                 }
             }
         )
+
+        if (!previewPlaying) {
+            Text(
+                "▶",
+                color = Color.White,
+                fontSize = 38.sp,
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .background(Color.Black.copy(alpha = 0.52f), CircleShape)
+                    .clickable {
+                        val player = previewPlayer
+                        if (previewPrepared && player != null) {
+                            if (previewCompleted) {
+                                player.seekTo(0)
+                                previewCompleted = false
+                            }
+                            player.start()
+                            previewPlaying = true
+                        }
+                    }
+                    .padding(horizontal = 22.dp, vertical = 14.dp)
+            )
+        }
+
         Text(
             "⛶",
             color = Color.White,
-            fontSize = 54.sp,
+            fontSize = 30.sp,
             modifier = Modifier
-                .align(Alignment.Center)
-                .clickable { showFullscreen = true }
-                .background(Color.Black.copy(alpha = 0.42f), CircleShape)
-                .padding(horizontal = 18.dp, vertical = 8.dp)
+                .align(Alignment.BottomEnd)
+                .padding(10.dp)
+                .background(Color.Black.copy(alpha = 0.58f), CircleShape)
+                .clickable {
+                    previewPlayer?.pause()
+                    previewPlaying = false
+                    showFullscreen = true
+                }
+                .padding(horizontal = 12.dp, vertical = 7.dp)
         )
     }
 
