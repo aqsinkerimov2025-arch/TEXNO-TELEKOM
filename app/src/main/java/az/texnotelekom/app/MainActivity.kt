@@ -23,6 +23,8 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.widget.MediaController
 import android.widget.VideoView
+import android.view.TextureView
+import android.graphics.Matrix
 import android.content.ContentValues
 import android.os.Handler
 import android.os.Looper
@@ -199,6 +201,26 @@ private fun uploadGroupVideo(context: Context, uri: Uri, callback: (Result<Strin
     }.start()
 }
 
+private fun fitVideoTexture(textureView: TextureView, videoWidth: Int, videoHeight: Int) {
+    val viewWidth = textureView.width.toFloat()
+    val viewHeight = textureView.height.toFloat()
+    if (viewWidth <= 0f || viewHeight <= 0f || videoWidth <= 0 || videoHeight <= 0) return
+    val viewAspect = viewWidth / viewHeight
+    val videoAspect = videoWidth.toFloat() / videoHeight.toFloat()
+    val scaleX: Float
+    val scaleY: Float
+    if (viewAspect > videoAspect) {
+        scaleX = videoAspect / viewAspect
+        scaleY = 1f
+    } else {
+        scaleX = 1f
+        scaleY = viewAspect / videoAspect
+    }
+    textureView.setTransform(Matrix().apply {
+        setScale(scaleX, scaleY, viewWidth / 2f, viewHeight / 2f)
+    })
+}
+
 @Composable
 private fun GroupVideoPlayer(url: String) {
     val context = LocalContext.current
@@ -217,8 +239,15 @@ private fun GroupVideoPlayer(url: String) {
         }
     }
 
+    val textureViewState = remember(player) { mutableStateOf<TextureView?>(null) }
+
     DisposableEffect(player) {
         val listener = object : androidx.media3.common.Player.Listener {
+            override fun onVideoSizeChanged(videoSize: androidx.media3.common.VideoSize) {
+                textureViewState.value?.let {
+                    fitVideoTexture(it, videoSize.width, videoSize.height)
+                }
+            }
             override fun onIsPlayingChanged(playing: Boolean) {
                 isPlaying = playing
             }
@@ -232,6 +261,7 @@ private fun GroupVideoPlayer(url: String) {
         player.addListener(listener)
         onDispose {
             player.removeListener(listener)
+            textureViewState.value?.let { player.clearVideoTextureView(it) }
             player.release()
         }
     }
@@ -278,18 +308,20 @@ private fun GroupVideoPlayer(url: String) {
             AndroidView(
                 modifier = Modifier.fillMaxSize(),
                 factory = { viewContext ->
-                    androidx.media3.ui.PlayerView(viewContext).apply {
-                        useController = false
-                        controllerShowTimeoutMs = 0
-                        resizeMode = androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_FIT
-                        this.player = player
-                        setShutterBackgroundColor(android.graphics.Color.BLACK)
+                    TextureView(viewContext).also { texture ->
+                        textureViewState.value = texture
+                        texture.addOnLayoutChangeListener { view, _, _, _, _, _, _, _, _ ->
+                            val size = player.videoSize
+                            fitVideoTexture(view as TextureView, size.width, size.height)
+                        }
+                        player.setVideoTextureView(texture)
                     }
                 },
-                update = {
-                    it.player = player
-                    it.useController = false
-                    it.controllerShowTimeoutMs = 0
+                update = { texture ->
+                    if (textureViewState.value !== texture) textureViewState.value = texture
+                    player.setVideoTextureView(texture)
+                    val size = player.videoSize
+                    fitVideoTexture(texture, size.width, size.height)
                 }
             )
 
