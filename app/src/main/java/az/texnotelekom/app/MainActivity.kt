@@ -1645,7 +1645,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                         )
                     }
                     Row(Modifier.align(Alignment.CenterEnd), verticalAlignment = Alignment.CenterVertically) {
-                        SupportBadgeLogo(size = 45.dp, onClick = { showGroupChat = true })
+                        SupportBadgeLogo(size = 50.dp, onClick = { showGroupChat = true })
                         IconButton(
                             onClick = { searchOpen = !searchOpen; if (!searchOpen) query = "" },
                             modifier = Modifier.size(42.dp)
