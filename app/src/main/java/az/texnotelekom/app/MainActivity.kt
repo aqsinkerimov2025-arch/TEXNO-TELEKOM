@@ -203,35 +203,107 @@ private fun uploadGroupVideo(context: Context, uri: Uri, callback: (Result<Strin
 private fun GroupVideoPlayer(url: String) {
     val context = LocalContext.current
     var showFullscreen by remember(url) { mutableStateOf(false) }
-    var previewPlayer by remember(url) { mutableStateOf<VideoView?>(null) }
-    var previewPrepared by remember(url) { mutableStateOf(false) }
-    var previewPlaying by remember(url) { mutableStateOf(false) }
-    var previewCompleted by remember(url) { mutableStateOf(false) }
-    var fullscreenPlayer by remember(url) { mutableStateOf<VideoView?>(null) }
-    var isPrepared by remember(url) { mutableStateOf(false) }
     var isPlaying by remember(url) { mutableStateOf(false) }
-    var hasCompleted by remember(url) { mutableStateOf(false) }
-    var playbackPosition by remember(url) { mutableIntStateOf(0) }
-    var resumeInFullscreen by remember(url) { mutableStateOf(false) }
-
-    fun closeFullscreen() {
-        val full = fullscreenPlayer
-        if (full != null) {
-            playbackPosition = full.currentPosition
-            val wasPlaying = full.isPlaying
-            full.pause()
-            previewPlayer?.let { preview ->
-                preview.seekTo(playbackPosition)
-                if (wasPlaying) preview.start()
-            }
-            previewPlaying = wasPlaying
-            if (hasCompleted) previewCompleted = true
+    var isReady by remember(url) { mutableStateOf(false) }
+    var hasEnded by remember(url) { mutableStateOf(false) }
+    val player = remember(url) {
+        androidx.media3.exoplayer.ExoPlayer.Builder(context).build().apply {
+            setMediaItem(androidx.media3.common.MediaItem.fromUri(Uri.parse(url)))
+            playWhenReady = false
+            prepare()
         }
-        fullscreenPlayer = null
-        showFullscreen = false
-        isPlaying = false
     }
-    BackHandler(enabled = showFullscreen) { closeFullscreen() }
+
+    DisposableEffect(player) {
+        val listener = object : androidx.media3.common.Player.Listener {
+            override fun onIsPlayingChanged(playing: Boolean) {
+                isPlaying = playing
+            }
+            override fun onPlaybackStateChanged(state: Int) {
+                isReady = state == androidx.media3.common.Player.STATE_READY ||
+                    state == androidx.media3.common.Player.STATE_ENDED
+                hasEnded = state == androidx.media3.common.Player.STATE_ENDED
+                if (hasEnded) isPlaying = false
+            }
+        }
+        player.addListener(listener)
+        onDispose {
+            player.removeListener(listener)
+            player.release()
+        }
+    }
+
+    fun togglePlayback() {
+        if (!isReady) return
+        if (player.isPlaying) {
+            player.pause()
+        } else {
+            if (hasEnded) {
+                player.seekTo(0)
+                hasEnded = false
+            }
+            player.play()
+        }
+    }
+
+    BackHandler(enabled = showFullscreen) { showFullscreen = false }
+
+    @Composable
+    fun VideoSurface(fullscreen: Boolean) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black)
+        ) {
+            AndroidView(
+                modifier = Modifier.fillMaxSize(),
+                factory = { viewContext ->
+                    androidx.media3.ui.PlayerView(viewContext).apply {
+                        useController = false
+                        resizeMode = androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_FIT
+                        this.player = player
+                        setShutterBackgroundColor(android.graphics.Color.BLACK)
+                    }
+                },
+                update = { it.player = player }
+            )
+
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clickable { togglePlayback() },
+                contentAlignment = Alignment.Center
+            ) {
+                if (isReady) {
+                    Text(
+                        if (isPlaying) "Ⅱ" else "▶",
+                        color = Color.White,
+                        fontSize = if (fullscreen) 54.sp else 38.sp,
+                        modifier = Modifier
+                            .background(Color.Black.copy(alpha = 0.48f), CircleShape)
+                            .padding(
+                                horizontal = if (fullscreen) 28.dp else 22.dp,
+                                vertical = if (fullscreen) 20.dp else 14.dp
+                            )
+                    )
+                }
+            }
+
+            if (!fullscreen) {
+                Text(
+                    "⛶",
+                    color = Color.White,
+                    fontSize = 30.sp,
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(10.dp)
+                        .background(Color.Black.copy(alpha = 0.58f), CircleShape)
+                        .clickable { showFullscreen = true }
+                        .padding(horizontal = 12.dp, vertical = 7.dp)
+                )
+            }
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -240,162 +312,21 @@ private fun GroupVideoPlayer(url: String) {
             .clip(RoundedCornerShape(12.dp))
             .background(Color.Black)
     ) {
-        AndroidView(
-            modifier = Modifier.fillMaxSize(),
-            factory = {
-                VideoView(context).apply {
-                    previewPlayer = this
-                    setVideoURI(Uri.parse(url))
-                    setOnPreparedListener { player ->
-                        player.isLooping = false
-                        seekTo(1)
-                        pause()
-                        previewPrepared = true
-                    }
-                    setOnCompletionListener {
-                        previewPlaying = false
-                        previewCompleted = true
-                    }
-                }
-            }
-        )
-
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .clickable {
-                    val player = previewPlayer
-                    if (previewPrepared && player != null) {
-                        if (previewPlaying) {
-                            playbackPosition = player.currentPosition
-                            player.pause()
-                            previewPlaying = false
-                        } else {
-                            if (previewCompleted) {
-                                player.seekTo(0)
-                                playbackPosition = 0
-                                previewCompleted = false
-                            } else if (playbackPosition > 0) {
-                                player.seekTo(playbackPosition)
-                            }
-                            player.start()
-                            previewPlaying = true
-                        }
-                    }
-                },
-            contentAlignment = Alignment.Center
-        ) {
-            if (!previewPlaying) {
-                Text(
-                    "▶",
-                    color = Color.White,
-                    fontSize = 38.sp,
-                    modifier = Modifier
-                        .background(Color.Black.copy(alpha = 0.52f), CircleShape)
-                        .padding(horizontal = 22.dp, vertical = 14.dp)
-                )
-            }
-        }
-
-        Text(
-            "⛶",
-            color = Color.White,
-            fontSize = 30.sp,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(10.dp)
-                .background(Color.Black.copy(alpha = 0.58f), CircleShape)
-                .clickable {
-                    val player = previewPlayer
-                    if (previewPrepared && player != null) {
-                        playbackPosition = player.currentPosition
-                        resumeInFullscreen = player.isPlaying
-                        player.pause()
-                        previewPlaying = false
-                        showFullscreen = true
-                    }
-                }
-                .padding(horizontal = 12.dp, vertical = 7.dp)
-        )
+        VideoSurface(fullscreen = false)
     }
 
     if (showFullscreen) {
         Dialog(
-            onDismissRequest = { closeFullscreen() },
+            onDismissRequest = { showFullscreen = false },
             properties = DialogProperties(
                 usePlatformDefaultWidth = false,
                 decorFitsSystemWindows = false
             )
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black)
-            ) {
-                AndroidView(
-                    modifier = Modifier.fillMaxSize(),
-                    factory = {
-                        VideoView(context).apply {
-                            fullscreenPlayer = this
-                            setVideoURI(Uri.parse(url))
-                            setOnPreparedListener { player ->
-                                player.isLooping = false
-                                seekTo(playbackPosition)
-                                isPrepared = true
-                                if (resumeInFullscreen) {
-                                    start()
-                                    isPlaying = true
-                                } else {
-                                    pause()
-                                    isPlaying = false
-                                }
-                            }
-                            setOnCompletionListener {
-                                isPlaying = false
-                                hasCompleted = true
-                                resumeInFullscreen = false
-                            }
-                        }
-                    }
-                )
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clickable {
-                            val player = fullscreenPlayer
-                            if (isPrepared && player != null) {
-                                if (player.isPlaying) {
-                                    playbackPosition = player.currentPosition
-                                    player.pause()
-                                    isPlaying = false
-                                    resumeInFullscreen = false
-                                } else if (!hasCompleted) {
-                                    player.seekTo(playbackPosition)
-                                    player.start()
-                                    isPlaying = true
-                                    resumeInFullscreen = true
-                                }
-                            }
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (isPrepared && !isPlaying) {
-                        Text(
-                            "▶",
-                            color = Color.White,
-                            fontSize = 48.sp,
-                            modifier = Modifier
-                                .background(Color.Black.copy(alpha = 0.48f), CircleShape)
-                                .padding(horizontal = 26.dp, vertical = 18.dp)
-                        )
-                    }
-                }
-            }
+            VideoSurface(fullscreen = true)
         }
     }
 }
-
 
 private data class StickerUpload(val url: String, val mimeType: String, val fileName: String)
 
