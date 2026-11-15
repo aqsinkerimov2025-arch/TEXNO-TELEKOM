@@ -1550,6 +1550,14 @@ private fun GroupChatScreen(backgroundColor: Color, onClose: () -> Unit) {
                                 if (item.imageUrl.isNotBlank()) AsyncImage(model = item.imageUrl, contentDescription = "Qrup şəkli", modifier = Modifier.fillMaxWidth().heightIn(max = 240.dp), contentScale = ContentScale.Fit)
                                 if (item.videoUrl.isNotBlank()) GroupVideoPlayer(item.videoUrl)
                                 if (item.audioUrl.isNotBlank()) GroupVoiceMessagePlayer(item.audioUrl, item.createdAt)
+                                if (item.createdAt > 0L) {
+                                    Text(
+                                        java.text.SimpleDateFormat("dd.MM.yyyy HH:mm", java.util.Locale.getDefault()).format(java.util.Date(item.createdAt)),
+                                        color = Color(0xFFBDBDBD),
+                                        fontSize = 10.sp,
+                                        modifier = Modifier.align(Alignment.End)
+                                    )
+                                }
                                 Text("Cavab vermək üçün toxun", color = Color(0xFFBDBDBD), fontSize = 9.sp)
                             }
                         }
@@ -2019,7 +2027,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
             .addSnapshotListener { snap, e ->
                 if (e == null && snap != null) {
                     feedbackItems.clear()
-                    snap.documents.forEach { d -> feedbackItems.add("${d.getString("nickname") ?: "İstifadəçi"}|${d.getString("text") ?: ""}|${d.getString("audio_url") ?: ""}") }
+                    snap.documents.forEach { d -> feedbackItems.add("${d.getString("nickname") ?: "İstifadəçi"}|${d.getString("text") ?: ""}|${d.getString("audio_url") ?: ""}|${d.getTimestamp("created_at")?.toDate()?.time ?: 0L}") }
                 }
             }
         onDispose { registration.remove() }
@@ -3409,11 +3417,18 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                                 val sender = parts.getOrNull(0).orEmpty()
                                 val body = parts.getOrNull(1).orEmpty()
                                 val audio = parts.getOrNull(2).orEmpty()
+                                val sentAt = parts.getOrNull(3)?.toLongOrNull() ?: 0L
                                 Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF242424)), shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth()) {
                                     Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                        Text(if (loggedIn) sender else "Siz", color = Color.LightGray, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                            Text(if (loggedIn) sender else "Siz", color = Color.LightGray, fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                                            if (sentAt > 0L) Text(
+                                                java.text.SimpleDateFormat("dd.MM.yyyy HH:mm", java.util.Locale.getDefault()).format(java.util.Date(sentAt)),
+                                                color = Color(0xFFBDBDBD), fontSize = 10.sp
+                                            )
+                                        }
                                         if (body.isNotBlank()) Text(body, color = Color.White, fontSize = 14.sp)
-                                        if (audio.isNotBlank()) GroupVoiceMessagePlayer(audio, System.currentTimeMillis())
+                                        if (audio.isNotBlank()) GroupVoiceMessagePlayer(audio, sentAt.takeIf { it > 0L } ?: System.currentTimeMillis())
                                     }
                                 }
                             }
