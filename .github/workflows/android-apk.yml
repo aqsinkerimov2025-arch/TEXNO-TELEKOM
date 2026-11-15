@@ -1,4 +1,5 @@
 name: Build TEXNO-TELEKOM APK
+# Rebuild after removing group subtitle length limit
 # Build after multiline group subtitle editor update
 # Rebuild for PAYLAŞIMLAR heading update
 # Rebuild APK for group management and video player updates
