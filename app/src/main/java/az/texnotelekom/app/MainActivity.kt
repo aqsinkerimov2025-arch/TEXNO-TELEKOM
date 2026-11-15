@@ -1391,7 +1391,7 @@ private fun GroupChatScreen(onClose: () -> Unit) {
             SupportBadgeLogo(size = 42.dp)
             Column(Modifier.weight(1f).padding(start = 10.dp)) {
                 Text("TEXNO DƏSTƏK QRUPU", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Black)
-                if (groupSubtitle.isNotBlank()) Text(groupSubtitle, color = Color(0xFFBDBDBD), fontSize = 11.sp)
+                if (groupSubtitle.isNotBlank()) Text(groupSubtitle, color = Color(0xFFBDBDBD), fontSize = 11.sp, lineHeight = 16.sp, maxLines = 5, softWrap = true, overflow = androidx.compose.ui.text.style.TextOverflow.Clip)
             }
         }
         Row(
@@ -1647,7 +1647,7 @@ private fun GroupManagementAdminPanel() {
     }
     fun saveSubtitle(value: String) {
         db.collection("group_settings").document("group_subtitle")
-            .set(mapOf("text" to value.trim().take(60), "updated_at" to FieldValue.serverTimestamp()))
+            .set(mapOf("text" to value.trim(), "updated_at" to FieldValue.serverTimestamp()))
             .addOnSuccessListener { subtitle = value.trim(); editingSubtitle = false; status = "Qrupun alt yazısı yadda saxlandı." }
             .addOnFailureListener { status = "Xəta: ${it.localizedMessage}" }
     }
