@@ -206,6 +206,9 @@ private fun GroupVideoPlayer(url: String) {
     var isPlaying by remember(url) { mutableStateOf(false) }
     var isReady by remember(url) { mutableStateOf(false) }
     var hasEnded by remember(url) { mutableStateOf(false) }
+    var playbackPosition by remember(url) { mutableLongStateOf(0L) }
+    var playbackDuration by remember(url) { mutableLongStateOf(0L) }
+    var isSeeking by remember(url) { mutableStateOf(false) }
     val player = remember(url) {
         androidx.media3.exoplayer.ExoPlayer.Builder(context).build().apply {
             setMediaItem(androidx.media3.common.MediaItem.fromUri(Uri.parse(url)))
@@ -231,6 +234,23 @@ private fun GroupVideoPlayer(url: String) {
             player.removeListener(listener)
             player.release()
         }
+    }
+
+    LaunchedEffect(player) {
+        while (true) {
+            if (!isSeeking) playbackPosition = player.currentPosition.coerceAtLeast(0L)
+            playbackDuration = player.duration.takeIf { it > 0L } ?: 0L
+            delay(400)
+        }
+    }
+
+    fun formatVideoTime(milliseconds: Long): String {
+        val totalSeconds = (milliseconds.coerceAtLeast(0L) / 1000L)
+        val hours = totalSeconds / 3600L
+        val minutes = (totalSeconds % 3600L) / 60L
+        val seconds = totalSeconds % 60L
+        return if (hours > 0) "%d:%02d:%02d".format(hours, minutes, seconds)
+            else "%02d:%02d".format(minutes, seconds)
     }
 
     fun togglePlayback() {
@@ -286,6 +306,76 @@ private fun GroupVideoPlayer(url: String) {
                                 vertical = if (fullscreen) 20.dp else 14.dp
                             )
                     )
+                }
+            }
+
+            if (fullscreen) {
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .background(Color.Black.copy(alpha = 0.72f))
+                        .padding(horizontal = 18.dp, vertical = 12.dp)
+                ) {
+                    Slider(
+                        value = playbackPosition.coerceAtMost(playbackDuration).toFloat(),
+                        onValueChange = {
+                            isSeeking = true
+                            playbackPosition = it.toLong()
+                        },
+                        onValueChangeFinished = {
+                            player.seekTo(playbackPosition.coerceIn(0L, playbackDuration))
+                            isSeeking = false
+                        },
+                        valueRange = 0f..(playbackDuration.coerceAtLeast(1L).toFloat()),
+                        enabled = playbackDuration > 0L,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            formatVideoTime(playbackPosition),
+                            color = Color.White,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                "−10s",
+                                color = Color.White,
+                                fontSize = 14.sp,
+                                modifier = Modifier
+                                    .clickable {
+                                        val target = (player.currentPosition - 10_000L).coerceAtLeast(0L)
+                                        player.seekTo(target)
+                                        playbackPosition = target
+                                    }
+                                    .padding(horizontal = 12.dp, vertical = 8.dp)
+                            )
+                            Text(
+                                "+10s",
+                                color = Color.White,
+                                fontSize = 14.sp,
+                                modifier = Modifier
+                                    .clickable {
+                                        val target = (player.currentPosition + 10_000L)
+                                            .coerceAtMost(playbackDuration)
+                                        player.seekTo(target)
+                                        playbackPosition = target
+                                    }
+                                    .padding(horizontal = 12.dp, vertical = 8.dp)
+                            )
+                        }
+                        Text(
+                            formatVideoTime(playbackDuration),
+                            color = Color.White,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
                 }
             }
 
