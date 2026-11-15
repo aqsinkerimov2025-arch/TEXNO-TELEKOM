@@ -1447,6 +1447,7 @@ private fun GroupChatScreen(onClose: () -> Unit) {
 }
 
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun GroupManagementAdminPanel() {
     val db = remember { FirebaseFirestore.getInstance() }
