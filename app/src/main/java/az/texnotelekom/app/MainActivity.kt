@@ -1191,6 +1191,15 @@ private fun GroupChatScreen(onClose: () -> Unit) {
             Column(Modifier.weight(1f).padding(start = 10.dp)) {
                 Text("TEXNO DƏSTƏK QRUPU", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Black)
                 Text("Ümumi söhbət", color = Color(0xFFBDBDBD), fontSize = 11.sp)
+                if (isGroupAdmin) {
+                    Text(
+                        "⚙ RƏHBƏRLİK PANELİ",
+                        color = Color(0xFFFFD36A),
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.clickable { showManagementPanel = !showManagementPanel }
+                    )
+                }
             }
             if (isGroupAdmin) {
                 Text("⋮", color = Color.White, fontSize = 26.sp,
