@@ -2582,24 +2582,47 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                 }
                 phoneInfos.forEach { info ->
                     Card(
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF202020)),
-                        shape = RoundedCornerShape(24.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+                        shape = RoundedCornerShape(26.dp),
                         modifier = Modifier.fillMaxWidth().padding(vertical = 7.dp)
                     ) {
-                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Column(
+                            Modifier.fillMaxWidth()
+                                .background(
+                                    Brush.linearGradient(
+                                        colors = listOf(
+                                            Color(0xFFFFE59A),
+                                            Color(0xFFD6A638),
+                                            Color(0xFF986116),
+                                            Color(0xFFEAC45F),
+                                            Color(0xFFFFE7A3)
+                                        ),
+                                        start = Offset.Zero,
+                                        end = Offset(900f, 1200f)
+                                    )
+                                )
+                                .padding(18.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                Text("TEXNO-TELEKOM", color = Color(0xFF4B2E08), fontWeight = FontWeight.Black, fontSize = 15.sp)
+                                Spacer(Modifier.weight(1f))
+                                Text("✦ GOLD", color = Color(0xFF4B2E08), fontWeight = FontWeight.Black, fontSize = 14.sp)
+                            }
+                            Text("PREMIUM MEMBER", color = Color(0xFF5B3A10), fontWeight = FontWeight.Bold, fontSize = 11.sp, modifier = Modifier.align(Alignment.End))
                             if (info.imageUrl.isNotBlank()) {
                                 AsyncImage(model = info.imageUrl, contentDescription = info.title, modifier = Modifier.fillMaxWidth().heightIn(max = 320.dp), contentScale = ContentScale.Fit)
                             }
                             if (info.stickerUrl.isNotBlank() && !info.body.contains(INLINE_STICKER_TOKEN)) {
                                 StickerPreview(info.stickerUrl, info.stickerMime, Modifier.fillMaxWidth().height(220.dp))
                             }
-                            Text(info.title.ifBlank { "TEXNO-MƏLUMAT" }, color = Color.White, fontWeight = FontWeight.Black, fontSize = 19.sp, lineHeight = 25.sp)
+                            Text(info.title.ifBlank { "TEXNO-MƏLUMAT" }, color = Color(0xFF3F290D), fontWeight = FontWeight.Black, fontSize = 21.sp, lineHeight = 27.sp)
                             if (info.body.isNotBlank()) {
-                                TextWithInlineSticker(info.body, info.stickerUrl, info.stickerMime, Color(0xFFE0E0E0), 15.sp, 22.sp)
+                                TextWithInlineSticker(info.body, info.stickerUrl, info.stickerMime, Color(0xFF573A12), 16.sp, 23.sp)
                             }
                             if (loggedIn) {
                                 TextButton(onClick = { db.collection("phone_information").document(info.id).delete() }) {
-                                    Text("Sil", color = Color(0xFFFF8A80))
+                                    Text("Sil", color = Color(0xFF8B1E16), fontWeight = FontWeight.Bold)
                                 }
                             }
                         }
