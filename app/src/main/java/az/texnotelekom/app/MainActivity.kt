@@ -310,13 +310,30 @@ private fun GroupVideoPlayer(url: String) {
             }
 
             if (fullscreen) {
-                Column(
+                Row(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .fillMaxWidth()
-                        .background(Color.Black.copy(alpha = 0.72f))
-                        .padding(horizontal = 18.dp, vertical = 12.dp)
+                        .background(Color.Black.copy(alpha = 0.82f))
+                        .padding(horizontal = 10.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(7.dp)
                 ) {
+                    Text(
+                        if (isPlaying) "Ⅱ" else "▶",
+                        color = Color.White,
+                        fontSize = 23.sp,
+                        modifier = Modifier
+                            .clickable { togglePlayback() }
+                            .padding(horizontal = 5.dp, vertical = 8.dp)
+                    )
+                    Text(
+                        formatVideoTime(playbackPosition),
+                        color = Color.White,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1
+                    )
                     Slider(
                         value = playbackPosition.coerceAtMost(playbackDuration).toFloat(),
                         onValueChange = {
@@ -329,52 +346,55 @@ private fun GroupVideoPlayer(url: String) {
                         },
                         valueRange = 0f..(playbackDuration.coerceAtLeast(1L).toFloat()),
                         enabled = playbackDuration > 0L,
-                        modifier = Modifier.fillMaxWidth()
+                        colors = SliderDefaults.colors(
+                            thumbColor = Color(0xFFFF3030),
+                            activeTrackColor = Color(0xFFFF3030),
+                            inactiveTrackColor = Color(0xFF777777)
+                        ),
+                        modifier = Modifier.weight(1f)
                     )
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
+                    Text(
+                        formatVideoTime(playbackDuration),
+                        color = Color.White,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1
+                    )
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clickable {
+                                player.pause()
+                                isPlaying = false
+                                showFullscreen = false
+                            },
+                        contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            formatVideoTime(playbackPosition),
-                            color = Color.White,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                "−10s",
+                        Canvas(modifier = Modifier.size(30.dp)) {
+                            val corner = androidx.compose.ui.graphics.Path().apply {
+                                moveTo(size.width * 0.34f, size.height * 0.12f)
+                                lineTo(size.width * 0.12f, size.height * 0.12f)
+                                lineTo(size.width * 0.12f, size.height * 0.34f)
+                                moveTo(size.width * 0.66f, size.height * 0.12f)
+                                lineTo(size.width * 0.88f, size.height * 0.12f)
+                                lineTo(size.width * 0.88f, size.height * 0.34f)
+                                moveTo(size.width * 0.12f, size.height * 0.66f)
+                                lineTo(size.width * 0.12f, size.height * 0.88f)
+                                lineTo(size.width * 0.34f, size.height * 0.88f)
+                                moveTo(size.width * 0.88f, size.height * 0.66f)
+                                lineTo(size.width * 0.88f, size.height * 0.88f)
+                                lineTo(size.width * 0.66f, size.height * 0.88f)
+                            }
+                            drawPath(
+                                path = corner,
                                 color = Color.White,
-                                fontSize = 14.sp,
-                                modifier = Modifier
-                                    .clickable {
-                                        val target = (player.currentPosition - 10_000L).coerceAtLeast(0L)
-                                        player.seekTo(target)
-                                        playbackPosition = target
-                                    }
-                                    .padding(horizontal = 12.dp, vertical = 8.dp)
-                            )
-                            Text(
-                                "+10s",
-                                color = Color.White,
-                                fontSize = 14.sp,
-                                modifier = Modifier
-                                    .clickable {
-                                        val target = (player.currentPosition + 10_000L)
-                                            .coerceAtMost(playbackDuration)
-                                        player.seekTo(target)
-                                        playbackPosition = target
-                                    }
-                                    .padding(horizontal = 12.dp, vertical = 8.dp)
+                                style = androidx.compose.ui.graphics.drawscope.Stroke(
+                                    width = 3.5.dp.toPx(),
+                                    cap = androidx.compose.ui.graphics.StrokeCap.Square,
+                                    join = androidx.compose.ui.graphics.StrokeJoin.Miter
+                                )
                             )
                         }
-                        Text(
-                            formatVideoTime(playbackDuration),
-                            color = Color.White,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
                     }
                 }
             }
@@ -391,48 +411,6 @@ private fun GroupVideoPlayer(url: String) {
                         .clickable { showFullscreen = true }
                         .padding(horizontal = 12.dp, vertical = 7.dp)
                 )
-            } else {
-                // The same four-corner fullscreen icon shown on the group video card;
-                // tapping it closes fullscreen and returns to the group.
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        // Keep the return icon visibly over the video, above Android navigation.
-                        .padding(end = 22.dp, bottom = 72.dp)
-                        .size(width = 64.dp, height = 48.dp)
-                        .clickable {
-                            player.pause()
-                            isPlaying = false
-                            showFullscreen = false
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Canvas(modifier = Modifier.size(width = 40.dp, height = 40.dp)) {
-                        val corner = androidx.compose.ui.graphics.Path().apply {
-                            moveTo(size.width * 0.34f, size.height * 0.12f)
-                            lineTo(size.width * 0.12f, size.height * 0.12f)
-                            lineTo(size.width * 0.12f, size.height * 0.34f)
-                            moveTo(size.width * 0.66f, size.height * 0.12f)
-                            lineTo(size.width * 0.88f, size.height * 0.12f)
-                            lineTo(size.width * 0.88f, size.height * 0.34f)
-                            moveTo(size.width * 0.12f, size.height * 0.66f)
-                            lineTo(size.width * 0.12f, size.height * 0.88f)
-                            lineTo(size.width * 0.34f, size.height * 0.88f)
-                            moveTo(size.width * 0.88f, size.height * 0.66f)
-                            lineTo(size.width * 0.88f, size.height * 0.88f)
-                            lineTo(size.width * 0.66f, size.height * 0.88f)
-                        }
-                        drawPath(
-                            path = corner,
-                            color = Color.White,
-                            style = androidx.compose.ui.graphics.drawscope.Stroke(
-                                width = 4.5.dp.toPx(),
-                                cap = androidx.compose.ui.graphics.StrokeCap.Square,
-                                join = androidx.compose.ui.graphics.StrokeJoin.Miter
-                            )
-                        )
-                    }
-                }
             }
         }
     }
