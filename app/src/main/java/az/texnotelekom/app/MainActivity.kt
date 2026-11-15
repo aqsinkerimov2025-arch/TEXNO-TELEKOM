@@ -422,9 +422,9 @@ private fun GroupVideoPlayer(url: String) {
                                     playbackPosition = (fraction * playbackDuration).toLong().coerceIn(0L, playbackDuration)
                                 }
                                 detectHorizontalDragGestures(
-                                    onDragStart = { x ->
+                                    onDragStart = { offset ->
                                         isSeeking = true
-                                        updateSeek(x)
+                                        updateSeek(offset.x)
                                     },
                                     onHorizontalDrag = { change, _ ->
                                         change.consume()
