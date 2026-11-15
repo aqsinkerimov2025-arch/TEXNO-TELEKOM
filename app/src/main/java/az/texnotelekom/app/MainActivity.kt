@@ -1385,7 +1385,7 @@ private fun GroupChatScreen(onClose: () -> Unit) {
         }
     }
 
-    Column(Modifier.fillMaxSize().background(Color(0xFF101010)).statusBarsPadding().navigationBarsPadding().imePadding()) {
+    Column(Modifier.fillMaxSize().background(Color.Black).statusBarsPadding().navigationBarsPadding().imePadding()) {
         Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
             Text("‹", color = Color.White, fontSize = 34.sp, modifier = Modifier.clickable { onClose() }.padding(horizontal = 8.dp))
             SupportBadgeLogo(size = 42.dp)
@@ -1441,7 +1441,7 @@ private fun GroupChatScreen(onClose: () -> Unit) {
         }
         if (showGroupRules) {
             Column(
-                Modifier.weight(1f).fillMaxWidth().background(Color(0xFF151515)).padding(20.dp),
+                Modifier.weight(1f).fillMaxWidth().background(Color.Black).padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
