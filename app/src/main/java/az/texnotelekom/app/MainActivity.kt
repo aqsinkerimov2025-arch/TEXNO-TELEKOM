@@ -84,6 +84,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.PlaceholderVerticalAlign
@@ -200,22 +202,81 @@ private fun uploadGroupVideo(context: Context, uri: Uri, callback: (Result<Strin
 private fun GroupVideoPlayer(url: String) {
     val context = LocalContext.current
     var started by remember(url) { mutableStateOf(false) }
-    AndroidView(
-        modifier = Modifier.fillMaxWidth().height(220.dp).clip(RoundedCornerShape(12.dp)),
-        factory = {
-            VideoView(context).apply {
-                setMediaController(MediaController(context).also { it.setAnchorView(this) })
-                setVideoURI(Uri.parse(url))
-                setOnPreparedListener { player -> player.isLooping = false }
+    var showFullscreen by remember(url) { mutableStateOf(false) }
+    var inlinePlayer by remember(url) { mutableStateOf<VideoView?>(null) }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(220.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .clickable { showFullscreen = true }
+    ) {
+        AndroidView(
+            modifier = Modifier.fillMaxSize(),
+            factory = {
+                VideoView(context).apply {
+                    inlinePlayer = this
+                    setMediaController(MediaController(context).also { it.setAnchorView(this) })
+                    setVideoURI(Uri.parse(url))
+                    setOnPreparedListener { player -> player.isLooping = false }
+                }
+            },
+            update = { view ->
+                if (showFullscreen) {
+                    if (view.isPlaying) view.pause()
+                } else if (!started) {
+                    started = true
+                    view.start()
+                }
             }
-        },
-        update = { view ->
-            if (!started) {
-                started = true
-                view.start()
+        )
+    }
+
+    if (showFullscreen) {
+        Dialog(
+            onDismissRequest = { showFullscreen = false },
+            properties = DialogProperties(
+                usePlatformDefaultWidth = false,
+                decorFitsSystemWindows = false
+            )
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black),
+                contentAlignment = Alignment.Center
+            ) {
+                AndroidView(
+                    modifier = Modifier.fillMaxWidth().aspectRatio(16f / 9f),
+                    factory = {
+                        VideoView(context).apply {
+                            setMediaController(MediaController(context).also { it.setAnchorView(this) })
+                            setVideoURI(Uri.parse(url))
+                            setOnPreparedListener { player ->
+                                player.isLooping = false
+                                start()
+                            }
+                        }
+                    }
+                )
+                Text(
+                    "✕",
+                    color = Color.White,
+                    fontSize = 26.sp,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(18.dp)
+                        .clickable { showFullscreen = false }
+                )
             }
         }
-    )
+    }
+
+    LaunchedEffect(showFullscreen) {
+        if (showFullscreen) inlinePlayer?.pause()
+        else if (started) inlinePlayer?.start()
+    }
 }
 
 private data class StickerUpload(val url: String, val mimeType: String, val fileName: String)
