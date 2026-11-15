@@ -318,8 +318,12 @@ private fun GroupVideoPlayer(url: String) {
                     }
                 },
                 update = { texture ->
-                    if (textureViewState.value !== texture) textureViewState.value = texture
-                    player.setVideoTextureView(texture)
+                    if (textureViewState.value !== texture) {
+                        textureViewState.value = texture
+                        val shouldResume = player.playWhenReady
+                        player.setVideoTextureView(texture)
+                        player.playWhenReady = shouldResume
+                    }
                     val size = player.videoSize
                     fitVideoTexture(texture, size.width, size.height)
                 }
@@ -421,14 +425,16 @@ private fun GroupVideoPlayer(url: String) {
         }
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(250.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color.Black)
-    ) {
-        VideoSurface(fullscreen = false)
+    if (!showFullscreen) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(250.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(Color.Black)
+        ) {
+            VideoSurface(fullscreen = false)
+        }
     }
 
     if (showFullscreen) {
