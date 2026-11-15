@@ -279,126 +279,55 @@ private fun GroupVideoPlayer(url: String) {
                 modifier = Modifier.fillMaxSize(),
                 factory = { viewContext ->
                     androidx.media3.ui.PlayerView(viewContext).apply {
-                        useController = false
+                        useController = fullscreen
+                        controllerShowTimeoutMs = 0
                         resizeMode = androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_FIT
                         this.player = player
                         setShutterBackgroundColor(android.graphics.Color.BLACK)
+                        if (fullscreen) showController()
                     }
                 },
-                update = { it.player = player }
+                update = {
+                    it.player = player
+                    it.useController = fullscreen
+                    it.controllerShowTimeoutMs = 0
+                    if (fullscreen && isReady) it.showController()
+                }
             )
 
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clickable { togglePlayback() },
-                contentAlignment = Alignment.Center
-            ) {
-                if (isReady) {
-                    Text(
-                        if (isPlaying) "Ⅱ" else "▶",
-                        color = Color.White,
-                        fontSize = if (fullscreen) 54.sp else 38.sp,
-                        modifier = Modifier
-                            .background(Color.Black.copy(alpha = 0.48f), CircleShape)
-                            .padding(
-                                horizontal = if (fullscreen) 28.dp else 22.dp,
-                                vertical = if (fullscreen) 20.dp else 14.dp
-                            )
-                    )
-                }
+            if (isReady) {
+                Text(
+                    if (isPlaying) "Ⅱ" else "▶",
+                    color = Color.White,
+                    fontSize = if (fullscreen) 54.sp else 38.sp,
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .background(Color.Black.copy(alpha = 0.48f), CircleShape)
+                        .clickable { togglePlayback() }
+                        .padding(
+                            horizontal = if (fullscreen) 28.dp else 22.dp,
+                            vertical = if (fullscreen) 20.dp else 14.dp
+                        )
+                )
             }
 
             if (fullscreen) {
-                Row(
+                Text(
+                    "⛶",
+                    color = Color.White,
+                    fontSize = 28.sp,
                     modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .fillMaxWidth()
-                        // Keep the YouTube-style controls above Android's system navigation bar.
-                        .navigationBarsPadding()
-                        .background(Color.Black.copy(alpha = 0.92f))
-                        .padding(horizontal = 10.dp, vertical = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(7.dp)
-                ) {
-                    Text(
-                        if (isPlaying) "Ⅱ" else "▶",
-                        color = Color.White,
-                        fontSize = 23.sp,
-                        modifier = Modifier
-                            .clickable { togglePlayback() }
-                            .padding(horizontal = 5.dp, vertical = 8.dp)
-                    )
-                    Text(
-                        formatVideoTime(playbackPosition),
-                        color = Color.White,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        maxLines = 1
-                    )
-                    Slider(
-                        value = playbackPosition.coerceAtMost(playbackDuration).toFloat(),
-                        onValueChange = {
-                            isSeeking = true
-                            playbackPosition = it.toLong()
-                        },
-                        onValueChangeFinished = {
-                            player.seekTo(playbackPosition.coerceIn(0L, playbackDuration))
-                            isSeeking = false
-                        },
-                        valueRange = 0f..(playbackDuration.coerceAtLeast(1L).toFloat()),
-                        enabled = playbackDuration > 0L,
-                        colors = SliderDefaults.colors(
-                            thumbColor = Color(0xFFFF3030),
-                            activeTrackColor = Color(0xFFFF3030),
-                            inactiveTrackColor = Color(0xFF777777)
-                        ),
-                        modifier = Modifier.weight(1f)
-                    )
-                    Text(
-                        formatVideoTime(playbackDuration),
-                        color = Color.White,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        maxLines = 1
-                    )
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clickable {
-                                player.pause()
-                                isPlaying = false
-                                showFullscreen = false
-                            },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Canvas(modifier = Modifier.size(30.dp)) {
-                            val corner = androidx.compose.ui.graphics.Path().apply {
-                                moveTo(size.width * 0.34f, size.height * 0.12f)
-                                lineTo(size.width * 0.12f, size.height * 0.12f)
-                                lineTo(size.width * 0.12f, size.height * 0.34f)
-                                moveTo(size.width * 0.66f, size.height * 0.12f)
-                                lineTo(size.width * 0.88f, size.height * 0.12f)
-                                lineTo(size.width * 0.88f, size.height * 0.34f)
-                                moveTo(size.width * 0.12f, size.height * 0.66f)
-                                lineTo(size.width * 0.12f, size.height * 0.88f)
-                                lineTo(size.width * 0.34f, size.height * 0.88f)
-                                moveTo(size.width * 0.88f, size.height * 0.66f)
-                                lineTo(size.width * 0.88f, size.height * 0.88f)
-                                lineTo(size.width * 0.66f, size.height * 0.88f)
-                            }
-                            drawPath(
-                                path = corner,
-                                color = Color.White,
-                                style = androidx.compose.ui.graphics.drawscope.Stroke(
-                                    width = 3.5.dp.toPx(),
-                                    cap = androidx.compose.ui.graphics.StrokeCap.Square,
-                                    join = androidx.compose.ui.graphics.StrokeJoin.Miter
-                                )
-                            )
+                        .align(Alignment.TopEnd)
+                        .statusBarsPadding()
+                        .padding(14.dp)
+                        .background(Color.Black.copy(alpha = 0.65f), CircleShape)
+                        .clickable {
+                            player.pause()
+                            isPlaying = false
+                            showFullscreen = false
                         }
-                    }
-                }
+                        .padding(horizontal = 12.dp, vertical = 7.dp)
+                )
             }
 
             if (!fullscreen) {
