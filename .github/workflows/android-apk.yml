@@ -1,4 +1,5 @@
 name: Build TEXNO-TELEKOM APK
+# Rebuild after home footer branding update
 # Rebuild after full group subtitle display fix
 # Rebuild with custom draggable fullscreen video seekbar
 # Rebuild after removing group subtitle length limit
