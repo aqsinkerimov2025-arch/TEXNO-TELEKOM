@@ -2033,7 +2033,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
         val textValue = feedbackDraft.trim()
         if (textValue.isBlank() || feedbackBusy) return
         feedbackBusy = true
-        val data = hashMapOf<String, Any>("nickname" to "İstifadəçi", "device_id" to deviceId, "text" to textValue, "audio_url" to "", "created_at" to FieldValue.serverTimestamp())
+        val data = hashMapOf<String, Any>("nickname" to groupNickname.trim().take(24).ifBlank { "İstifadəçi" }, "device_id" to deviceId, "text" to textValue, "audio_url" to "", "created_at" to FieldValue.serverTimestamp())
         db.collection("admin_feedback").add(data)
             .addOnSuccessListener { feedbackDraft = ""; feedbackBusy = false }
             .addOnFailureListener { feedbackBusy = false; error = "Mesaj göndərilmədi: ${it.localizedMessage}" }
@@ -2052,7 +2052,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
         feedbackBusy = true
         uploadGroupAudio(file) { result ->
             result.onSuccess { audioUrl ->
-                val data = hashMapOf<String, Any>("nickname" to "İstifadəçi", "device_id" to deviceId, "text" to "", "audio_url" to audioUrl, "created_at" to FieldValue.serverTimestamp())
+                val data = hashMapOf<String, Any>("nickname" to groupNickname.trim().take(24).ifBlank { "İstifadəçi" }, "device_id" to deviceId, "text" to "", "audio_url" to audioUrl, "created_at" to FieldValue.serverTimestamp())
                 db.collection("admin_feedback").add(data)
                     .addOnSuccessListener { feedbackBusy = false; file.delete() }
                     .addOnFailureListener { feedbackBusy = false; error = "Səs göndərilmədi: ${it.localizedMessage}" }
