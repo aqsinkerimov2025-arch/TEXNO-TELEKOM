@@ -1949,6 +1949,14 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     }
     var showGames by remember { mutableStateOf(false) }
     var showPrograms by remember { mutableStateOf(false) }
+    BackHandler(enabled = showPhoneInfo || showPrograms || showGames || showFeedback) {
+        when {
+            showFeedback -> showFeedback = false
+            showGames -> showGames = false
+            showPrograms -> showPrograms = false
+            showPhoneInfo -> showPhoneInfo = false
+        }
+    }
     var phoneInfoTitle by remember { mutableStateOf("") }
     var phoneInfoBody by remember { mutableStateOf("") }
     var phoneInfoImage by remember { mutableStateOf<Uri?>(null) }
@@ -2875,7 +2883,6 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                 )
             }
 
-            if (!showPrograms) {
             Spacer(Modifier.height(22.dp))
             Card(
                 colors = CardDefaults.cardColors(containerColor = Color(0xFF202020)),
@@ -3080,7 +3087,6 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                     if (shown.isEmpty()) Text("Hələ proqram paylaşılmayıb.", color = Color.LightGray)
                     Spacer(Modifier.height(18.dp))
                 }
-            }
 
             if (!showPhoneInfo) {
             Spacer(Modifier.height(18.dp))
