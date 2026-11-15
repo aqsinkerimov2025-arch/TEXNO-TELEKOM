@@ -44,6 +44,7 @@ import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -1539,23 +1540,25 @@ private fun GroupChatScreen(backgroundColor: Color, onClose: () -> Unit) {
                     val adminMessage = item.uid == ADMIN_UID
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = if (adminMessage) Arrangement.Start else Arrangement.End) {
                         Card(
-                            colors = CardDefaults.cardColors(containerColor = if (adminMessage) Color(0xFF252525) else Color(0xFF244A3B)),
-                            shape = RoundedCornerShape(16.dp),
-                            modifier = Modifier.fillMaxWidth(0.88f).clickable { reply = item }
+                            colors = CardDefaults.cardColors(containerColor = Color.White),
+                            shape = RoundedCornerShape(24.dp),
+                            modifier = Modifier.fillMaxWidth(0.88f)
+                                .border(3.dp, Color(0xFF35140F), RoundedCornerShape(24.dp))
+                                .clickable { reply = item }
                         ) {
-                            Column(Modifier.fillMaxWidth().padding(11.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                                Text(item.nickname, color = Color(0xFFFFD36A), fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                                if (item.replyToNickname.isNotBlank()) Text("↪ ${item.replyToNickname}: ${item.replyToText}", color = Color(0xFFBDBDBD), fontSize = 11.sp)
-                                if (item.text.isNotBlank()) Text(item.text, color = Color.White, fontSize = 14.sp)
+                            Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                                Text(item.nickname, color = Color(0xFF6B3A20), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                if (item.replyToNickname.isNotBlank()) Text("↪ ${item.replyToNickname}: ${item.replyToText}", color = Color(0xFF666666), fontSize = 12.sp)
+                                if (item.text.isNotBlank()) Text(item.text, color = Color(0xFF171717), fontSize = 17.sp, lineHeight = 24.sp)
                                 if (item.imageUrl.isNotBlank()) AsyncImage(model = item.imageUrl, contentDescription = "Qrup şəkli", modifier = Modifier.fillMaxWidth().heightIn(max = 240.dp), contentScale = ContentScale.Fit)
                                 if (item.videoUrl.isNotBlank()) GroupVideoPlayer(item.videoUrl)
                                 if (item.audioUrl.isNotBlank()) GroupVoiceMessagePlayer(item.audioUrl, item.createdAt)
-                                Text("Cavab vermək üçün toxun", color = Color(0xFFBDBDBD), fontSize = 9.sp)
+                                Text("Cavab vermək üçün toxun", color = Color(0xFF777777), fontSize = 10.sp)
                                 if (item.createdAt > 0L) {
                                     Text(
                                         java.text.SimpleDateFormat("dd.MM.yyyy HH:mm", java.util.Locale.getDefault()).format(java.util.Date(item.createdAt)),
-                                        color = Color.White,
-                                        fontSize = 10.sp,
+                                        color = Color(0xFF555555),
+                                        fontSize = 11.sp,
                                         modifier = Modifier.align(Alignment.End)
                                     )
                                 }
@@ -2624,27 +2627,33 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                         val audio = parts.getOrNull(2).orEmpty()
                         val sentAt = parts.getOrNull(3)?.toLongOrNull() ?: 0L
                         val feedbackId = parts.getOrNull(4).orEmpty()
-                        Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF242424)), shape = RoundedCornerShape(18.dp), modifier = Modifier.fillMaxWidth()) {
-                            Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                                    Text(sender, color = Color(0xFFFFD36A), fontSize = 13.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-                                    if (sentAt > 0L) Text(java.text.SimpleDateFormat("dd.MM.yyyy HH:mm", java.util.Locale.getDefault()).format(java.util.Date(sentAt)), color = Color(0xFFBDBDBD), fontSize = 11.sp)
-                                    if (loggedIn && feedbackId.isNotBlank()) IconButton(onClick = {
-                                        db.collection("admin_feedback").document(feedbackId).delete()
-                                            .addOnSuccessListener { message = "Mesaj silindi." }
-                                            .addOnFailureListener { error = "Mesaj silinmədi: ${it.localizedMessage}" }
-                                    }, modifier = Modifier.size(36.dp)) {
-                                        Icon(Icons.Default.Delete, contentDescription = "Mesajı sil", tint = Color(0xFFFF8A80))
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = if (sender == groupNickname.trim()) Arrangement.End else Arrangement.Start) {
+                            Card(
+                                colors = CardDefaults.cardColors(containerColor = Color.White),
+                                shape = RoundedCornerShape(24.dp),
+                                modifier = Modifier.fillMaxWidth(0.92f)
+                                    .border(3.dp, Color(0xFF35140F), RoundedCornerShape(24.dp))
+                            ) {
+                                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                        Text(sender, color = Color(0xFF6B3A20), fontSize = 13.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                                        if (loggedIn && feedbackId.isNotBlank()) IconButton(onClick = {
+                                            db.collection("admin_feedback").document(feedbackId).delete()
+                                                .addOnSuccessListener { message = "Mesaj silindi." }
+                                                .addOnFailureListener { error = "Mesaj silinmədi: ${it.localizedMessage}" }
+                                        }, modifier = Modifier.size(36.dp)) {
+                                            Icon(Icons.Default.Delete, contentDescription = "Mesajı sil", tint = Color(0xFFD94A4A))
+                                        }
                                     }
+                                    if (body.isNotBlank()) Text(body, color = Color(0xFF171717), fontSize = 17.sp, lineHeight = 24.sp)
+                                    if (audio.isNotBlank()) GroupVoiceMessagePlayer(audio, sentAt.takeIf { it > 0L } ?: System.currentTimeMillis())
+                                    if (sentAt > 0L) Text(
+                                        java.text.SimpleDateFormat("dd.MM.yyyy HH:mm", java.util.Locale.getDefault()).format(java.util.Date(sentAt)),
+                                        color = Color(0xFF555555),
+                                        fontSize = 11.sp,
+                                        modifier = Modifier.align(Alignment.End)
+                                    )
                                 }
-                                if (body.isNotBlank()) Text(body, color = Color.White, fontSize = 16.sp)
-                                if (audio.isNotBlank()) GroupVoiceMessagePlayer(audio, sentAt.takeIf { it > 0L } ?: System.currentTimeMillis())
-                                if (sentAt > 0L) Text(
-                                    java.text.SimpleDateFormat("dd.MM.yyyy HH:mm", java.util.Locale.getDefault()).format(java.util.Date(sentAt)),
-                                    color = Color.White,
-                                    fontSize = 11.sp,
-                                    modifier = Modifier.align(Alignment.End)
-                                )
                             }
                         }
                     }
