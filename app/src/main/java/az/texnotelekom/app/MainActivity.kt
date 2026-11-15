@@ -303,6 +303,7 @@ private fun GroupVideoPlayer(url: String) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .then(if (fullscreen) Modifier.navigationBarsPadding() else Modifier)
                 .background(Color.Black)
         ) {
             AndroidView(
