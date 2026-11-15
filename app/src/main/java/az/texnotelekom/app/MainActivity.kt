@@ -350,7 +350,7 @@ private fun GroupVideoPlayer(url: String) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(220.dp)
+            .height(250.dp)
             .clip(RoundedCornerShape(12.dp))
             .background(Color.Black)
     ) {
