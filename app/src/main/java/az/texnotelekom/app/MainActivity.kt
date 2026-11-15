@@ -279,19 +279,17 @@ private fun GroupVideoPlayer(url: String) {
                 modifier = Modifier.fillMaxSize(),
                 factory = { viewContext ->
                     androidx.media3.ui.PlayerView(viewContext).apply {
-                        useController = fullscreen
+                        useController = false
                         controllerShowTimeoutMs = 0
                         resizeMode = androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_FIT
                         this.player = player
                         setShutterBackgroundColor(android.graphics.Color.BLACK)
-                        if (fullscreen) showController()
                     }
                 },
                 update = {
                     it.player = player
-                    it.useController = fullscreen
+                    it.useController = false
                     it.controllerShowTimeoutMs = 0
-                    if (fullscreen && isReady) it.showController()
                 }
             )
 
@@ -309,6 +307,52 @@ private fun GroupVideoPlayer(url: String) {
                             vertical = if (fullscreen) 20.dp else 14.dp
                         )
                 )
+            }
+
+            if (isReady && playbackDuration > 0L) {
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .background(Color.Black.copy(alpha = 0.72f))
+                        .padding(horizontal = if (fullscreen) 18.dp else 10.dp, vertical = if (fullscreen) 12.dp else 6.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            formatVideoTime(playbackPosition),
+                            color = Color.White,
+                            fontSize = if (fullscreen) 14.sp else 11.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            formatVideoTime(playbackDuration),
+                            color = Color.White,
+                            fontSize = if (fullscreen) 14.sp else 11.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                    Slider(
+                        value = (playbackPosition.toFloat() / playbackDuration.toFloat()).coerceIn(0f, 1f),
+                        onValueChange = { fraction ->
+                            isSeeking = true
+                            playbackPosition = (fraction * playbackDuration).toLong()
+                        },
+                        onValueChangeFinished = {
+                            player.seekTo(playbackPosition)
+                            isSeeking = false
+                        },
+                        modifier = Modifier.fillMaxWidth().height(if (fullscreen) 34.dp else 26.dp),
+                        colors = SliderDefaults.colors(
+                            thumbColor = Color.White,
+                            activeTrackColor = Color(0xFFE53935),
+                            inactiveTrackColor = Color.White.copy(alpha = 0.4f)
+                        )
+                    )
+                }
             }
 
             if (fullscreen) {
