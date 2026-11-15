@@ -308,22 +308,21 @@ private fun GroupVideoPlayer(url: String) {
                         .align(Alignment.BottomEnd)
                         .navigationBarsPadding()
                         .padding(end = 22.dp, bottom = 18.dp)
-                        .size(54.dp)
-                        .background(Color.Black.copy(alpha = 0.62f), CircleShape)
+                        .size(width = 64.dp, height = 48.dp)
                         .clickable { showFullscreen = false },
                     contentAlignment = Alignment.Center
                 ) {
-                    Canvas(modifier = Modifier.size(34.dp)) {
+                    Canvas(modifier = Modifier.size(width = 56.dp, height = 40.dp)) {
                         val chevron = androidx.compose.ui.graphics.Path().apply {
-                            moveTo(size.width * 0.12f, size.height * 0.34f)
-                            lineTo(size.width * 0.50f, size.height * 0.72f)
-                            lineTo(size.width * 0.88f, size.height * 0.34f)
+                            moveTo(size.width * 0.10f, size.height * 0.28f)
+                            lineTo(size.width * 0.50f, size.height * 0.78f)
+                            lineTo(size.width * 0.90f, size.height * 0.28f)
                         }
                         drawPath(
                             path = chevron,
                             color = Color.White,
                             style = androidx.compose.ui.graphics.drawscope.Stroke(
-                                width = 5.dp.toPx(),
+                                width = 5.5.dp.toPx(),
                                 cap = androidx.compose.ui.graphics.StrokeCap.Round,
                                 join = androidx.compose.ui.graphics.StrokeJoin.Round
                             )
