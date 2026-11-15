@@ -303,18 +303,33 @@ private fun GroupVideoPlayer(url: String) {
                 )
             } else {
                 // Dedicated in-app control to leave fullscreen and return to the group.
-                Text(
-                    "⌄",
-                    color = Color.White,
-                    fontSize = 38.sp,
+                Box(
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
                         .navigationBarsPadding()
                         .padding(end = 22.dp, bottom = 18.dp)
+                        .size(54.dp)
                         .background(Color.Black.copy(alpha = 0.62f), CircleShape)
-                        .clickable { showFullscreen = false }
-                        .padding(horizontal = 15.dp, vertical = 5.dp)
-                )
+                        .clickable { showFullscreen = false },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Canvas(modifier = Modifier.size(34.dp)) {
+                        val chevron = androidx.compose.ui.graphics.Path().apply {
+                            moveTo(size.width * 0.12f, size.height * 0.34f)
+                            lineTo(size.width * 0.50f, size.height * 0.72f)
+                            lineTo(size.width * 0.88f, size.height * 0.34f)
+                        }
+                        drawPath(
+                            path = chevron,
+                            color = Color.White,
+                            style = androidx.compose.ui.graphics.drawscope.Stroke(
+                                width = 5.dp.toPx(),
+                                cap = androidx.compose.ui.graphics.StrokeCap.Round,
+                                join = androidx.compose.ui.graphics.StrokeJoin.Round
+                            )
+                        )
+                    }
+                }
             }
         }
     }
