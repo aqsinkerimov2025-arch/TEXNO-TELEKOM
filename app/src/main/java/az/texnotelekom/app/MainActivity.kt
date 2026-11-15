@@ -1042,7 +1042,7 @@ private fun GroupChatScreen(onClose: () -> Unit) {
     }
     fun addGroupManager(uid: String) {
         val cleanUid = uid.trim()
-        if (!isOwner || cleanUid.isBlank() || cleanUid == ADMIN_UID) return
+        if (!isGroupAdmin || cleanUid.isBlank() || cleanUid == ADMIN_UID) return
         db.collection("group_managers").document(cleanUid)
             .set(mapOf("uid" to cleanUid, "added_at" to FieldValue.serverTimestamp(),
                 "permissions" to mapOf("media" to allowMedia, "add_users" to allowAddUsers,
@@ -1412,19 +1412,19 @@ private fun GroupChatScreen(onClose: () -> Unit) {
                             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                                 Text(managerUid, color = Color.LightGray, fontSize = 11.sp, modifier = Modifier.weight(1f))
                                 TextButton(onClick = {
-                                    if (isOwner) db.collection("group_managers").document(managerUid).delete()
+                                    if (isGroupAdmin) db.collection("group_managers").document(managerUid).delete()
                                         .addOnSuccessListener {
                                             groupManagerUids = groupManagerUids - managerUid
                                             status = "İstifadəçinin adminliyi ləğv edildi."
                                         }
                                         .addOnFailureListener { status = "Adminlik ləğv edilmədi: ${it.localizedMessage}" }
-                                }, enabled = isOwner) { Text("LƏĞV ET", color = Color(0xFFFF7777)) }
+                                }, enabled = isGroupAdmin) { Text("LƏĞV ET", color = Color(0xFFFF7777)) }
                             }
                         }
                     } else {
                         Text("Hələ əlavə edilmiş admin yoxdur.", color = Color.LightGray, fontSize = 12.sp)
                     }
-                    if (isOwner) {
+                    if (isGroupAdmin) {
                         OutlinedButton(onClick = { showAddManagerDialog = true }, modifier = Modifier.fillMaxWidth()) {
                             Text("＋ İSTİFADƏÇİYƏ ADMİNLİK VER")
                         }
