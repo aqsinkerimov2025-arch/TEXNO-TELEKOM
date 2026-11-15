@@ -959,7 +959,19 @@ private fun GroupChatScreen(onClose: () -> Unit) {
     var messagesLoaded by remember { mutableStateOf(false) }
     var initialMessagesPositioned by remember { mutableStateOf(false) }
     val auth = FirebaseAuth.getInstance()
-    val isGroupAdmin = auth.currentUser?.uid == ADMIN_UID
+    val isOwner = auth.currentUser?.uid == ADMIN_UID
+    var isGroupAdmin by remember { mutableStateOf(isOwner) }
+    var groupManagerUids by remember { mutableStateOf<List<String>>(emptyList()) }
+    LaunchedEffect(auth.currentUser?.uid) {
+        val uid = auth.currentUser?.uid ?: return@LaunchedEffect
+        if (uid == ADMIN_UID) {
+            isGroupAdmin = true
+        } else {
+            db.collection("group_managers").document(uid).get()
+                .addOnSuccessListener { isGroupAdmin = it.exists() }
+                .addOnFailureListener { isGroupAdmin = false }
+        }
+    }
     var showManagementPanel by remember { mutableStateOf(false) }
     var groupSubtitle by remember { mutableStateOf("Ümumi söhbət") }
     var groupSubtitleDraft by remember { mutableStateOf("") }
@@ -1019,6 +1031,8 @@ private fun GroupChatScreen(onClose: () -> Unit) {
             }
         db.collection("group_removed_users").get()
             .addOnSuccessListener { removedUsersCount = it.size() }
+        db.collection("group_managers").get()
+            .addOnSuccessListener { snap -> groupManagerUids = snap.documents.map { it.id }.filter { it != ADMIN_UID } }
     }
     fun saveAdminControl(field: String, value: Any) {
         if (!isGroupAdmin) return
@@ -1028,13 +1042,20 @@ private fun GroupChatScreen(onClose: () -> Unit) {
     }
     fun addGroupManager(uid: String) {
         val cleanUid = uid.trim()
-        if (!isGroupAdmin || cleanUid.isBlank() || cleanUid == auth.currentUser?.uid) return
+        if (!isOwner || cleanUid.isBlank() || cleanUid == ADMIN_UID) return
         db.collection("group_managers").document(cleanUid)
             .set(mapOf("uid" to cleanUid, "added_at" to FieldValue.serverTimestamp(),
                 "permissions" to mapOf("media" to allowMedia, "add_users" to allowAddUsers,
                     "pin_messages" to allowPinMessages, "edit_own_tags" to allowEditOwnTags,
                     "change_group_info" to allowChangeGroupInfo)))
-            .addOnSuccessListener { showAddManagerDialog = false; managerUidDraft = ""; status = "Rəhbər əlavə edildi." }
+            .addOnSuccessListener {
+                showAddManagerDialog = false
+                managerUidDraft = ""
+                db.collection("group_managers").get().addOnSuccessListener { snap ->
+                    groupManagerUids = snap.documents.map { it.id }.filter { it != ADMIN_UID }
+                }
+                status = "İstifadəçiyə adminlik verildi."
+            }
             .addOnFailureListener { status = "Rəhbər əlavə edilmədi: ${it.localizedMessage}" }
     }
     fun addGroupException(uid: String) {
@@ -1385,9 +1406,28 @@ private fun GroupChatScreen(onClose: () -> Unit) {
                             )
                         }
                     }
-                    Text("Rəhbərləri idarə et", color = Color(0xFFFFD36A), fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                    OutlinedButton(onClick = { showAddManagerDialog = true }, modifier = Modifier.fillMaxWidth()) {
-                        Text("＋ RƏHBƏR ƏLAVƏ ET")
+                    Text("ADMİNLƏRİ İDARƏ ET", color = Color(0xFFFFD36A), fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    if (groupManagerUids.isNotEmpty()) {
+                        groupManagerUids.forEach { managerUid ->
+                            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                Text(managerUid, color = Color.LightGray, fontSize = 11.sp, modifier = Modifier.weight(1f))
+                                TextButton(onClick = {
+                                    if (isOwner) db.collection("group_managers").document(managerUid).delete()
+                                        .addOnSuccessListener {
+                                            groupManagerUids = groupManagerUids - managerUid
+                                            status = "İstifadəçinin adminliyi ləğv edildi."
+                                        }
+                                        .addOnFailureListener { status = "Adminlik ləğv edilmədi: ${it.localizedMessage}" }
+                                }, enabled = isOwner) { Text("LƏĞV ET", color = Color(0xFFFF7777)) }
+                            }
+                        }
+                    } else {
+                        Text("Hələ əlavə edilmiş admin yoxdur.", color = Color.LightGray, fontSize = 12.sp)
+                    }
+                    if (isOwner) {
+                        OutlinedButton(onClick = { showAddManagerDialog = true }, modifier = Modifier.fillMaxWidth()) {
+                            Text("＋ İSTİFADƏÇİYƏ ADMİNLİK VER")
+                        }
                     }
                     OutlinedButton(onClick = { showExceptionDialog = true }, modifier = Modifier.fillMaxWidth()) {
                         Text("＋ İSTİSNA ƏLAVƏ ET")
@@ -1408,16 +1448,16 @@ private fun GroupChatScreen(onClose: () -> Unit) {
         if (showAddManagerDialog && isGroupAdmin) {
             AlertDialog(
                 onDismissRequest = { showAddManagerDialog = false },
-                title = { Text("Rəhbər əlavə et") },
+                title = { Text("İstifadəçiyə adminlik ver") },
                 text = {
                     OutlinedTextField(
                         value = managerUidDraft,
                         onValueChange = { managerUidDraft = it },
-                        label = { Text("İstifadəçinin UID-si") },
+                        label = { Text("İstifadəçinin UID-sini daxil et") },
                         singleLine = true
                     )
                 },
-                confirmButton = { TextButton(onClick = { addGroupManager(managerUidDraft) }) { Text("Əlavə et") } },
+                confirmButton = { TextButton(onClick = { addGroupManager(managerUidDraft) }) { Text("Admin et") } },
                 dismissButton = { TextButton(onClick = { showAddManagerDialog = false }) { Text("Ləğv et") } }
             )
         }
