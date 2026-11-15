@@ -2612,17 +2612,69 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                 }
                 if (shown.isEmpty()) Text("Hələ proqram paylaşılmayıb.", color = Color.LightGray)
                 shown.forEach { p ->
-                    Card(colors = CardDefaults.cardColors(containerColor = if (designGoldCards) Color(0xFFC58B22) else Color(0xFF202020)), modifier = Modifier.fillMaxWidth().padding(vertical = 7.dp), shape = RoundedCornerShape(24.dp)) {
-                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+                        shape = RoundedCornerShape(30.dp),
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 9.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 5.dp)
+                    ) {
+                        Column(
+                            Modifier.fillMaxWidth().background(
+                                Brush.linearGradient(listOf(Color(0xFFFFE18A), Color(0xFFD5A438), Color(0xFF8A5A13), Color(0xFFE8C66B)))
+                            ).padding(18.dp),
+                            verticalArrangement = Arrangement.spacedBy(14.dp)
+                        ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                if (p.iconUrl.isNotBlank()) ProgramIcon(p.iconUrl, p.name, 64)
-                                Column(Modifier.weight(1f).padding(start = 12.dp)) {
-                                    Text(p.name, color = if (designGoldCards) Color(0xFF3E280A) else Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                                    Text(listOf(p.category, p.version).filter { it.isNotBlank() }.joinToString(" • "), color = if (designGoldCards) Color(0xFF5B3A10) else Color.LightGray, fontSize = 12.sp)
+                                Text("TEXNO-TELEKOM", color = Color(0xFF4B2E08), fontSize = 15.sp, fontWeight = FontWeight.Black, modifier = Modifier.weight(1f))
+                                Text("✦ GOLD", color = Color(0xFF5A3708), fontSize = 14.sp, fontWeight = FontWeight.Black)
+                            }
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(Modifier.size(52.dp).background(Color(0x55FFF1C4), RoundedCornerShape(16.dp)), contentAlignment = Alignment.Center) {
+                                    Text("▦", color = Color(0xFF5A390D), fontSize = 28.sp, fontWeight = FontWeight.Bold)
+                                }
+                                Spacer(Modifier.weight(1f))
+                                Text("PREMIUM MEMBER", color = Color(0xFF5A390D), fontSize = 11.sp, fontWeight = FontWeight.Black)
+                            }
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                if (p.iconUrl.isNotBlank()) ProgramIcon(p.iconUrl, p.name, 76)
+                                else Box(Modifier.size(76.dp).background(Color(0xFF5A390D), RoundedCornerShape(20.dp)), contentAlignment = Alignment.Center) { Text("APP", color = Color(0xFFFFE18A), fontWeight = FontWeight.Black) }
+                                Column(Modifier.weight(1f).padding(start = 14.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                                    Text(p.name, color = Color(0xFF3E2608), fontWeight = FontWeight.Black, fontSize = 22.sp)
+                                    Text(listOf(p.category, p.version).filter { it.isNotBlank() }.joinToString(" • "), color = Color(0xFF5A390D), fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                                    if (p.fileSize.isNotBlank()) Text(p.fileSize, color = Color(0xFF68470F), fontSize = 11.sp)
                                 }
                             }
-                            if (p.description.isNotBlank()) TextWithInlineSticker(p.description, p.stickerUrl, p.stickerMime, if (designGoldCards) Color(0xFF4A2D08) else Color(0xFFE0E0E0), 14.sp, 20.sp)
-                            if (p.downloadUrl.isNotBlank()) Button(onClick = { try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(p.downloadUrl))) } catch (_: Exception) { error = "Yükləmə linki açıla bilmədi." } }) { Text("YÜKLƏ") }
+                            if (p.description.isNotBlank()) TextWithInlineSticker(p.description, p.stickerUrl, p.stickerMime, Color(0xFF4A2D08), 14.sp, 20.sp)
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Button(
+                                    onClick = { try { if (p.downloadUrl.isNotBlank()) context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(p.downloadUrl))) else error = "Yükləmə linki əlavə edilməyib." } catch (_: Exception) { error = "Yükləmə linki açıla bilmədi." } },
+                                    modifier = Modifier.weight(1.2f),
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF9B6818), contentColor = Color(0xFFFFE7A0)),
+                                    shape = RoundedCornerShape(18.dp)
+                                ) { Text("Yüklə", fontWeight = FontWeight.Black) }
+                                if (loggedIn) {
+                                    OutlinedButton(
+                                        onClick = {
+                                            editingId = p.id; name = p.name; category = p.category; version = p.version
+                                            description = p.description; link = p.downloadUrl; fileSize = p.fileSize
+                                            currentIcon = p.iconUrl; pickedImage = null; currentProgramStickerUrl = p.stickerUrl; currentProgramStickerMime = p.stickerMime; programSticker = null
+                                            showPrograms = false; adminOpen = true; message = "Proqram redaktə üçün seçildi."
+                                        },
+                                        modifier = Modifier.weight(1f),
+                                        shape = RoundedCornerShape(18.dp),
+                                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFFE7A0))
+                                    ) { Text("Redaktə", fontWeight = FontWeight.Bold) }
+                                    Button(
+                                        onClick = {
+                                            db.collection("programs").document(p.id).delete()
+                                                .addOnSuccessListener { message = "Proqram silindi." }
+                                                .addOnFailureListener { error = "Proqram silinmədi: ${it.localizedMessage}" }
+                                        },
+                                        shape = RoundedCornerShape(18.dp),
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD6A83D), contentColor = Color(0xFF4A2D08))
+                                    ) { Text("Sil", fontWeight = FontWeight.Black) }
+                                }
+                            }
                         }
                     }
                 }
@@ -2634,17 +2686,68 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                 val activeGames = games.filter { it.isActive || loggedIn }
                 if (activeGames.isEmpty()) Text("Hələ oyun paylaşılmayıb.", color = Color.LightGray)
                 activeGames.forEach { g ->
-                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF202020)), modifier = Modifier.fillMaxWidth().padding(vertical = 7.dp), shape = RoundedCornerShape(24.dp)) {
-                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+                        shape = RoundedCornerShape(30.dp),
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 9.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 5.dp)
+                    ) {
+                        Column(
+                            Modifier.fillMaxWidth().background(
+                                Brush.linearGradient(listOf(Color(0xFFFFE18A), Color(0xFFD5A438), Color(0xFF8A5A13), Color(0xFFE8C66B)))
+                            ).padding(18.dp),
+                            verticalArrangement = Arrangement.spacedBy(14.dp)
+                        ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                if (g.iconUrl.isNotBlank()) ProgramIcon(g.iconUrl, g.name, 64)
-                                Column(Modifier.weight(1f).padding(start = 12.dp)) {
-                                    Text(g.name, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                                    if (g.version.isNotBlank()) Text("Versiya: ${g.version}", color = Color.LightGray, fontSize = 12.sp)
+                                Text("TEXNO-TELEKOM", color = Color(0xFF4B2E08), fontSize = 15.sp, fontWeight = FontWeight.Black, modifier = Modifier.weight(1f))
+                                Text("✦ GOLD", color = Color(0xFF5A3708), fontSize = 14.sp, fontWeight = FontWeight.Black)
+                            }
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(Modifier.size(52.dp).background(Color(0x55FFF1C4), RoundedCornerShape(16.dp)), contentAlignment = Alignment.Center) {
+                                    Text("▦", color = Color(0xFF5A390D), fontSize = 28.sp, fontWeight = FontWeight.Bold)
+                                }
+                                Spacer(Modifier.weight(1f))
+                                Text("PREMIUM MEMBER", color = Color(0xFF5A390D), fontSize = 11.sp, fontWeight = FontWeight.Black)
+                            }
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                if (g.iconUrl.isNotBlank()) ProgramIcon(g.iconUrl, g.name, 76)
+                                else Box(Modifier.size(76.dp).background(Color(0xFF5A390D), RoundedCornerShape(20.dp)), contentAlignment = Alignment.Center) { Text("GAME", color = Color(0xFFFFE18A), fontWeight = FontWeight.Black) }
+                                Column(Modifier.weight(1f).padding(start = 14.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                                    Text(g.name, color = Color(0xFF3E2608), fontWeight = FontWeight.Black, fontSize = 22.sp)
+                                    Text(if (g.version.isNotBlank()) "Versiya: ${g.version}" else "Oyun", color = Color(0xFF5A390D), fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                                    if (g.fileSize.isNotBlank()) Text(g.fileSize, color = Color(0xFF68470F), fontSize = 11.sp)
                                 }
                             }
-                            if (g.description.isNotBlank()) Text(g.description, color = Color(0xFFE0E0E0), fontSize = 14.sp)
-                            if (g.downloadUrl.isNotBlank()) Button(onClick = { try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(g.downloadUrl))) } catch (_: Exception) { error = "Oyun APK linki açıla bilmədi." } }) { Text("OYUNU YÜKLƏ (APK)") }
+                            if (g.description.isNotBlank()) Text(g.description, color = Color(0xFF4A2D08), fontSize = 14.sp, lineHeight = 20.sp)
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Button(
+                                    onClick = { try { if (g.downloadUrl.isNotBlank()) context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(g.downloadUrl))) else error = "Oyun APK linki əlavə edilməyib." } catch (_: Exception) { error = "Oyun APK linki açıla bilmədi." } },
+                                    modifier = Modifier.weight(1.2f),
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF9B6818), contentColor = Color(0xFFFFE7A0)),
+                                    shape = RoundedCornerShape(18.dp)
+                                ) { Text("Yüklə", fontWeight = FontWeight.Black) }
+                                if (loggedIn) {
+                                    OutlinedButton(
+                                        onClick = {
+                                            editingGameId = g.id; gameName = g.name; gameVersion = g.version; gameDescription = g.description
+                                            gameLink = g.downloadUrl; gameImageUrl = g.iconUrl; gameImage = null
+                                            showGames = false; adminOpen = true; showGameForm = true; message = "Oyun redaktə üçün seçildi."
+                                        },
+                                        modifier = Modifier.weight(1f),
+                                        shape = RoundedCornerShape(18.dp),
+                                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFFE7A0))
+                                    ) { Text("Redaktə", fontWeight = FontWeight.Bold) }
+                                    Button(
+                                        onClick = {
+                                            db.collection("programs").document(g.id).delete()
+                                                .addOnSuccessListener { message = "Oyun silindi." }
+                                                .addOnFailureListener { error = "Oyun silinmədi: ${it.localizedMessage}" }
+                                        },
+                                        shape = RoundedCornerShape(18.dp),
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD6A83D), contentColor = Color(0xFF4A2D08))
+                                    ) { Text("Sil", fontWeight = FontWeight.Black) }
+                                }
+                            }
                         }
                     }
                 }
