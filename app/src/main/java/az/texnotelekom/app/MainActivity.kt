@@ -21,6 +21,8 @@ import android.provider.MediaStore
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.media.MediaController
+import android.widget.VideoView
 import android.content.ContentValues
 import android.os.Handler
 import android.os.Looper
@@ -81,6 +83,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.PlaceholderVerticalAlign
@@ -151,6 +154,69 @@ private fun uploadPhoneImage(context: Context, uri: Uri, callback: (Result<Strin
     }.start()
 }
 
+
+
+private fun uploadGroupVideo(context: Context, uri: Uri, callback: (Result<String>) -> Unit) {
+    Thread {
+        var connection: HttpURLConnection? = null
+        try {
+            val mime = context.contentResolver.getType(uri) ?: "video/mp4"
+            val boundary = "----TexnoTelekom" + UUID.randomUUID().toString().replace("-", "")
+            connection = (URL("https://api.cloudinary.com/v1_1/$CLOUDINARY_CLOUD/video/upload").openConnection() as HttpURLConnection).apply {
+                requestMethod = "POST"
+                doOutput = true
+                connectTimeout = 30000
+                readTimeout = 300000
+                setRequestProperty("Content-Type", "multipart/form-data; boundary=$boundary")
+                setChunkedStreamingMode(65536)
+            }
+            connection.outputStream.use { output ->
+                output.write("--$boundary\r\nContent-Disposition: form-data; name=\"upload_preset\"\r\n\r\n$CLOUDINARY_PRESET\r\n".toByteArray(Charsets.UTF_8))
+                output.write("--$boundary\r\nContent-Disposition: form-data; name=\"file\"; filename=\"texno-group-video\"\r\nContent-Type: $mime\r\n\r\n".toByteArray(Charsets.UTF_8))
+                val input = context.contentResolver.openInputStream(uri) ?: throw Exception("Video faylı oxunmadı.")
+                input.use { stream ->
+                    val buffer = ByteArray(65536)
+                    while (true) {
+                        val count = stream.read(buffer)
+                        if (count < 0) break
+                        output.write(buffer, 0, count)
+                    }
+                }
+                output.write("\r\n--$boundary--\r\n".toByteArray(Charsets.UTF_8))
+            }
+            val code = connection.responseCode
+            val response = (if (code in 200..299) connection.inputStream else connection.errorStream)?.bufferedReader()?.use { it.readText() } ?: ""
+            if (code !in 200..299) throw Exception("Video yüklənmədi ($code): $response")
+            val secureUrl = JSONObject(response).optString("secure_url")
+            if (secureUrl.isBlank()) throw Exception("Video linki alınmadı.")
+            Handler(Looper.getMainLooper()).post { callback(Result.success(secureUrl)) }
+        } catch (e: Exception) {
+            Handler(Looper.getMainLooper()).post { callback(Result.failure(e)) }
+        } finally { connection?.disconnect() }
+    }.start()
+}
+
+@Composable
+private fun GroupVideoPlayer(url: String) {
+    val context = LocalContext.current
+    var started by remember(url) { mutableStateOf(false) }
+    AndroidView(
+        modifier = Modifier.fillMaxWidth().height(220.dp).clip(RoundedCornerShape(12.dp)),
+        factory = {
+            VideoView(context).apply {
+                setMediaController(MediaController(context).also { it.setAnchorView(this) })
+                setVideoURI(Uri.parse(url))
+                setOnPreparedListener { player -> player.isLooping = false }
+            }
+        },
+        update = { view ->
+            if (!started) {
+                started = true
+                view.start()
+            }
+        }
+    )
+}
 
 private data class StickerUpload(val url: String, val mimeType: String, val fileName: String)
 
@@ -515,7 +581,7 @@ data class ChannelPost(
 )
 data class PhoneInfo(val id: String, val title: String, val body: String, val imageUrl: String, val stickerUrl: String, val stickerMime: String)
 data class ChannelMessage(val id: String, val title: String, val body: String, val imageUrl: String, val createdAt: Long)
-data class GroupChatMessage(val id: String, val uid: String, val nickname: String, val text: String, val imageUrl: String, val audioUrl: String, val createdAt: Long, val replyToId: String = "", val replyToNickname: String = "", val replyToText: String = "")
+data class GroupChatMessage(val id: String, val uid: String, val nickname: String, val text: String, val imageUrl: String, val audioUrl: String, val videoUrl: String = "", val createdAt: Long, val replyToId: String = "", val replyToNickname: String = "", val replyToText: String = "")
 
 
 @Composable
@@ -723,13 +789,14 @@ private fun GroupChatScreen(onClose: () -> Unit) {
                 status = "Mesajlar yüklənmədi: ${it.localizedMessage}"
             }
     }
+
     fun uploadAndSendGroupImage(uri: Uri) {
         busy = true
         uploadPhoneImage(context, uri) { result ->
             result.onSuccess { url ->
                 val user = auth.currentUser
                 if (user == null) { busy = false; status = "Qrupa qoşulmaq mümkün olmadı."; return@onSuccess }
-                val data = hashMapOf<String, Any>("uid" to user.uid, "nickname" to nickname.trim().take(24), "text" to "", "image_url" to url, "audio_url" to "", "created_at" to FieldValue.serverTimestamp())
+                val data = hashMapOf<String, Any>("uid" to user.uid, "nickname" to nickname.trim().take(24), "text" to "", "image_url" to url, "video_url" to "", "audio_url" to "", "created_at" to FieldValue.serverTimestamp())
                 reply?.let { data["reply_to_id"] = it.id; data["reply_to_nickname"] = it.nickname; data["reply_to_text"] = it.text.ifBlank { "📷 Şəkil" }.take(180) }
                 db.collection("group_messages").add(data)
                     .addOnSuccessListener { busy = false; reply = null; status = "" }
@@ -737,8 +804,26 @@ private fun GroupChatScreen(onClose: () -> Unit) {
             }.onFailure { busy = false; status = "Şəkil yüklənmədi: ${it.localizedMessage}" }
         }
     }
-    val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        if (uri != null) uploadAndSendGroupImage(uri)
+    fun uploadAndSendGroupVideo(uri: Uri) {
+        busy = true
+        uploadGroupVideo(context, uri) { result ->
+            result.onSuccess { url ->
+                val user = auth.currentUser
+                if (user == null) { busy = false; status = "Qrupa qoşulmaq mümkün olmadı."; return@onSuccess }
+                val data = hashMapOf<String, Any>("uid" to user.uid, "nickname" to nickname.trim().take(24), "text" to "", "image_url" to "", "video_url" to url, "audio_url" to "", "created_at" to FieldValue.serverTimestamp())
+                reply?.let { data["reply_to_id"] = it.id; data["reply_to_nickname"] = it.nickname; data["reply_to_text"] = it.text.ifBlank { "🎬 Video" }.take(180) }
+                db.collection("group_messages").add(data)
+                    .addOnSuccessListener { busy = false; reply = null; status = "" }
+                    .addOnFailureListener { busy = false; status = "Video göndərilmədi: ${it.localizedMessage}" }
+            }.onFailure { busy = false; status = "Video yüklənmədi: ${it.localizedMessage}" }
+        }
+    }
+    val mediaPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) {
+            runCatching { context.contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) }
+            val mime = context.contentResolver.getType(uri).orEmpty()
+            if (mime.startsWith("video/")) uploadAndSendGroupVideo(uri) else uploadAndSendGroupImage(uri)
+        }
     }
     val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap ->
         if (bitmap != null) {
@@ -793,7 +878,7 @@ private fun GroupChatScreen(onClose: () -> Unit) {
                     val loadedMessages = snap.documents.map { d ->
                         GroupChatMessage(
                             d.id, d.getString("uid") ?: "", d.getString("nickname") ?: "İstifadəçi",
-                            d.getString("text") ?: "", d.getString("image_url") ?: "", d.getString("audio_url") ?: "",
+                            d.getString("text") ?: "", d.getString("image_url") ?: "", d.getString("audio_url") ?: "", d.getString("video_url") ?: "",
                             d.getTimestamp("created_at")?.toDate()?.time ?: 0L,
                             d.getString("reply_to_id") ?: "", d.getString("reply_to_nickname") ?: "", d.getString("reply_to_text") ?: ""
                         )
@@ -994,6 +1079,7 @@ private fun GroupChatScreen(onClose: () -> Unit) {
                                 if (item.replyToNickname.isNotBlank()) Text("↪ ${item.replyToNickname}: ${item.replyToText}", color = Color(0xFFBDBDBD), fontSize = 11.sp)
                                 if (item.text.isNotBlank()) Text(item.text, color = Color.White, fontSize = 14.sp)
                                 if (item.imageUrl.isNotBlank()) AsyncImage(model = item.imageUrl, contentDescription = "Qrup şəkli", modifier = Modifier.fillMaxWidth().heightIn(max = 240.dp), contentScale = ContentScale.Fit)
+                                if (item.videoUrl.isNotBlank()) GroupVideoPlayer(item.videoUrl)
                                 if (item.audioUrl.isNotBlank()) GroupVoiceMessagePlayer(item.audioUrl, item.createdAt)
                                 Text("Cavab vermək üçün toxun", color = Color(0xFFBDBDBD), fontSize = 9.sp)
                             }
@@ -1045,7 +1131,7 @@ private fun GroupChatScreen(onClose: () -> Unit) {
                         Icon(Icons.Default.EmojiEmotions, contentDescription = "Smayliklər", tint = Color(0xFF666B70))
                     }
                     BasicTextField(value = draft, onValueChange = { draft = it }, modifier = Modifier.weight(1f).padding(vertical = 10.dp), singleLine = true, enabled = !busy, textStyle = TextStyle(color = Color(0xFF202124), fontSize = 15.sp), cursorBrush = androidx.compose.ui.graphics.SolidColor(Color(0xFF159B68)), decorationBox = { inner -> Box { if (draft.isEmpty()) Text("Mesaj", color = Color.Gray); inner() } })
-                    IconButton(onClick = { imagePicker.launch("image/*") }, enabled = !busy, modifier = Modifier.size(36.dp)) {
+                    IconButton(onClick = { mediaPicker.launch(arrayOf("image/*", "video/*")) }, enabled = !busy, modifier = Modifier.size(36.dp)) {
                         Icon(Icons.Default.AttachFile, contentDescription = "Şəkil və fayl seç", tint = Color(0xFF666B70))
                     }
                     IconButton(onClick = { cameraLauncher.launch(null) }, enabled = !busy, modifier = Modifier.size(36.dp)) {
