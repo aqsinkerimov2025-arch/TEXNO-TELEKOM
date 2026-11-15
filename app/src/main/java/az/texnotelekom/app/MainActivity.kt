@@ -302,7 +302,8 @@ private fun GroupVideoPlayer(url: String) {
                         .padding(horizontal = 12.dp, vertical = 7.dp)
                 )
             } else {
-                // Dedicated in-app control to leave fullscreen and return to the group.
+                // The same four-corner fullscreen icon shown on the group video card;
+                // tapping it closes fullscreen and returns to the group.
                 Box(
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
@@ -312,19 +313,28 @@ private fun GroupVideoPlayer(url: String) {
                         .clickable { showFullscreen = false },
                     contentAlignment = Alignment.Center
                 ) {
-                    Canvas(modifier = Modifier.size(width = 56.dp, height = 40.dp)) {
-                        val chevron = androidx.compose.ui.graphics.Path().apply {
-                            moveTo(size.width * 0.10f, size.height * 0.28f)
-                            lineTo(size.width * 0.50f, size.height * 0.78f)
-                            lineTo(size.width * 0.90f, size.height * 0.28f)
+                    Canvas(modifier = Modifier.size(width = 40.dp, height = 40.dp)) {
+                        val corner = androidx.compose.ui.graphics.Path().apply {
+                            moveTo(size.width * 0.34f, size.height * 0.12f)
+                            lineTo(size.width * 0.12f, size.height * 0.12f)
+                            lineTo(size.width * 0.12f, size.height * 0.34f)
+                            moveTo(size.width * 0.66f, size.height * 0.12f)
+                            lineTo(size.width * 0.88f, size.height * 0.12f)
+                            lineTo(size.width * 0.88f, size.height * 0.34f)
+                            moveTo(size.width * 0.12f, size.height * 0.66f)
+                            lineTo(size.width * 0.12f, size.height * 0.88f)
+                            lineTo(size.width * 0.34f, size.height * 0.88f)
+                            moveTo(size.width * 0.88f, size.height * 0.66f)
+                            lineTo(size.width * 0.88f, size.height * 0.88f)
+                            lineTo(size.width * 0.66f, size.height * 0.88f)
                         }
                         drawPath(
-                            path = chevron,
+                            path = corner,
                             color = Color.White,
                             style = androidx.compose.ui.graphics.drawscope.Stroke(
-                                width = 5.5.dp.toPx(),
-                                cap = androidx.compose.ui.graphics.StrokeCap.Round,
-                                join = androidx.compose.ui.graphics.StrokeJoin.Round
+                                width = 4.5.dp.toPx(),
+                                cap = androidx.compose.ui.graphics.StrokeCap.Square,
+                                join = androidx.compose.ui.graphics.StrokeJoin.Miter
                             )
                         )
                     }
