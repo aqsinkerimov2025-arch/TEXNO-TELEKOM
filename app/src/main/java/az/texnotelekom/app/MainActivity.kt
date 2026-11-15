@@ -2536,6 +2536,50 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                 }
                 .statusBarsPadding().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)
         ) {
+            if (showPrograms) {
+                Row(Modifier.fillMaxWidth().padding(vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text("‹", color = Color.White, fontSize = 32.sp, modifier = Modifier.clickable { showPrograms = false }.padding(end = 12.dp))
+                    Text("PROQRAMLAR", color = Color.White, fontSize = 21.sp, fontWeight = FontWeight.Black)
+                }
+                if (shown.isEmpty()) Text("Hələ proqram paylaşılmayıb.", color = Color.LightGray)
+                shown.forEach { p ->
+                    Card(colors = CardDefaults.cardColors(containerColor = if (designGoldCards) Color(0xFFC58B22) else Color(0xFF202020)), modifier = Modifier.fillMaxWidth().padding(vertical = 7.dp), shape = RoundedCornerShape(24.dp)) {
+                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                if (p.iconUrl.isNotBlank()) ProgramIcon(p.iconUrl, p.name, 64)
+                                Column(Modifier.weight(1f).padding(start = 12.dp)) {
+                                    Text(p.name, color = if (designGoldCards) Color(0xFF3E280A) else Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                                    Text(listOf(p.category, p.version).filter { it.isNotBlank() }.joinToString(" • "), color = if (designGoldCards) Color(0xFF5B3A10) else Color.LightGray, fontSize = 12.sp)
+                                }
+                            }
+                            if (p.description.isNotBlank()) TextWithInlineSticker(p.description, p.stickerUrl, p.stickerMime, if (designGoldCards) Color(0xFF4A2D08) else Color(0xFFE0E0E0), 14.sp, 20.sp)
+                            if (p.downloadUrl.isNotBlank()) Button(onClick = { try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(p.downloadUrl))) } catch (_: Exception) { error = "Yükləmə linki açıla bilmədi." } }) { Text("YÜKLƏ") }
+                        }
+                    }
+                }
+            } else if (showGames) {
+                Row(Modifier.fillMaxWidth().padding(vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text("‹", color = Color.White, fontSize = 32.sp, modifier = Modifier.clickable { showGames = false }.padding(end = 12.dp))
+                    Text("OYUNLAR", color = Color.White, fontSize = 21.sp, fontWeight = FontWeight.Black)
+                }
+                val activeGames = games.filter { it.isActive || loggedIn }
+                if (activeGames.isEmpty()) Text("Hələ oyun paylaşılmayıb.", color = Color.LightGray)
+                activeGames.forEach { g ->
+                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF202020)), modifier = Modifier.fillMaxWidth().padding(vertical = 7.dp), shape = RoundedCornerShape(24.dp)) {
+                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                if (g.iconUrl.isNotBlank()) ProgramIcon(g.iconUrl, g.name, 64)
+                                Column(Modifier.weight(1f).padding(start = 12.dp)) {
+                                    Text(g.name, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                                    if (g.version.isNotBlank()) Text("Versiya: ${g.version}", color = Color.LightGray, fontSize = 12.sp)
+                                }
+                            }
+                            if (g.description.isNotBlank()) Text(g.description, color = Color(0xFFE0E0E0), fontSize = 14.sp)
+                            if (g.downloadUrl.isNotBlank()) Button(onClick = { try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(g.downloadUrl))) } catch (_: Exception) { error = "Oyun APK linki açıla bilmədi." } }) { Text("OYUNU YÜKLƏ (APK)") }
+                        }
+                    }
+                }
+            } else {
             if (!adminOpen || !isAuthorizedDevice) {
             Spacer(Modifier.height(12.dp))
             Column(Modifier.fillMaxWidth().padding(top = 4.dp)) {
@@ -2947,7 +2991,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                 Card(
                     colors = CardDefaults.cardColors(containerColor = Color(0xFF202020)),
                     shape = RoundedCornerShape(26.dp),
-                    modifier = Modifier.fillMaxWidth().clickable { showPrograms = !showPrograms }
+                    modifier = Modifier.fillMaxWidth().clickable { showPrograms = !showPrograms; showGames = false }
                 ) {
                     Row(
                         Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 18.dp),
@@ -3089,7 +3133,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                 }
 
             if (!showPhoneInfo) {
-            Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF202020)), shape = RoundedCornerShape(26.dp), modifier = Modifier.fillMaxWidth().clickable { showGames = !showGames }) {
+            Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF202020)), shape = RoundedCornerShape(26.dp), modifier = Modifier.fillMaxWidth().clickable { showGames = !showGames; showPrograms = false }) {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 20.dp), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text("🎮 OYUNLAR", color = Color(0xFFFFFFFF), fontSize = 20.sp, fontWeight = FontWeight.Bold)
@@ -3282,8 +3326,8 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                 )
             }
             }
+            }
         }
         }
     }
 }
-
