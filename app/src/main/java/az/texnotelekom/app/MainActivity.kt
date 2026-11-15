@@ -361,9 +361,8 @@ private fun GroupVideoPlayer(url: String) {
                     color = Color.White,
                     fontSize = 28.sp,
                     modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .statusBarsPadding()
-                        .padding(14.dp)
+                        .align(Alignment.BottomEnd)
+                        .padding(end = 14.dp, bottom = 64.dp)
                         .background(Color.Black.copy(alpha = 0.65f), CircleShape)
                         .clickable {
                             player.pause()
