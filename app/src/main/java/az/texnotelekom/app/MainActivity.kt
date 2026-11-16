@@ -2023,6 +2023,22 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     val isAuthorizedDevice = deviceId in ADMIN_DEVICE_IDS
     val savedAdminUser = remember { FirebaseAuth.getInstance().currentUser }
     var loggedIn by remember { mutableStateOf(isAuthorizedDevice && savedAdminUser?.uid == ADMIN_UID && savedAdminUser.email == ADMIN_EMAIL) }
+    val pushPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
+    LaunchedEffect(loggedIn) {
+        val adminUser = FirebaseAuth.getInstance().currentUser
+        if (loggedIn && adminUser?.uid == ADMIN_UID) {
+            if (Build.VERSION.SDK_INT >= 33 && context.checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                pushPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+            }
+            com.google.firebase.messaging.FirebaseMessaging.getInstance().token
+                .addOnSuccessListener { token ->
+                    db.collection("admin_push_tokens").document(ADMIN_UID).set(
+                        mapOf("uid" to ADMIN_UID, "token" to token, "updated_at" to FieldValue.serverTimestamp()),
+                        SetOptions.merge()
+                    )
+                }
+        }
+    }
 
     DisposableEffect(loggedIn, deviceId) {
         var feedbackQuery: com.google.firebase.firestore.Query = db.collection("admin_feedback")
