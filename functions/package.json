@@ -1,0 +1,11 @@
+{
+  "name": "texno-telekom-functions",
+  "private": true,
+  "engines": { "node": "20" },
+  "main": "index.js",
+  "scripts": { "deploy": "firebase deploy --only functions --project texno-telekom" },
+  "dependencies": {
+    "firebase-admin": "^13.0.2",
+    "firebase-functions": "^6.1.2"
+  }
+}
