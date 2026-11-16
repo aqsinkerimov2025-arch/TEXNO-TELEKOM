@@ -101,6 +101,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import androidx.work.Constraints
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -2027,6 +2032,18 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     LaunchedEffect(loggedIn) {
         val adminUser = FirebaseAuth.getInstance().currentUser
         if (loggedIn && adminUser?.uid == ADMIN_UID) {
+            val prefs = context.getSharedPreferences("texno_admin_poll", Context.MODE_PRIVATE)
+            if (!prefs.contains("last_feedback_seen_at")) {
+                prefs.edit().putLong("last_feedback_seen_at", System.currentTimeMillis()).apply()
+            }
+            val request = PeriodicWorkRequestBuilder<AdminFeedbackPollWorker>(15, java.util.concurrent.TimeUnit.MINUTES)
+                .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
+                .build()
+            WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+                "texno_admin_feedback_poll",
+                ExistingPeriodicWorkPolicy.KEEP,
+                request
+            )
             if (Build.VERSION.SDK_INT >= 33 && context.checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
                 pushPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
             }
