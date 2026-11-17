@@ -1750,7 +1750,6 @@ private fun GroupManagementAdminPanel() {
         db.collection("group_settings").document("bubble_style")
             .set(mapOf("style" to style, "updated_at" to FieldValue.serverTimestamp()))
             .addOnSuccessListener { bubbleStyle = style }
-            .addOnFailureListener { status = "Baloncuk stili yadda saxlanmadı: ${it.localizedMessage}" }
     }
     var bubbleStyle by remember { mutableStateOf("default") }
     val bubbleStyleOptions = listOf(
