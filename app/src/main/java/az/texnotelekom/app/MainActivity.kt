@@ -1042,7 +1042,7 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun GroupChatScreen(backgroundColor: Color, onClose: () -> Unit) {
+private fun GroupChatScreen(backgroundColor: Color, onClose: () -> Unit, onOpenBubbleAdmin: () -> Unit) {
     val context = LocalContext.current
     val db = remember { FirebaseFirestore.getInstance() }
     val prefs = remember { context.getSharedPreferences("texno_group_chat", Context.MODE_PRIVATE) }
@@ -1534,7 +1534,7 @@ private fun GroupChatScreen(backgroundColor: Color, onClose: () -> Unit) {
             Spacer(Modifier.weight(1f))
             if (isOwner) {
                 Text("💬 BALONCUQ", color = Color(0xFFFFD36A), fontSize = 10.sp, fontWeight = FontWeight.Bold,
-                    modifier = Modifier.clickable { showBubbleStylePanel = true }.padding(start = 8.dp))
+                    modifier = Modifier.clickable { onOpenBubbleAdmin() }.padding(start = 8.dp))
             }
             Text("SİYAHI", color = Color(0xFFFFD36A), fontSize = 10.sp, fontWeight = FontWeight.Bold)
         }
@@ -1571,51 +1571,6 @@ private fun GroupChatScreen(backgroundColor: Color, onClose: () -> Unit) {
                     }
                 },
                 confirmButton = { TextButton(onClick = { showMembersDialog = false }) { Text("BAĞLA") } }
-            )
-        }
-        if (showBubbleStylePanel && isOwner) {
-            AlertDialog(
-                onDismissRequest = { showBubbleStylePanel = false },
-                title = { Text("SÖHBƏT BALONCUĞU STİLİ") },
-                text = {
-                    Column(
-                        Modifier.heightIn(max = 480.dp).verticalScroll(rememberScrollState()),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text("Seçdiyin görünüş bütün istifadəçilərin söhbətində tətbiq olunacaq.", color = Color.Gray, fontSize = 12.sp)
-                        bubbleStyleOptions.forEach { (key, label) ->
-                            val selected = bubbleStyle == key
-                            val previewColor = when (key) {
-                                "whee" -> Color(0xFFD8F8FF)
-                                "balloon" -> Color(0xFF8DE2EF)
-                                "glam" -> Color(0xFFFFE5EE)
-                                "croc" -> Color(0xFF6479D7)
-                                "olivia" -> Color(0xFFF1B6CB)
-                                "duck" -> Color(0xFFF3E77B)
-                                "cat" -> Color(0xFFF4F4F4)
-                                "capybara" -> Color(0xFFD9AD75)
-                                "frog" -> Color(0xFF159B65)
-                                "pets" -> Color(0xFFFFE7BD)
-                                else -> Color.White
-                            }
-                            Row(
-                                Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp))
-                                    .background(if (selected) Color(0xFF333333) else Color(0xFF202020))
-                                    .clickable { saveBubbleStyle(key); showBubbleStylePanel = false }
-                                    .padding(10.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Box(Modifier.weight(1f)) {
-                                    Text("Aa  Söhbət nümunəsi", color = if (key == "croc" || key == "frog") Color.White else Color(0xFF222222),
-                                        modifier = Modifier.background(previewColor, RoundedCornerShape(if (key == "balloon") 28.dp else 12.dp)).padding(horizontal = 14.dp, vertical = 9.dp))
-                                }
-                                Text(label, color = Color.White, fontSize = 13.sp, modifier = Modifier.padding(start = 8.dp))
-                                if (selected) Text(" ✓", color = Color(0xFFFFD36A), fontWeight = FontWeight.Bold)
-                            }
-                        }
-                    }
-                },
-                confirmButton = { TextButton(onClick = { showBubbleStylePanel = false }) { Text("BAĞLA") } }
             )
         }
         if (showGroupRules) {
@@ -1799,6 +1754,24 @@ private fun GroupManagementAdminPanel() {
     val db = remember { FirebaseFirestore.getInstance() }
     val auth = remember { FirebaseAuth.getInstance() }
     val uid = auth.currentUser?.uid.orEmpty()
+    var bubbleStyle by remember { mutableStateOf("default") }
+    val bubbleStyleOptions = listOf(
+        "default" to "Varsayılan", "whee" to "Whee eskiz", "balloon" to "Baloncuk stili",
+        "glam" to "Glam diva", "croc" to "Sakit timsah", "olivia" to "Olivia Rodrigo",
+        "duck" to "Qurbağa ördək", "cat" to "KasıI kedi", "capybara" to "Kapibara",
+        "frog" to "Qurbağa", "pets" to "Kedi köpək"
+    )
+    LaunchedEffect(Unit) {
+        db.collection("group_settings").document("bubble_style").get()
+            .addOnSuccessListener { bubbleStyle = it.getString("style") ?: "default" }
+    }
+    fun saveBubbleStyle(style: String) {
+        if (uid != ADMIN_UID) return
+        db.collection("group_settings").document("bubble_style")
+            .set(mapOf("style" to style, "updated_at" to FieldValue.serverTimestamp()))
+            .addOnSuccessListener { bubbleStyle = style }
+            .addOnFailureListener { status = "Baloncuk stili yadda saxlanmadı: ${it.localizedMessage}" }
+    }
     var subtitle by remember { mutableStateOf("Ümumi söhbət") }
     var subtitleDraft by remember { mutableStateOf("") }
     var editingSubtitle by remember { mutableStateOf(false) }
@@ -1870,6 +1843,38 @@ private fun GroupManagementAdminPanel() {
     }
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text("QRUP RƏHBƏRLİYİ", color = Color(0xFFFFD36A), fontWeight = FontWeight.Black, fontSize = 18.sp)
+        if (isOwner) {
+            Text("SÖHBƏT BALONCUĞU", color = Color(0xFFFFD36A), fontWeight = FontWeight.Bold)
+            Text("Seçilən görünüş bütün istifadəçilərin söhbətində tətbiq olunacaq.", color = Color.LightGray, fontSize = 12.sp)
+            bubbleStyleOptions.forEach { (key, label) ->
+                val previewColor = when (key) {
+                    "whee" -> Color(0xFFD8F8FF)
+                    "balloon" -> Color(0xFF8DE2EF)
+                    "glam" -> Color(0xFFFFE5EE)
+                    "croc" -> Color(0xFF6479D7)
+                    "olivia" -> Color(0xFFF1B6CB)
+                    "duck" -> Color(0xFFF3E77B)
+                    "cat" -> Color(0xFFF4F4F4)
+                    "capybara" -> Color(0xFFD9AD75)
+                    "frog" -> Color(0xFF159B65)
+                    "pets" -> Color(0xFFFFE7BD)
+                    else -> Color.White
+                }
+                Row(
+                    Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
+                        .background(Color(0xFF202020)).clickable { saveBubbleStyle(key) }.padding(10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Aa  Söhbət nümunəsi",
+                        color = if (key == "croc" || key == "frog") Color.White else Color(0xFF222222),
+                        modifier = Modifier.background(previewColor, RoundedCornerShape(if (key == "balloon") 28.dp else 12.dp))
+                            .padding(horizontal = 12.dp, vertical = 8.dp))
+                    Text(label, color = Color.White, fontSize = 13.sp, modifier = Modifier.weight(1f).padding(start = 10.dp))
+                    if (bubbleStyle == key) Text("✓", color = Color(0xFFFFD36A), fontWeight = FontWeight.Bold)
+                }
+            }
+            HorizontalDivider()
+        }
         Text("Qrupun alt yazısı", color = Color(0xFFFFD36A), fontWeight = FontWeight.Bold)
         if (editingSubtitle) {
             OutlinedTextField(subtitleDraft, { subtitleDraft = it }, modifier = Modifier.fillMaxWidth(), singleLine = false, minLines = 3, maxLines = 8, label = { Text("Yeni alt yazı") })
@@ -2763,7 +2768,16 @@ fun TexnoTelekomApp(
         )
     ) {
         if (showGroupChat) {
-            GroupChatScreen(backgroundColor = liveBg, onClose = { showGroupChat = false })
+            GroupChatScreen(
+                backgroundColor = liveBg,
+                onClose = { showGroupChat = false },
+                onOpenBubbleAdmin = {
+                    if (loggedIn && isAuthorizedDevice) {
+                        showGroupChat = false
+                        showGroupManagementAdmin = true
+                    }
+                }
+            )
         } else if (showGroupManagementAdmin && loggedIn && isAuthorizedDevice) {
             Column(
                 Modifier.fillMaxSize()
