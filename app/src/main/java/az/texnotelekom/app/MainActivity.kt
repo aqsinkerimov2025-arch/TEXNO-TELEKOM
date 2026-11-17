@@ -1510,10 +1510,6 @@ private fun GroupChatScreen(backgroundColor: Color, onClose: () -> Unit, onOpenB
             Spacer(Modifier.width(12.dp))
             Text("🟢 Onlayn: ${groupMembers.count { it.third }}", color = Color(0xFF72D99A), fontSize = 11.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.weight(1f))
-            if (isOwner) {
-                Text("💬 BALONCUQ", color = Color(0xFFFFD36A), fontSize = 10.sp, fontWeight = FontWeight.Bold,
-                    modifier = Modifier.clickable { onOpenBubbleAdmin() }.padding(start = 8.dp))
-            }
             Text("SİYAHI", color = Color(0xFFFFD36A), fontSize = 10.sp, fontWeight = FontWeight.Bold)
         }
         Row(
