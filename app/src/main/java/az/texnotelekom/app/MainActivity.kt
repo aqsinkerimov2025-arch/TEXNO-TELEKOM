@@ -1108,8 +1108,6 @@ private fun GroupChatScreen(backgroundColor: Color, onClose: () -> Unit, onOpenB
             }
     }
 
-            .addOnFailureListener { status = "Baloncuk stili yadda saxlanmadı: ${it.localizedMessage}" }
-    }
     var groupSubtitle by remember { mutableStateOf("Ümumi söhbət") }
     var groupSubtitleDraft by remember { mutableStateOf("") }
     var editingGroupSubtitle by remember { mutableStateOf(false) }
