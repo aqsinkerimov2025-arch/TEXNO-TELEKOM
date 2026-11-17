@@ -18,12 +18,12 @@ class TexnoFirebaseMessagingService : FirebaseMessagingService() {
     }
 
     private fun showNotification(title: String, body: String) {
-        val channelId = "admin_feedback_messages"
+        val channelId = "texno_updates"
         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             manager.createNotificationChannel(
-                NotificationChannel(channelId, "ADMİNLƏ-ƏLAQƏ mesajları", NotificationManager.IMPORTANCE_HIGH).apply {
-                    description = "Yeni istifadəçi mesajları barədə bildirişlər"
+                NotificationChannel(channelId, "TEXNO-TELEKOM bildirişləri", NotificationManager.IMPORTANCE_HIGH).apply {
+                    description = "Yeni proqramlar, oyunlar və tətbiq bildirişləri"
                 }
             )
         }
