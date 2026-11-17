@@ -2521,11 +2521,10 @@ fun TexnoTelekomApp(
         )
         val id = editingId
         if (id == null) values["created_at"] = FieldValue.serverTimestamp()
-        val task = if (id == null) db.collection("programs").add(values)
-                   else db.collection("programs").document(id).set(values, SetOptions.merge())
-        task.addOnSuccessListener {
+        val programDocument = if (id == null) db.collection("programs").document() else db.collection("programs").document(id)
+        programDocument.set(values, SetOptions.merge()).addOnSuccessListener {
             newProgramNotice = true
-            db.collection("app_notifications").add(hashMapOf("type" to "program", "title" to if (id == null) "Yeni proqram əlavə edildi" else "Proqram yeniləndi", "body" to name.trim() + " — " + version.trim(), "created_at" to FieldValue.serverTimestamp(), "program_id" to (task.result?.id ?: id ?: ""), "content_type" to "program"))
+            db.collection("app_notifications").add(hashMapOf("type" to "program", "title" to if (id == null) "Yeni proqram əlavə edildi" else "Proqram yeniləndi", "body" to name.trim() + " — " + version.trim(), "created_at" to FieldValue.serverTimestamp(), "program_id" to programDocument.id, "content_type" to "program"))
             message = if (id == null) "Proqram əlavə edildi." else "Proqram yeniləndi."
             clearForm(); busy = false
         }.addOnFailureListener {
@@ -2541,10 +2540,10 @@ fun TexnoTelekomApp(
             val values = hashMapOf<String, Any>("name" to gameName.trim(), "version" to gameVersion.trim(), "description" to gameDescription.trim(), "download_url" to gameLink.trim(), "icon_url" to icon, "is_active" to true, "content_type" to "game", "updated_at" to FieldValue.serverTimestamp())
             val id = editingGameId
             if (id == null) values["created_at"] = FieldValue.serverTimestamp()
-            val task = if (id == null) db.collection("programs").add(values) else db.collection("programs").document(id).set(values, SetOptions.merge())
-            task.addOnSuccessListener {
+            val gameDocument = if (id == null) db.collection("programs").document() else db.collection("programs").document(id)
+            gameDocument.set(values, SetOptions.merge()).addOnSuccessListener {
                 newProgramNotice = true
-                db.collection("app_notifications").add(hashMapOf("type" to "game", "title" to if (id == null) "Yeni oyun əlavə edildi" else "Oyun yeniləndi", "body" to gameName.trim() + " — " + gameVersion.trim(), "created_at" to FieldValue.serverTimestamp(), "program_id" to (task.result?.id ?: id ?: ""), "content_type" to "game"))
+                db.collection("app_notifications").add(hashMapOf("type" to "game", "title" to if (id == null) "Yeni oyun əlavə edildi" else "Oyun yeniləndi", "body" to gameName.trim() + " — " + gameVersion.trim(), "created_at" to FieldValue.serverTimestamp(), "program_id" to gameDocument.id, "content_type" to "game"))
                 message = if (id == null) "Oyun əlavə edildi." else "Oyun yeniləndi."
                 clearGameForm(); busy = false
             }.addOnFailureListener { error = "Oyun yadda saxlanmadı: ${it.localizedMessage}"; busy = false }
