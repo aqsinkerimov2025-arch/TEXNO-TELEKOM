@@ -56,6 +56,8 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -924,6 +926,7 @@ private fun SupportBadgeLogo(
 }
 
 class MainActivity : ComponentActivity() {
+    private val notificationTarget = mutableStateOf<Pair<String, String>?>(null)
     private var updateDownloadId: Long = -1L
     private var pendingUpdateUrl: String? = null
     private val updateReceiver = object : BroadcastReceiver() {
@@ -943,6 +946,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        notificationTarget.value = readNotificationTarget(intent)
         // Subscribe every installation to public program/game update pushes.
         FirebaseMessaging.getInstance().subscribeToTopic("texno_updates")
         if (Build.VERSION.SDK_INT >= 33 &&
@@ -956,7 +960,25 @@ class MainActivity : ComponentActivity() {
             @Suppress("DEPRECATION")
             registerReceiver(updateReceiver, filter)
         }
-        setContent { TexnoTelekomApp(onInstallUpdate = { url -> installUpdate(url) }) }
+        setContent {
+            TexnoTelekomApp(
+                onInstallUpdate = { url -> installUpdate(url) },
+                notificationTarget = notificationTarget.value,
+                onNotificationTargetHandled = { notificationTarget.value = null }
+            )
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        notificationTarget.value = readNotificationTarget(intent)
+    }
+
+    private fun readNotificationTarget(intent: Intent?): Pair<String, String>? {
+        val id = intent?.getStringExtra("notification_program_id")?.takeIf { it.isNotBlank() } ?: return null
+        val type = intent.getStringExtra("notification_content_type") ?: "program"
+        return id to type
     }
 
     private fun installUpdate(url: String) {
@@ -1885,7 +1907,11 @@ private fun GroupManagementAdminPanel() {
 }
 
 @Composable
-fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
+fun TexnoTelekomApp(
+    onInstallUpdate: (String) -> Unit = {},
+    notificationTarget: Pair<String, String>? = null,
+    onNotificationTargetHandled: () -> Unit = {}
+) {
     val context = LocalContext.current
     val db = remember { FirebaseFirestore.getInstance() }
     var showGroupChat by remember { mutableStateOf(false) }
@@ -2010,6 +2036,29 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
     }
     var showGames by remember { mutableStateOf(false) }
     var showPrograms by remember { mutableStateOf(false) }
+    var notificationProgramId by remember { mutableStateOf<String?>(null) }
+    val notificationItemBringIntoView = remember { BringIntoViewRequester() }
+    LaunchedEffect(notificationTarget, programs.size, games.size) {
+        val target = notificationTarget ?: return@LaunchedEffect
+        notificationProgramId = target.first
+        if (target.second == "game") {
+            showGames = true
+            showPrograms = false
+            if (games.any { it.id == target.first }) {
+                kotlinx.coroutines.delay(350)
+                notificationItemBringIntoView.bringIntoView()
+                onNotificationTargetHandled()
+            }
+        } else {
+            showPrograms = true
+            showGames = false
+            if (programs.any { it.id == target.first }) {
+                kotlinx.coroutines.delay(350)
+                notificationItemBringIntoView.bringIntoView()
+                onNotificationTargetHandled()
+            }
+        }
+    }
     BackHandler(enabled = showPhoneInfo || showPrograms || showGames || showFeedback) {
         when {
             showFeedback -> showFeedback = false
@@ -2476,7 +2525,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                    else db.collection("programs").document(id).set(values, SetOptions.merge())
         task.addOnSuccessListener {
             newProgramNotice = true
-            db.collection("app_notifications").add(hashMapOf("type" to "program", "title" to if (id == null) "Yeni proqram əlavə edildi" else "Proqram yeniləndi", "body" to name.trim() + " — " + version.trim(), "created_at" to FieldValue.serverTimestamp()))
+            db.collection("app_notifications").add(hashMapOf("type" to "program", "title" to if (id == null) "Yeni proqram əlavə edildi" else "Proqram yeniləndi", "body" to name.trim() + " — " + version.trim(), "created_at" to FieldValue.serverTimestamp(), "program_id" to (task.result?.id ?: id ?: ""), "content_type" to "program"))
             message = if (id == null) "Proqram əlavə edildi." else "Proqram yeniləndi."
             clearForm(); busy = false
         }.addOnFailureListener {
@@ -2495,7 +2544,7 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
             val task = if (id == null) db.collection("programs").add(values) else db.collection("programs").document(id).set(values, SetOptions.merge())
             task.addOnSuccessListener {
                 newProgramNotice = true
-                db.collection("app_notifications").add(hashMapOf("type" to "game", "title" to if (id == null) "Yeni oyun əlavə edildi" else "Oyun yeniləndi", "body" to gameName.trim() + " — " + gameVersion.trim(), "created_at" to FieldValue.serverTimestamp()))
+                db.collection("app_notifications").add(hashMapOf("type" to "game", "title" to if (id == null) "Yeni oyun əlavə edildi" else "Oyun yeniləndi", "body" to gameName.trim() + " — " + gameVersion.trim(), "created_at" to FieldValue.serverTimestamp(), "program_id" to (task.result?.id ?: id ?: ""), "content_type" to "game"))
                 message = if (id == null) "Oyun əlavə edildi." else "Oyun yeniləndi."
                 clearGameForm(); busy = false
             }.addOnFailureListener { error = "Oyun yadda saxlanmadı: ${it.localizedMessage}"; busy = false }
@@ -3480,7 +3529,9 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                 Card(
                     colors = CardDefaults.cardColors(containerColor = if (isGoldBankCard) Color(0xFFC58B22) else Color(0xFF202020)),
                     shape = RoundedCornerShape(30.dp),
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 7.dp)
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 7.dp).then(
+                        if (p.id == notificationProgramId) Modifier.bringIntoViewRequester(notificationItemBringIntoView).border(3.dp, Color(0xFFFFD54F), RoundedCornerShape(30.dp)) else Modifier
+                    )
                 ) {
                     Column(
                         Modifier.fillMaxWidth()
@@ -3606,7 +3657,9 @@ fun TexnoTelekomApp(onInstallUpdate: (String) -> Unit = {}) {
                 Spacer(Modifier.height(10.dp))
                 if (games.isEmpty()) Text("Hələ oyun əlavə edilməyib.", color = Color.LightGray)
                 games.filter { it.isActive || loggedIn }.forEach { g ->
-                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF202020)), modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
+                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF202020)), modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp).then(
+                        if (g.id == notificationProgramId) Modifier.bringIntoViewRequester(notificationItemBringIntoView).border(3.dp, Color(0xFFFFD54F), RoundedCornerShape(12.dp)) else Modifier
+                    )) {
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 if (g.iconUrl.isNotBlank()) ProgramIcon(g.iconUrl, g.name, 64)
