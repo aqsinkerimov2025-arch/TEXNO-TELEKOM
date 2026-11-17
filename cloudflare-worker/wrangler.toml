@@ -1,4 +1,4 @@
-name = "texno-telekom-push"
+name = "texno-telekom-push-v2"
 main = "worker.js"
 compatibility_date = "2026-11-17"
 
