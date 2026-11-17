@@ -33,8 +33,8 @@ class TexnoFirebaseMessagingService : FirebaseMessagingService() {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
             if (programId.isNotBlank()) {
                 putExtra("notification_program_id", programId)
-                putExtra("notification_content_type", contentType)
             }
+            putExtra("notification_content_type", contentType)
             putExtra("open_admin_feedback", false)
         }
         val requestCode = if (programId.isNotBlank()) programId.hashCode() else System.currentTimeMillis().toInt()
