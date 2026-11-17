@@ -63,6 +63,27 @@ function fromValue(value) {
   return "";
 }
 
+async function verifyFirebaseIdToken(idToken) {
+  const parts = idToken.split(".");
+  if (parts.length !== 3) throw new Error("Invalid Firebase ID token");
+  const header = JSON.parse(atob(parts[0].replace(/-/g, "+").replace(/_/g, "/")));
+  const claims = JSON.parse(atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")));
+  if (!header.kid || claims.aud !== PROJECT_ID || claims.iss !== "https://securetoken.google.com/" + PROJECT_ID ||
+      !claims.sub || claims.sub.length > 128 || claims.exp <= Math.floor(Date.now() / 1000)) {
+    throw new Error("Invalid Firebase ID token claims");
+  }
+  const jwksResponse = await fetch("https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com");
+  if (!jwksResponse.ok) throw new Error("Could not load Firebase signing keys");
+  const jwks = await jwksResponse.json();
+  const jwk = jwks.keys.find(key => key.kid === header.kid);
+  if (!jwk) throw new Error("Unknown Firebase signing key");
+  const key = await crypto.subtle.importKey("jwk", jwk, { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, false, ["verify"]);
+  const signature = Uint8Array.from(atob(parts[2].replace(/-/g, "+").replace(/_/g, "/")), c => c.charCodeAt(0));
+  const valid = await crypto.subtle.verify("RSASSA-PKCS1-v1_5", key, signature, new TextEncoder().encode(parts[0] + "." + parts[1]));
+  if (!valid) throw new Error("Invalid Firebase ID token signature");
+  return claims;
+}
+
 async function runPush(env) {
   if (!env.FIREBASE_SERVICE_ACCOUNT) throw new Error("Missing FIREBASE_SERVICE_ACCOUNT secret");
   const serviceAccount = JSON.parse(env.FIREBASE_SERVICE_ACCOUNT);
@@ -142,11 +163,10 @@ export default {
       return new Response("TEXNO-TELEKOM push worker is running.", { headers: { "content-type": "text/plain; charset=utf-8" } });
     }
     if (request.method !== "POST") return new Response("Method not allowed", { status: 405 });
-    const supplied = request.headers.get("authorization") || "";
-    if (!env.PUSH_WEBHOOK_SECRET || supplied !== "Bearer " + env.PUSH_WEBHOOK_SECRET) {
-      return new Response("Unauthorized", { status: 401 });
-    }
     try {
+      const payload = await request.json();
+      if (typeof payload.idToken !== "string") return new Response("Unauthorized", { status: 401 });
+      await verifyFirebaseIdToken(payload.idToken);
       const result = await runPush(env);
       return Response.json({ ok: true, ...result });
     } catch (error) {
