@@ -137,8 +137,21 @@ async function runPush(env) {
 }
 
 export default {
-  async fetch() {
-    return new Response("TEXNO-TELEKOM push worker is running.", { headers: { "content-type": "text/plain; charset=utf-8" } });
+  async fetch(request, env, ctx) {
+    if (request.method === "GET") {
+      return new Response("TEXNO-TELEKOM push worker is running.", { headers: { "content-type": "text/plain; charset=utf-8" } });
+    }
+    if (request.method !== "POST") return new Response("Method not allowed", { status: 405 });
+    const supplied = request.headers.get("authorization") || "";
+    if (!env.PUSH_WEBHOOK_SECRET || supplied !== "Bearer " + env.PUSH_WEBHOOK_SECRET) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+    try {
+      const result = await runPush(env);
+      return Response.json({ ok: true, ...result });
+    } catch (error) {
+      return Response.json({ ok: false, error: String(error) }, { status: 500 });
+    }
   },
   async scheduled(_event, env, ctx) {
     ctx.waitUntil(runPush(env));
