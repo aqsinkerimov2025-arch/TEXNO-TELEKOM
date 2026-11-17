@@ -1097,6 +1097,39 @@ private fun GroupChatScreen(backgroundColor: Color, onClose: () -> Unit) {
         }
     }
     var showManagementPanel by remember { mutableStateOf(false) }
+    var showBubbleStylePanel by remember { mutableStateOf(false) }
+    var bubbleStyle by remember { mutableStateOf("default") }
+    val bubbleStyleOptions = listOf(
+        "default" to "Varsayılan",
+        "whee" to "Whee eskiz",
+        "balloon" to "Baloncuk stili",
+        "glam" to "Glam diva",
+        "croc" to "Sakit timsah",
+        "olivia" to "Olivia Rodrigo",
+        "duck" to "Qurbağa ördək",
+        "cat" to "KasıI kedi",
+        "capybara" to "Kapibara",
+        "frog" to "Qurbağa",
+        "pets" to "Kedi köpək"
+    )
+    LaunchedEffect(Unit) {
+        db.collection("group_settings").document("bubble_style")
+            .addSnapshotListener { doc, error ->
+                if (error == null && doc != null && doc.exists()) {
+                    bubbleStyle = doc.getString("style") ?: "default"
+                }
+            }
+    }
+    fun saveBubbleStyle(style: String) {
+        if (!isOwner) return
+        db.collection("group_settings").document("bubble_style")
+            .set(mapOf("style" to style, "updated_at" to FieldValue.serverTimestamp()))
+            .addOnSuccessListener {
+                bubbleStyle = style
+                status = "Söhbət baloncuğu dəyişdirildi."
+            }
+            .addOnFailureListener { status = "Baloncuk stili yadda saxlanmadı: ${it.localizedMessage}" }
+    }
     var groupSubtitle by remember { mutableStateOf("Ümumi söhbət") }
     var groupSubtitleDraft by remember { mutableStateOf("") }
     var editingGroupSubtitle by remember { mutableStateOf(false) }
@@ -1499,6 +1532,10 @@ private fun GroupChatScreen(backgroundColor: Color, onClose: () -> Unit) {
             Spacer(Modifier.width(12.dp))
             Text("🟢 Onlayn: ${groupMembers.count { it.third }}", color = Color(0xFF72D99A), fontSize = 11.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.weight(1f))
+            if (isOwner) {
+                Text("💬 BALONCUQ", color = Color(0xFFFFD36A), fontSize = 10.sp, fontWeight = FontWeight.Bold,
+                    modifier = Modifier.clickable { showBubbleStylePanel = true }.padding(start = 8.dp))
+            }
             Text("SİYAHI", color = Color(0xFFFFD36A), fontSize = 10.sp, fontWeight = FontWeight.Bold)
         }
         Row(
@@ -1534,6 +1571,51 @@ private fun GroupChatScreen(backgroundColor: Color, onClose: () -> Unit) {
                     }
                 },
                 confirmButton = { TextButton(onClick = { showMembersDialog = false }) { Text("BAĞLA") } }
+            )
+        }
+        if (showBubbleStylePanel && isOwner) {
+            AlertDialog(
+                onDismissRequest = { showBubbleStylePanel = false },
+                title = { Text("SÖHBƏT BALONCUĞU STİLİ") },
+                text = {
+                    Column(
+                        Modifier.heightIn(max = 480.dp).verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text("Seçdiyin görünüş bütün istifadəçilərin söhbətində tətbiq olunacaq.", color = Color.Gray, fontSize = 12.sp)
+                        bubbleStyleOptions.forEach { (key, label) ->
+                            val selected = bubbleStyle == key
+                            val previewColor = when (key) {
+                                "whee" -> Color(0xFFD8F8FF)
+                                "balloon" -> Color(0xFF8DE2EF)
+                                "glam" -> Color(0xFFFFE5EE)
+                                "croc" -> Color(0xFF6479D7)
+                                "olivia" -> Color(0xFFF1B6CB)
+                                "duck" -> Color(0xFFF3E77B)
+                                "cat" -> Color(0xFFF4F4F4)
+                                "capybara" -> Color(0xFFD9AD75)
+                                "frog" -> Color(0xFF159B65)
+                                "pets" -> Color(0xFFFFE7BD)
+                                else -> Color.White
+                            }
+                            Row(
+                                Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp))
+                                    .background(if (selected) Color(0xFF333333) else Color(0xFF202020))
+                                    .clickable { saveBubbleStyle(key); showBubbleStylePanel = false }
+                                    .padding(10.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(Modifier.weight(1f)) {
+                                    Text("Aa  Söhbət nümunəsi", color = if (key == "croc" || key == "frog") Color.White else Color(0xFF222222),
+                                        modifier = Modifier.background(previewColor, RoundedCornerShape(if (key == "balloon") 28.dp else 12.dp)).padding(horizontal = 14.dp, vertical = 9.dp))
+                                }
+                                Text(label, color = Color.White, fontSize = 13.sp, modifier = Modifier.padding(start = 8.dp))
+                                if (selected) Text(" ✓", color = Color(0xFFFFD36A), fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
+                },
+                confirmButton = { TextButton(onClick = { showBubbleStylePanel = false }) { Text("BAĞLA") } }
             )
         }
         if (showGroupRules) {
@@ -1599,25 +1681,48 @@ private fun GroupChatScreen(backgroundColor: Color, onClose: () -> Unit) {
                 items(messages.asReversed(), key = { it.id }) { item ->
                     val adminMessage = item.uid == ADMIN_UID
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = if (adminMessage) Arrangement.Start else Arrangement.End) {
+                        val bubbleColor = when (bubbleStyle) {
+                            "whee" -> Color(0xFFD8F8FF)
+                            "balloon" -> Color(0xFF8DE2EF)
+                            "glam" -> Color(0xFFFFE5EE)
+                            "croc" -> Color(0xFF6479D7)
+                            "olivia" -> Color(0xFFF1B6CB)
+                            "duck" -> Color(0xFFF3E77B)
+                            "cat" -> Color(0xFFF4F4F4)
+                            "capybara" -> Color(0xFFD9AD75)
+                            "frog" -> Color(0xFF159B65)
+                            "pets" -> Color(0xFFFFE7BD)
+                            else -> Color.White
+                        }
+                        val bubbleTextColor = if (bubbleStyle == "croc" || bubbleStyle == "frog") Color.White else Color(0xFF171717)
+                        val bubbleShape = RoundedCornerShape(when (bubbleStyle) {
+                            "balloon" -> 30.dp
+                            "whee" -> 18.dp
+                            "glam" -> 8.dp
+                            "croc" -> 18.dp
+                            "capybara" -> 32.dp
+                            "frog" -> 14.dp
+                            else -> 24.dp
+                        })
                         Card(
-                            colors = CardDefaults.cardColors(containerColor = Color.White),
-                            shape = RoundedCornerShape(24.dp),
+                            colors = CardDefaults.cardColors(containerColor = bubbleColor),
+                            shape = bubbleShape,
                             modifier = Modifier.fillMaxWidth(0.88f)
-                                .border(3.dp, Color(0xFF35140F), RoundedCornerShape(24.dp))
+                                .then(if (bubbleStyle == "whee" || bubbleStyle == "glam") Modifier.border(2.dp, Color(0xFF58C7D8), bubbleShape) else Modifier)
                                 .clickable { reply = item }
                         ) {
                             Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                                Text(item.nickname, color = Color(0xFF6B3A20), fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                                if (item.replyToNickname.isNotBlank()) Text("↪ ${item.replyToNickname}: ${item.replyToText}", color = Color(0xFF666666), fontSize = 12.sp)
-                                if (item.text.isNotBlank()) Text(item.text, color = Color(0xFF171717), fontSize = 17.sp, lineHeight = 24.sp)
+                                Text(item.nickname, color = bubbleTextColor.copy(alpha = 0.78f), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                if (item.replyToNickname.isNotBlank()) Text("↪ ${item.replyToNickname}: ${item.replyToText}", color = bubbleTextColor.copy(alpha = 0.75f), fontSize = 12.sp)
+                                if (item.text.isNotBlank()) Text(item.text, color = bubbleTextColor, fontSize = 17.sp, lineHeight = 24.sp)
                                 if (item.imageUrl.isNotBlank()) AsyncImage(model = item.imageUrl, contentDescription = "Qrup şəkli", modifier = Modifier.fillMaxWidth().heightIn(max = 240.dp), contentScale = ContentScale.Fit)
                                 if (item.videoUrl.isNotBlank()) GroupVideoPlayer(item.videoUrl)
                                 if (item.audioUrl.isNotBlank()) GroupVoiceMessagePlayer(item.audioUrl, item.createdAt)
-                                Text("Cavab vermək üçün toxun", color = Color(0xFF777777), fontSize = 10.sp)
+                                Text("Cavab vermək üçün toxun", color = bubbleTextColor.copy(alpha = 0.65f), fontSize = 10.sp)
                                 if (item.createdAt > 0L) {
                                     Text(
                                         java.text.SimpleDateFormat("dd.MM.yyyy HH:mm", java.util.Locale.getDefault()).format(java.util.Date(item.createdAt)),
-                                        color = Color(0xFF555555),
+                                        color = bubbleTextColor.copy(alpha = 0.65f),
                                         fontSize = 11.sp,
                                         modifier = Modifier.align(Alignment.End)
                                     )
