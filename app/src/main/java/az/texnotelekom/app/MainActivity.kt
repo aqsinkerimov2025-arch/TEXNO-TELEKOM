@@ -1749,24 +1749,6 @@ private fun GroupManagementAdminPanel() {
             .set(mapOf("style" to style, "updated_at" to FieldValue.serverTimestamp()))
             .addOnSuccessListener { bubbleStyle = style }
     }
-    var bubbleStyle by remember { mutableStateOf("default") }
-    val bubbleStyleOptions = listOf(
-        "default" to "Varsayılan", "whee" to "Whee eskiz", "balloon" to "Baloncuk stili",
-        "glam" to "Glam diva", "croc" to "Sakit timsah", "olivia" to "Olivia Rodrigo",
-        "duck" to "Qurbağa ördək", "cat" to "KasıI kedi", "capybara" to "Kapibara",
-        "frog" to "Qurbağa", "pets" to "Kedi köpək"
-    )
-    LaunchedEffect(Unit) {
-        db.collection("group_settings").document("bubble_style").get()
-            .addOnSuccessListener { bubbleStyle = it.getString("style") ?: "default" }
-    }
-    fun saveBubbleStyle(style: String) {
-        if (uid != ADMIN_UID) return
-        db.collection("group_settings").document("bubble_style")
-            .set(mapOf("style" to style, "updated_at" to FieldValue.serverTimestamp()))
-            .addOnSuccessListener { bubbleStyle = style }
-            .addOnFailureListener { status = "Baloncuk stili yadda saxlanmadı: ${it.localizedMessage}" }
-    }
     var subtitle by remember { mutableStateOf("Ümumi söhbət") }
     var subtitleDraft by remember { mutableStateOf("") }
     var editingSubtitle by remember { mutableStateOf(false) }
