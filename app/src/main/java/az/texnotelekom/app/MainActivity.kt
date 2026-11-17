@@ -118,6 +118,30 @@ import com.google.firebase.messaging.FirebaseMessaging
 private val bg = Color(0xFF000000)
 private val panel = Color(0xFF181818)
 private val accent = Color(0xFFFFFFFF)
+private const val INSTANT_PUSH_WORKER_URL = "https://texno-telekom-push-v2.aqsin-kerimov-2025.workers.dev"
+
+private fun triggerInstantPush() {
+    val user = FirebaseAuth.getInstance().currentUser ?: return
+    user.getIdToken(false).addOnSuccessListener { tokenResult ->
+        val idToken = tokenResult.token ?: return@addOnSuccessListener
+        Thread {
+            try {
+                val connection = (URL(INSTANT_PUSH_WORKER_URL).openConnection() as HttpURLConnection).apply {
+                    requestMethod = "POST"
+                    connectTimeout = 10000
+                    readTimeout = 20000
+                    doOutput = true
+                    setRequestProperty("Content-Type", "application/json")
+                }
+                val body = JSONObject().put("idToken", idToken).toString()
+                connection.outputStream.use { it.write(body.toByteArray(Charsets.UTF_8)) }
+                connection.inputStream.close()
+                connection.disconnect()
+            } catch (_: Exception) { }
+        }.start()
+    }
+}
+
 private const val ADMIN_EMAIL = "aqsin.kerimov.2025@gmail.com"
 private const val CLOUDINARY_CLOUD = "at4nuvsd"
 private const val CLOUDINARY_PRESET = "texno_telekom_upload"
@@ -2526,7 +2550,7 @@ fun TexnoTelekomApp(
         val programDocument = if (id == null) db.collection("programs").document() else db.collection("programs").document(id)
         programDocument.set(values, SetOptions.merge()).addOnSuccessListener {
             newProgramNotice = true
-            db.collection("app_notifications").add(hashMapOf("type" to "program", "title" to if (id == null) "Yeni proqram əlavə edildi" else "Proqram yeniləndi", "body" to name.trim() + " — " + version.trim(), "created_at" to FieldValue.serverTimestamp(), "program_id" to programDocument.id, "content_type" to "program"))
+            db.collection("app_notifications").add(hashMapOf("type" to "program", "title" to if (id == null) "Yeni proqram əlavə edildi" else "Proqram yeniləndi", "body" to name.trim() + " — " + version.trim(), "created_at" to FieldValue.serverTimestamp(), "program_id" to programDocument.id, "content_type" to "program")).addOnSuccessListener { triggerInstantPush() }
             message = if (id == null) "Proqram əlavə edildi." else "Proqram yeniləndi."
             clearForm(); busy = false
         }.addOnFailureListener {
@@ -2545,7 +2569,7 @@ fun TexnoTelekomApp(
             val gameDocument = if (id == null) db.collection("programs").document() else db.collection("programs").document(id)
             gameDocument.set(values, SetOptions.merge()).addOnSuccessListener {
                 newProgramNotice = true
-                db.collection("app_notifications").add(hashMapOf("type" to "game", "title" to if (id == null) "Yeni oyun əlavə edildi" else "Oyun yeniləndi", "body" to gameName.trim() + " — " + gameVersion.trim(), "created_at" to FieldValue.serverTimestamp(), "program_id" to gameDocument.id, "content_type" to "game"))
+                db.collection("app_notifications").add(hashMapOf("type" to "game", "title" to if (id == null) "Yeni oyun əlavə edildi" else "Oyun yeniləndi", "body" to gameName.trim() + " — " + gameVersion.trim(), "created_at" to FieldValue.serverTimestamp(), "program_id" to gameDocument.id, "content_type" to "game")).addOnSuccessListener { triggerInstantPush() }
                 message = if (id == null) "Oyun əlavə edildi." else "Oyun yeniləndi."
                 clearGameForm(); busy = false
             }.addOnFailureListener { error = "Oyun yadda saxlanmadı: ${it.localizedMessage}"; busy = false }
