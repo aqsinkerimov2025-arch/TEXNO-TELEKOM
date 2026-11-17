@@ -1816,52 +1816,37 @@ private fun GroupManagementAdminPanel() {
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text("QRUP RƏHBƏRLİYİ", color = Color(0xFFFFD36A), fontWeight = FontWeight.Black, fontSize = 18.sp)
         if (isOwner) {
-            Text("SÖHBƏT BALONCUĞU", color = Color(0xFFFFD36A), fontWeight = FontWeight.Bold)
-            Text("Seçilən görünüş bütün istifadəçilərin söhbətində tətbiq olunacaq.", color = Color.LightGray, fontSize = 12.sp)
+            Text("PREMIUM SÖHBƏT BALONLARI", color = Color(0xFFFFD36A), fontWeight = FontWeight.Bold)
+            Text("Köhnə dizaynlar əvəzlənib. Seçilən premium görünüş bütün istifadəçilərə tətbiq olunacaq.", color = Color.LightGray, fontSize = 12.sp)
             bubbleStyleOptions.forEach { (key, label) ->
                 val preview = when (key) {
-                    "whee" -> Color(0xFFD8F8FF); "balloon" -> Color(0xFF8DE2EF); "glam" -> Color(0xFFFFE5EE)
-                    "croc" -> Color(0xFF6479D7); "olivia" -> Color(0xFFF1B6CB); "duck" -> Color(0xFFF3E77B)
-                    "cat" -> Color(0xFFF4F4F4); "capybara" -> Color(0xFFD9AD75); "frog" -> Color(0xFF159B65)
-                    "pets" -> Color(0xFFFFE7BD); else -> Color.White
+                    "gold" -> Color(0xFFD6A437)
+                    "royal" -> Color(0xFF35234F)
+                    "diamond" -> Color(0xFFDDF7FA)
+                    "rose" -> Color(0xFFB94D78)
+                    "emerald" -> Color(0xFF087B61)
+                    "obsidian" -> Color(0xFF24232A)
+                    "sapphire" -> Color(0xFF2856A6)
+                    else -> Color(0xFFF4F0E8)
                 }
-                Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Color(0xFF202020))
+                val foreground = if (key == "diamond" || key == "classic") Color(0xFF202020) else Color.White
+                Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(Color(0xFF202020))
                     .clickable { saveBubbleStyle(key) }.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text("Aa  Söhbət nümunəsi", color = if (key == "croc" || key == "frog") Color.White else Color(0xFF222222),
-                        modifier = Modifier.background(preview, RoundedCornerShape(if (key == "balloon") 28.dp else 12.dp)).padding(horizontal = 12.dp, vertical = 8.dp))
-                    Text(label, color = Color.White, fontSize = 13.sp, modifier = Modifier.weight(1f).padding(start = 10.dp))
-                    if (bubbleStyle == key) Text("✓", color = Color(0xFFFFD36A), fontWeight = FontWeight.Bold)
-                }
-            }
-            HorizontalDivider()
-        }
-        if (isOwner) {
-            Text("SÖHBƏT BALONCUĞU", color = Color(0xFFFFD36A), fontWeight = FontWeight.Bold)
-            Text("Seçilən görünüş bütün istifadəçilərin söhbətində tətbiq olunacaq.", color = Color.LightGray, fontSize = 12.sp)
-            bubbleStyleOptions.forEach { (key, label) ->
-                val previewColor = when (key) {
-                    "whee" -> Color(0xFFD8F8FF)
-                    "balloon" -> Color(0xFF8DE2EF)
-                    "glam" -> Color(0xFFFFE5EE)
-                    "croc" -> Color(0xFF6479D7)
-                    "olivia" -> Color(0xFFF1B6CB)
-                    "duck" -> Color(0xFFF3E77B)
-                    "cat" -> Color(0xFFF4F4F4)
-                    "capybara" -> Color(0xFFD9AD75)
-                    "frog" -> Color(0xFF159B65)
-                    "pets" -> Color(0xFFFFE7BD)
-                    else -> Color.White
-                }
-                Row(
-                    Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
-                        .background(Color(0xFF202020)).clickable { saveBubbleStyle(key) }.padding(10.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Aa  Söhbət nümunəsi",
-                        color = if (key == "croc" || key == "frog") Color.White else Color(0xFF222222),
-                        modifier = Modifier.background(previewColor, RoundedCornerShape(if (key == "balloon") 28.dp else 12.dp))
-                            .padding(horizontal = 12.dp, vertical = 8.dp))
-                    Text(label, color = Color.White, fontSize = 13.sp, modifier = Modifier.weight(1f).padding(start = 10.dp))
+                    Box(Modifier.weight(1f).clip(RoundedCornerShape(14.dp)).background(preview)
+                        .then(if (key == "gold" || key == "royal" || key == "obsidian") Modifier.border(2.dp, Color(0xFFFFD36A), RoundedCornerShape(14.dp)) else Modifier)
+                        .padding(horizontal = 14.dp, vertical = 11.dp)) {
+                        Text(when (key) {
+                            "gold" -> "✦  Aa  PREMIUM GOLD  ✦"
+                            "royal" -> "♛  Aa  ROYAL GOLD"
+                            "diamond" -> "❖  Aa  DIAMOND"
+                            "rose" -> "❀  Aa  ROSE GOLD"
+                            "emerald" -> "✧  Aa  EMERALD"
+                            "obsidian" -> "♜  Aa  OBSIDIAN"
+                            "sapphire" -> "✦  Aa  SAPPHIRE"
+                            else -> "Aa  CLASSIC"
+                        }, color = foreground, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    }
+                    Text(label, color = Color.White, fontSize = 13.sp, modifier = Modifier.padding(start = 10.dp))
                     if (bubbleStyle == key) Text("✓", color = Color(0xFFFFD36A), fontWeight = FontWeight.Bold)
                 }
             }
