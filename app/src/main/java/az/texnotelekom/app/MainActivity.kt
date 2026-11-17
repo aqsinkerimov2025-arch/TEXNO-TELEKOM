@@ -41,6 +41,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -1906,6 +1907,7 @@ private fun GroupManagementAdminPanel() {
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TexnoTelekomApp(
     onInstallUpdate: (String) -> Unit = {},
