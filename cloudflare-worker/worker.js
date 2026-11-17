@@ -114,7 +114,7 @@ async function runPush(env) {
       message: {
         topic: "texno_updates",
         notification: { title, body },
-        data: { type: fromValue(fields.type) || "update" },
+        data: { type: fromValue(fields.type) || "update", content_type: fromValue(fields.content_type) || fromValue(fields.type) || "program", program_id: fromValue(fields.program_id) || "" },
         android: { priority: "HIGH", notification: { channel_id: "texno_updates", sound: "default" } }
       }
     };
