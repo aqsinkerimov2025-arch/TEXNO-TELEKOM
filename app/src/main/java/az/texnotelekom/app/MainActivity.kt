@@ -1001,8 +1001,9 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun readNotificationTarget(intent: Intent?): Pair<String, String>? {
+        val type = intent?.getStringExtra("notification_content_type") ?: intent?.getStringExtra("type") ?: "program"
+        if (type == "phone_info") return "" to type
         val id = intent?.getStringExtra("notification_program_id")?.takeIf { it.isNotBlank() } ?: return null
-        val type = intent.getStringExtra("notification_content_type") ?: "program"
         return id to type
     }
 
@@ -1097,21 +1098,7 @@ private fun GroupChatScreen(backgroundColor: Color, onClose: () -> Unit, onOpenB
         }
     }
     var showManagementPanel by remember { mutableStateOf(false) }
-    var showBubbleStylePanel by remember { mutableStateOf(false) }
     var bubbleStyle by remember { mutableStateOf("default") }
-    val bubbleStyleOptions = listOf(
-        "default" to "Varsayılan",
-        "whee" to "Whee eskiz",
-        "balloon" to "Baloncuk stili",
-        "glam" to "Glam diva",
-        "croc" to "Sakit timsah",
-        "olivia" to "Olivia Rodrigo",
-        "duck" to "Qurbağa ördək",
-        "cat" to "KasıI kedi",
-        "capybara" to "Kapibara",
-        "frog" to "Qurbağa",
-        "pets" to "Kedi köpək"
-    )
     LaunchedEffect(Unit) {
         db.collection("group_settings").document("bubble_style")
             .addSnapshotListener { doc, error ->
@@ -1120,14 +1107,7 @@ private fun GroupChatScreen(backgroundColor: Color, onClose: () -> Unit, onOpenB
                 }
             }
     }
-    fun saveBubbleStyle(style: String) {
-        if (!isOwner) return
-        db.collection("group_settings").document("bubble_style")
-            .set(mapOf("style" to style, "updated_at" to FieldValue.serverTimestamp()))
-            .addOnSuccessListener {
-                bubbleStyle = style
-                status = "Söhbət baloncuğu dəyişdirildi."
-            }
+
             .addOnFailureListener { status = "Baloncuk stili yadda saxlanmadı: ${it.localizedMessage}" }
     }
     var groupSubtitle by remember { mutableStateOf("Ümumi söhbət") }
@@ -1772,6 +1752,24 @@ private fun GroupManagementAdminPanel() {
             .addOnSuccessListener { bubbleStyle = style }
             .addOnFailureListener { status = "Baloncuk stili yadda saxlanmadı: ${it.localizedMessage}" }
     }
+    var bubbleStyle by remember { mutableStateOf("default") }
+    val bubbleStyleOptions = listOf(
+        "default" to "Varsayılan", "whee" to "Whee eskiz", "balloon" to "Baloncuk stili",
+        "glam" to "Glam diva", "croc" to "Sakit timsah", "olivia" to "Olivia Rodrigo",
+        "duck" to "Qurbağa ördək", "cat" to "KasıI kedi", "capybara" to "Kapibara",
+        "frog" to "Qurbağa", "pets" to "Kedi köpək"
+    )
+    LaunchedEffect(Unit) {
+        db.collection("group_settings").document("bubble_style").get()
+            .addOnSuccessListener { bubbleStyle = it.getString("style") ?: "default" }
+    }
+    fun saveBubbleStyle(style: String) {
+        if (uid != ADMIN_UID) return
+        db.collection("group_settings").document("bubble_style")
+            .set(mapOf("style" to style, "updated_at" to FieldValue.serverTimestamp()))
+            .addOnSuccessListener { bubbleStyle = style }
+            .addOnFailureListener { status = "Baloncuk stili yadda saxlanmadı: ${it.localizedMessage}" }
+    }
     var subtitle by remember { mutableStateOf("Ümumi söhbət") }
     var subtitleDraft by remember { mutableStateOf("") }
     var editingSubtitle by remember { mutableStateOf(false) }
@@ -1843,6 +1841,26 @@ private fun GroupManagementAdminPanel() {
     }
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text("QRUP RƏHBƏRLİYİ", color = Color(0xFFFFD36A), fontWeight = FontWeight.Black, fontSize = 18.sp)
+        if (isOwner) {
+            Text("SÖHBƏT BALONCUĞU", color = Color(0xFFFFD36A), fontWeight = FontWeight.Bold)
+            Text("Seçilən görünüş bütün istifadəçilərin söhbətində tətbiq olunacaq.", color = Color.LightGray, fontSize = 12.sp)
+            bubbleStyleOptions.forEach { (key, label) ->
+                val preview = when (key) {
+                    "whee" -> Color(0xFFD8F8FF); "balloon" -> Color(0xFF8DE2EF); "glam" -> Color(0xFFFFE5EE)
+                    "croc" -> Color(0xFF6479D7); "olivia" -> Color(0xFFF1B6CB); "duck" -> Color(0xFFF3E77B)
+                    "cat" -> Color(0xFFF4F4F4); "capybara" -> Color(0xFFD9AD75); "frog" -> Color(0xFF159B65)
+                    "pets" -> Color(0xFFFFE7BD); else -> Color.White
+                }
+                Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Color(0xFF202020))
+                    .clickable { saveBubbleStyle(key) }.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text("Aa  Söhbət nümunəsi", color = if (key == "croc" || key == "frog") Color.White else Color(0xFF222222),
+                        modifier = Modifier.background(preview, RoundedCornerShape(if (key == "balloon") 28.dp else 12.dp)).padding(horizontal = 12.dp, vertical = 8.dp))
+                    Text(label, color = Color.White, fontSize = 13.sp, modifier = Modifier.weight(1f).padding(start = 10.dp))
+                    if (bubbleStyle == key) Text("✓", color = Color(0xFFFFD36A), fontWeight = FontWeight.Bold)
+                }
+            }
+            HorizontalDivider()
+        }
         if (isOwner) {
             Text("SÖHBƏT BALONCUĞU", color = Color(0xFFFFD36A), fontWeight = FontWeight.Bold)
             Text("Seçilən görünüş bütün istifadəçilərin söhbətində tətbiq olunacaq.", color = Color.LightGray, fontSize = 12.sp)
@@ -2303,6 +2321,14 @@ fun TexnoTelekomApp(
     val games = remember { mutableStateListOf<AppItem>() }
     LaunchedEffect(notificationTarget, programs.size, games.size) {
         val target = notificationTarget ?: return@LaunchedEffect
+        if (target.second == "phone_info") {
+            showPhoneInfo = true
+            showPrograms = false
+            showGames = false
+            notificationProgramId = null
+            onNotificationTargetHandled()
+            return@LaunchedEffect
+        }
         notificationProgramId = target.first
         if (target.second == "game") {
             showGames = true
