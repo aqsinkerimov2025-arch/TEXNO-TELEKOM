@@ -1611,33 +1611,28 @@ private fun GroupChatScreen(backgroundColor: Color, onClose: () -> Unit, onOpenB
                     val adminMessage = item.uid == ADMIN_UID
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = if (adminMessage) Arrangement.Start else Arrangement.End) {
                         val bubbleColor = when (bubbleStyle) {
-                            "whee" -> Color(0xFFD8F8FF)
-                            "balloon" -> Color(0xFF8DE2EF)
-                            "glam" -> Color(0xFFFFE5EE)
-                            "croc" -> Color(0xFF6479D7)
-                            "olivia" -> Color(0xFFF1B6CB)
-                            "duck" -> Color(0xFFF3E77B)
-                            "cat" -> Color(0xFFF4F4F4)
-                            "capybara" -> Color(0xFFD9AD75)
-                            "frog" -> Color(0xFF159B65)
-                            "pets" -> Color(0xFFFFE7BD)
-                            else -> Color.White
+                            "gold" -> Color(0xFFD6A437)
+                            "royal" -> Color(0xFF35234F)
+                            "diamond" -> Color(0xFFDDF7FA)
+                            "rose" -> Color(0xFFB94D78)
+                            "emerald" -> Color(0xFF087B61)
+                            "obsidian" -> Color(0xFF24232A)
+                            "sapphire" -> Color(0xFF2856A6)
+                            else -> Color(0xFFF4F0E8)
                         }
-                        val bubbleTextColor = if (bubbleStyle == "croc" || bubbleStyle == "frog") Color.White else Color(0xFF171717)
+                        val bubbleTextColor = if (bubbleStyle == "diamond" || bubbleStyle == "classic") Color(0xFF171717) else Color.White
                         val bubbleShape = RoundedCornerShape(when (bubbleStyle) {
-                            "balloon" -> 30.dp
-                            "whee" -> 18.dp
-                            "glam" -> 8.dp
-                            "croc" -> 18.dp
-                            "capybara" -> 32.dp
-                            "frog" -> 14.dp
+                            "gold", "royal", "obsidian" -> 22.dp
+                            "diamond" -> 28.dp
+                            "rose" -> 26.dp
+                            "emerald" -> 18.dp
                             else -> 24.dp
                         })
                         Card(
                             colors = CardDefaults.cardColors(containerColor = bubbleColor),
                             shape = bubbleShape,
                             modifier = Modifier.fillMaxWidth(0.88f)
-                                .then(if (bubbleStyle == "whee" || bubbleStyle == "glam") Modifier.border(2.dp, Color(0xFF58C7D8), bubbleShape) else Modifier)
+                                .then(if (bubbleStyle == "gold" || bubbleStyle == "royal" || bubbleStyle == "obsidian") Modifier.border(2.dp, Color(0xFFFFD36A), bubbleShape) else Modifier)
                                 .clickable { reply = item }
                         ) {
                             Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
@@ -1730,10 +1725,14 @@ private fun GroupManagementAdminPanel() {
     val uid = auth.currentUser?.uid.orEmpty()
     var bubbleStyle by remember { mutableStateOf("default") }
     val bubbleStyleOptions = listOf(
-        "default" to "Varsayılan", "whee" to "Whee eskiz", "balloon" to "Baloncuk stili",
-        "glam" to "Glam diva", "croc" to "Sakit timsah", "olivia" to "Olivia Rodrigo",
-        "duck" to "Qurbağa ördək", "cat" to "KasıI kedi", "capybara" to "Kapibara",
-        "frog" to "Qurbağa", "pets" to "Kedi köpək"
+        "gold" to "Qızıl Premium",
+        "royal" to "Royal Gold",
+        "diamond" to "Diamond",
+        "rose" to "Rose Gold",
+        "emerald" to "Emerald",
+        "obsidian" to "Obsidian Premium",
+        "sapphire" to "Sapphire",
+        "classic" to "Klassik"
     )
     LaunchedEffect(Unit) {
         db.collection("group_settings").document("bubble_style").get()
