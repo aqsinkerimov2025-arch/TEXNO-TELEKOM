@@ -2516,7 +2516,9 @@ fun TexnoTelekomApp(
                 phoneInfoStickerMimePending = ""
                 phoneInfoBusy = false
                 newPhoneInfoNotice = true
-                db.collection("app_notifications").add(hashMapOf("type" to "phone_info", "title" to "Yeni TEXNO-MƏLUMAT paylaşımı", "body" to "Yeni məlumat paylaşıldı. Tətbiqə daxil olub baxın.", "created_at" to FieldValue.serverTimestamp()))
+                db.collection("app_notifications")
+                    .add(hashMapOf("type" to "phone_info", "title" to "Yeni TEXNO-MƏLUMAT paylaşımı", "body" to "Yeni məlumat paylaşıldı. Tətbiqə daxil olub baxın.", "created_at" to FieldValue.serverTimestamp()))
+                    .addOnSuccessListener { triggerInstantPush() }
                 message = "TEXNO-MƏLUMAT bölməsində paylaşıldı."
             }
             .addOnFailureListener {
