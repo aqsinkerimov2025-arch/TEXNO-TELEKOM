@@ -2038,27 +2038,6 @@ fun TexnoTelekomApp(
     var showPrograms by remember { mutableStateOf(false) }
     var notificationProgramId by remember { mutableStateOf<String?>(null) }
     val notificationItemBringIntoView = remember { BringIntoViewRequester() }
-    LaunchedEffect(notificationTarget, programs.size, games.size) {
-        val target = notificationTarget ?: return@LaunchedEffect
-        notificationProgramId = target.first
-        if (target.second == "game") {
-            showGames = true
-            showPrograms = false
-            if (games.any { it.id == target.first }) {
-                kotlinx.coroutines.delay(350)
-                notificationItemBringIntoView.bringIntoView()
-                onNotificationTargetHandled()
-            }
-        } else {
-            showPrograms = true
-            showGames = false
-            if (programs.any { it.id == target.first }) {
-                kotlinx.coroutines.delay(350)
-                notificationItemBringIntoView.bringIntoView()
-                onNotificationTargetHandled()
-            }
-        }
-    }
     BackHandler(enabled = showPhoneInfo || showPrograms || showGames || showFeedback) {
         when {
             showFeedback -> showFeedback = false
@@ -2186,6 +2165,27 @@ fun TexnoTelekomApp(
     var homeSignature by remember { mutableStateOf("MR_R3HB3R") }
     val programs = remember { mutableStateListOf<AppItem>() }
     val games = remember { mutableStateListOf<AppItem>() }
+    LaunchedEffect(notificationTarget, programs.size, games.size) {
+        val target = notificationTarget ?: return@LaunchedEffect
+        notificationProgramId = target.first
+        if (target.second == "game") {
+            showGames = true
+            showPrograms = false
+            if (games.any { it.id == target.first }) {
+                kotlinx.coroutines.delay(350)
+                notificationItemBringIntoView.bringIntoView()
+                onNotificationTargetHandled()
+            }
+        } else {
+            showPrograms = true
+            showGames = false
+            if (programs.any { it.id == target.first }) {
+                kotlinx.coroutines.delay(350)
+                notificationItemBringIntoView.bringIntoView()
+                onNotificationTargetHandled()
+            }
+        }
+    }
     var showGameForm by remember { mutableStateOf(false) }
     var gameName by remember { mutableStateOf("") }
     var gameVersion by remember { mutableStateOf("") }
