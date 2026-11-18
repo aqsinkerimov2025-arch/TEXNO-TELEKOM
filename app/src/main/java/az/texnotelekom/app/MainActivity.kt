@@ -3741,44 +3741,69 @@ fun TexnoTelekomApp(
                     modifier = Modifier
                         .fillMaxWidth()
                         .border(1.dp, Color(0xFFC99A3A), RoundedCornerShape(24.dp))
-                        .clickable { showAbout = !showAbout }
+                        .clickable { showAbout = true }
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(18.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("ⓘ", color = Color(0xFFFFD978), fontSize = 29.sp, fontWeight = FontWeight.Black)
+                        Column(Modifier.weight(1f).padding(start = 12.dp)) {
+                            Text("HAQQINDA", color = Color(0xFFFFD978), fontSize = 18.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
+                            Text("TEXNO TELEKOM platforması haqqında", color = Color(0xFFCBC3B4), fontSize = 12.sp)
+                        }
+                        Text("➜", color = Color(0xFFFFD978), fontSize = 25.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+
+            if (showAbout) {
+                Dialog(
+                    onDismissRequest = { showAbout = false },
+                    properties = DialogProperties(usePlatformDefaultWidth = false)
                 ) {
                     Column(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .background(Brush.linearGradient(listOf(Color(0xFF242019), Color(0xFF171717), Color(0xFF282015))))
-                            .padding(18.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                            .fillMaxSize()
+                            .background(Brush.linearGradient(listOf(Color(0xFF100F0D), Color(0xFF1B1710), Color(0xFF080808))))
+                            .verticalScroll(rememberScrollState())
+                            .padding(horizontal = 22.dp, vertical = 18.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(Modifier.weight(1f)) {
+                                Text("TEXNO TELEKOM", color = Color(0xFFFFD978), fontSize = 13.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
+                                Text("HAQQINDA", color = Color.White, fontSize = 25.sp, fontWeight = FontWeight.Black)
+                            }
                             Box(
-                                modifier = Modifier.size(46.dp).background(Color(0xFF3B2B12), RoundedCornerShape(14.dp)),
+                                modifier = Modifier
+                                    .size(46.dp)
+                                    .border(1.dp, Color(0xFFFFD978), CircleShape)
+                                    .clickable { showAbout = false },
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text("ⓘ", color = Color(0xFFFFD978), fontSize = 29.sp, fontWeight = FontWeight.Black)
+                                Text("×", color = Color(0xFFFFD978), fontSize = 32.sp, fontWeight = FontWeight.Light)
                             }
-                            Column(Modifier.weight(1f).padding(start = 12.dp)) {
-                                Text("HAQQINDA", color = Color(0xFFFFD978), fontSize = 18.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
-                                Text(if (showAbout) "Məlumatı bağlamaq üçün toxunun" else "TEXNO TELEKOM platforması haqqında", color = Color(0xFFCBC3B4), fontSize = 12.sp)
-                            }
-                            Text(if (showAbout) "⌃" else "➜", color = Color(0xFFFFD978), fontSize = 25.sp, fontWeight = FontWeight.Bold)
                         }
-                        if (showAbout) {
-                            HorizontalDivider(color = Color(0xFF725522))
-                            Text("TEXNO TELEKOM texnologiya və rəqəmsal məzmun platformasıdır.", color = Color.White, fontSize = 14.sp, lineHeight = 21.sp)
-                            Text("Platformamızda istifadəçilər müxtəlif proqramlar, Android tətbiqləri, oyunlar və texnologiya xəbərləri ilə tanış ola bilərlər.", color = Color(0xFFE0E0E0), fontSize = 13.sp, lineHeight = 20.sp)
-                            Text("ƏSAS İMKANLARIMIZ", color = Color(0xFFFFD978), fontSize = 14.sp, fontWeight = FontWeight.Black, letterSpacing = 0.5.sp)
-                            Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                                listOf("✓  Proqramların paylaşılması", "✓  Android oyunları", "✓  TEXNO-MƏLUMAT bölməsi", "✓  Yeni yeniliklər və paylaşımlar", "✓  İstifadəçilərlə əlaqə").forEach { item ->
-                                    Text(item, color = Color(0xFFE8E1D4), fontSize = 13.sp, lineHeight = 19.sp)
-                                }
+                        HorizontalDivider(color = Color(0xFF725522))
+                        Text("TEXNO TELEKOM texnologiya və rəqəmsal məzmun platformasıdır.", color = Color.White, fontSize = 17.sp, lineHeight = 26.sp)
+                        Text("Platformamızda istifadəçilər müxtəlif proqramlar, Android tətbiqləri, oyunlar və texnologiya xəbərləri ilə tanış ola bilərlər.", color = Color(0xFFE0E0E0), fontSize = 15.sp, lineHeight = 24.sp)
+                        Text("ƏSAS İMKANLARIMIZ", color = Color(0xFFFFD978), fontSize = 16.sp, fontWeight = FontWeight.Black, letterSpacing = 0.5.sp)
+                        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            listOf("✓  Proqramların paylaşılması", "✓  Android oyunları", "✓  TEXNO-MƏLUMAT bölməsi", "✓  Yeni yeniliklər və paylaşımlar", "✓  İstifadəçilərlə əlaqə").forEach { item ->
+                                Text(item, color = Color(0xFFE8E1D4), fontSize = 15.sp, lineHeight = 22.sp)
                             }
-                            HorizontalDivider(color = Color(0xFF725522))
-                            Text("MİSSİYAMIZ", color = Color(0xFFFFD978), fontSize = 14.sp, fontWeight = FontWeight.Black, letterSpacing = 0.5.sp)
-                            Text("Texnologiyanı hər kəs üçün daha əlçatan etmək, yenilikləri bir platformada toplamaq və istifadəçilərə rahat xidmət göstərmək.", color = Color(0xFFE0E0E0), fontSize = 13.sp, lineHeight = 20.sp)
-                            Text("PLANLAŞDIRILAN FƏALİYYƏTƏ BAŞLAMA TARİXİ: 25.11.2026", color = Color(0xFFFFD978), fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                            Text("TEXNO TELEKOM — TEXNOLOGİYANIN ÜNVANI", color = Color(0xFFFFD978), fontSize = 13.sp, fontWeight = FontWeight.Black, lineHeight = 19.sp)
                         }
+                        HorizontalDivider(color = Color(0xFF725522))
+                        Text("MİSSİYAMIZ", color = Color(0xFFFFD978), fontSize = 16.sp, fontWeight = FontWeight.Black, letterSpacing = 0.5.sp)
+                        Text("Texnologiyanı hər kəs üçün daha əlçatan etmək, yenilikləri bir platformada toplamaq və istifadəçilərə rahat xidmət göstərmək.", color = Color(0xFFE0E0E0), fontSize = 15.sp, lineHeight = 24.sp)
+                        Text("YARANMA TARİXİ: 25.11.2026", color = Color(0xFFFFD978), fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        Text("FƏALİYYƏTƏ BAŞLAMA TARİXİ: 25.11.2026", color = Color(0xFFFFD978), fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        Text("TEXNO TELEKOM — TEXNOLOGİYANIN ÜNVANI", color = Color(0xFFFFD978), fontSize = 16.sp, fontWeight = FontWeight.Black, lineHeight = 23.sp)
+                        Spacer(Modifier.height(20.dp))
                     }
                 }
             }
