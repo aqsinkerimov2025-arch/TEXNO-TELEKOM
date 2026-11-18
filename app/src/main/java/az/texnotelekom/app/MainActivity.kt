@@ -3765,19 +3765,29 @@ fun TexnoTelekomApp(
                             }
                         }
                         HorizontalDivider(color = Color(0xFF725522))
+                        Text("YARANMA TARİXİ", color = Color(0xFFFFD978), fontSize = 13.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
+                        Text("25.11.2026", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                        Text("FƏALİYYƏTƏ BAŞLAMA TARİXİ", color = Color(0xFFFFD978), fontSize = 13.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
+                        Text("25.11.2026", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                        HorizontalDivider(color = Color(0xFF725522))
                         Text("TEXNO TELEKOM texnologiya və rəqəmsal məzmun platformasıdır.", color = Color.White, fontSize = 17.sp, lineHeight = 26.sp)
-                        Text("Platformamızda istifadəçilər müxtəlif proqramlar, Android tətbiqləri, oyunlar və texnologiya xəbərləri ilə tanış ola bilərlər.", color = Color(0xFFE0E0E0), fontSize = 15.sp, lineHeight = 24.sp)
-                        Text("ƏSAS İMKANLARIMIZ", color = Color(0xFFFFD978), fontSize = 16.sp, fontWeight = FontWeight.Black, letterSpacing = 0.5.sp)
+                        Text("Platformamız istifadəçilərə proqramlar, Android tətbiqləri, oyunlar və texnologiya yeniliklərini bir məkanda təqdim edir. Məqsədimiz texnologiya həvəskarları üçün rahat və faydalı platforma yaratmaqdır.", color = Color(0xFFE0E0E0), fontSize = 15.sp, lineHeight = 24.sp)
+                        Text("PLATFORMAMIZIN İMKANLARI", color = Color(0xFFFFD978), fontSize = 16.sp, fontWeight = FontWeight.Black, letterSpacing = 0.5.sp)
                         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                            listOf("✓  Proqramların paylaşılması", "✓  Android oyunları", "✓  TEXNO-MƏLUMAT bölməsi", "✓  Yeni yeniliklər və paylaşımlar", "✓  İstifadəçilərlə əlaqə").forEach { item ->
+                            listOf(
+                                "✓  PROQRAMLAR — faydalı proqramlar və Android tətbiqləri",
+                                "✓  OYUNLAR — maraqlı Android oyunları",
+                                "✓  TEXNO-MƏLUMAT — texnologiya xəbərləri, məlumatlar və paylaşımlar",
+                                "✓  TEXNO DƏSTƏK QRUPU — istifadəçilərin bir-biri ilə ünsiyyəti və köməkləşməsi",
+                                "✓  ADMİNLƏ ƏLAQƏ — sual, təklif və problemlərin adminə çatdırılması",
+                                "✓  YENİLİKLƏR — platformadakı yeni paylaşımlar və yenilənmələr"
+                            ).forEach { item ->
                                 Text(item, color = Color(0xFFE8E1D4), fontSize = 15.sp, lineHeight = 22.sp)
                             }
                         }
                         HorizontalDivider(color = Color(0xFF725522))
                         Text("MİSSİYAMIZ", color = Color(0xFFFFD978), fontSize = 16.sp, fontWeight = FontWeight.Black, letterSpacing = 0.5.sp)
-                        Text("Texnologiyanı hər kəs üçün daha əlçatan etmək, yenilikləri bir platformada toplamaq və istifadəçilərə rahat xidmət göstərmək.", color = Color(0xFFE0E0E0), fontSize = 15.sp, lineHeight = 24.sp)
-                        Text("YARANMA TARİXİ: 25.11.2026", color = Color(0xFFFFD978), fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                        Text("FƏALİYYƏTƏ BAŞLAMA TARİXİ: 25.11.2026", color = Color(0xFFFFD978), fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        Text("Texnologiyanı hər kəs üçün daha əlçatan etmək, faydalı proqramları və yenilikləri bir platformada toplamaq, istifadəçilərə rahat xidmət və dəstək göstərmək.", color = Color(0xFFE0E0E0), fontSize = 15.sp, lineHeight = 24.sp)
                         Text("TEXNO TELEKOM — TEXNOLOGİYANIN ÜNVANI", color = Color(0xFFFFD978), fontSize = 16.sp, fontWeight = FontWeight.Black, lineHeight = 23.sp)
                         Spacer(Modifier.height(20.dp))
                     }
