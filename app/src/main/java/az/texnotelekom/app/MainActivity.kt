@@ -1706,8 +1706,16 @@ private fun GroupChatScreen(backgroundColor: Color, onClose: () -> Unit, onOpenB
                     IconButton(onClick = { cameraLauncher.launch(null) }, enabled = !busy, modifier = Modifier.size(36.dp)) {
                         Icon(Icons.Default.CameraAlt, contentDescription = "Kamera", tint = Color(0xFF666B70))
                     }
-                    IconButton(onClick = { if (draft.isNotBlank()) { sendText(); showEmojiPicker = false } else micPermission.launch(android.Manifest.permission.RECORD_AUDIO) }, enabled = !busy, modifier = Modifier.size(46.dp).background(Color(0xFF20A66A), CircleShape)) {
-                        Text(if (draft.isNotBlank()) "➤" else "🎙", color = Color.White, fontSize = 19.sp)
+                    IconButton(
+                        onClick = { if (draft.isNotBlank()) { sendText(); showEmojiPicker = false } else micPermission.launch(android.Manifest.permission.RECORD_AUDIO) },
+                        enabled = !busy,
+                        modifier = Modifier.size(54.dp).background(Color(0xFF20A66A), CircleShape)
+                    ) {
+                        if (draft.isNotBlank()) {
+                            Icon(Icons.Default.Send, contentDescription = "Mesajı göndər", tint = Color.White, modifier = Modifier.size(25.dp))
+                        } else {
+                            Icon(Icons.Default.Mic, contentDescription = "Səs yaz", tint = Color.White, modifier = Modifier.size(29.dp))
+                        }
                     }
                 }
             }
