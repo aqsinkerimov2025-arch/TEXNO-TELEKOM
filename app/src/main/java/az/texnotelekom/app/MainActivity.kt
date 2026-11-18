@@ -2040,8 +2040,25 @@ fun TexnoTelekomApp(
     var feedbackDraft by remember { mutableStateOf("") }
     var feedbackBusy by remember { mutableStateOf(false) }
     var feedbackRecording by remember { mutableStateOf(false) }
+    var feedbackRecordingPaused by remember { mutableStateOf(false) }
+    var feedbackRecordingSeconds by remember { mutableIntStateOf(0) }
+    var feedbackRecordingStartMs by remember { mutableLongStateOf(0L) }
+    var feedbackPausedTotalMs by remember { mutableLongStateOf(0L) }
+    var feedbackPauseStartedMs by remember { mutableLongStateOf(0L) }
+    val feedbackWaveform = remember { mutableStateListOf<Int>() }
     var feedbackRecorder by remember { mutableStateOf<MediaRecorder?>(null) }
     var feedbackFile by remember { mutableStateOf<File?>(null) }
+    LaunchedEffect(feedbackRecording, feedbackRecordingPaused) {
+        while (feedbackRecording && !feedbackRecordingPaused) {
+            val elapsed = SystemClock.elapsedRealtime() - feedbackRecordingStartMs - feedbackPausedTotalMs
+            feedbackRecordingSeconds = (elapsed.coerceAtLeast(0L) / 1000L).toInt()
+            val amp = try { feedbackRecorder?.maxAmplitude ?: 0 } catch (_: Exception) { 0 }
+            val level = kotlin.math.sqrt((amp.coerceIn(0, 32767) / 32767f).toDouble()).toFloat()
+            feedbackWaveform.add((5 + level * 34).toInt())
+            if (feedbackWaveform.size > 42) feedbackWaveform.removeAt(0)
+            delay(100)
+        }
+    }
     var showFeedback by remember { mutableStateOf(false) }
     var showClearFeedbackConfirm by remember { mutableStateOf(false) }
     val feedbackItems = remember { mutableStateListOf<String>() }
@@ -2052,7 +2069,16 @@ fun TexnoTelekomApp(
             recorder.setAudioSource(MediaRecorder.AudioSource.MIC); recorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
             recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC); recorder.setAudioEncodingBitRate(96000)
             recorder.setAudioSamplingRate(44100); recorder.setOutputFile(file.absolutePath)
-            recorder.prepare(); recorder.start(); feedbackFile = file; feedbackRecorder = recorder; feedbackRecording = true
+            recorder.prepare(); recorder.start()
+            feedbackFile = file
+            feedbackRecorder = recorder
+            feedbackWaveform.clear()
+            feedbackRecordingSeconds = 0
+            feedbackPausedTotalMs = 0L
+            feedbackPauseStartedMs = 0L
+            feedbackRecordingStartMs = SystemClock.elapsedRealtime()
+            feedbackRecordingPaused = false
+            feedbackRecording = true
         } catch (e: Exception) { groupAuthError = "Səs yazısı başlatılmadı: ${e.localizedMessage}" }
     }
     val feedbackAudioPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -2239,6 +2265,7 @@ fun TexnoTelekomApp(
         try { recorder.release() } catch (_: Exception) { }
         feedbackRecorder = null
         feedbackRecording = false
+        feedbackRecordingPaused = false
         if (file == null || !file.exists() || file.length() < 500) {
             error = "Səs yazısı boşdur. Yenidən yaz."
             return
@@ -2899,55 +2926,122 @@ fun TexnoTelekomApp(
                     }
                     if (error.isNotBlank()) Text(error, color = Color(0xFFFF8A80), fontSize = 12.sp)
                 }
-                Row(
-                    modifier = Modifier.fillMaxWidth().background(Color(0xFFF4F0E8), RoundedCornerShape(30.dp)).padding(horizontal = 8.dp, vertical = 7.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(5.dp)
-                ) {
-                    IconButton(onClick = { feedbackDraft += "🙂" }, modifier = Modifier.size(38.dp)) {
-                        Icon(Icons.Default.EmojiEmotions, contentDescription = "Emoji", tint = Color(0xFF60666B))
-                    }
-                    BasicTextField(
-                        value = feedbackDraft,
-                        onValueChange = { feedbackDraft = it },
-                        modifier = Modifier.weight(1f).padding(vertical = 10.dp),
-                        singleLine = true,
-                        enabled = !feedbackBusy && !feedbackRecording,
-                        textStyle = TextStyle(color = Color(0xFF202124), fontSize = 16.sp),
-                        cursorBrush = androidx.compose.ui.graphics.SolidColor(Color(0xFF159B68)),
-                        decorationBox = { innerTextField ->
-                            Box {
-                                if (feedbackDraft.isEmpty()) Text("Mesaj", color = Color(0xFF777D80), fontSize = 16.sp)
-                                innerTextField()
+                if (feedbackRecording) {
+                    Row(
+                        Modifier.fillMaxWidth().background(Color(0xFFFFFFFF), RoundedCornerShape(30.dp)).padding(horizontal = 12.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Text(
+                            String.format(java.util.Locale.getDefault(), "%d:%02d", feedbackRecordingSeconds / 60, feedbackRecordingSeconds % 60),
+                            color = Color(0xFF161616), fontSize = 21.sp, fontWeight = FontWeight.Bold
+                        )
+                        Row(Modifier.weight(1f).height(52.dp), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+                            feedbackWaveform.forEachIndexed { index, height ->
+                                Box(Modifier.padding(horizontal = 1.dp).width(3.dp).height((if (feedbackRecordingPaused) 7 else height).dp)
+                                    .clip(RoundedCornerShape(3.dp)).background(if (feedbackRecordingPaused) Color.LightGray else Color(0xFF737B83)))
                             }
                         }
-                    )
-                    IconButton(onClick = {
-                        try { context.startActivity(Intent(Intent.ACTION_GET_CONTENT).setType("*/*")) }
-                        catch (_: Exception) { error = "Fayl seçimi açıla bilmədi." }
-                    }, modifier = Modifier.size(36.dp)) {
-                        Icon(Icons.Default.AttachFile, contentDescription = "Fayl seç", tint = Color(0xFF60666B))
+                        IconButton(
+                            onClick = {
+                                val rec = feedbackRecorder
+                                if (rec != null) {
+                                    try {
+                                        if (!feedbackRecordingPaused) {
+                                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                                                rec.pause()
+                                                feedbackPauseStartedMs = SystemClock.elapsedRealtime()
+                                                feedbackRecordingPaused = true
+                                            }
+                                        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                                            rec.resume()
+                                            feedbackPausedTotalMs += SystemClock.elapsedRealtime() - feedbackPauseStartedMs
+                                            feedbackPauseStartedMs = 0L
+                                            feedbackRecordingPaused = false
+                                        }
+                                    } catch (e: Exception) { error = "Səs yazısı dayandırıla bilmədi: ${e.localizedMessage}" }
+                                }
+                            },
+                            modifier = Modifier.size(52.dp).background(Color(0xFFF2F2F2), CircleShape)
+                        ) {
+                            Icon(if (feedbackRecordingPaused) Icons.Default.PlayArrow else Icons.Default.Pause,
+                                contentDescription = if (feedbackRecordingPaused) "Davam et" else "Dayandır",
+                                tint = Color(0xFF202124), modifier = Modifier.size(27.dp))
+                        }
+                        IconButton(
+                            onClick = {
+                                try { feedbackRecorder?.stop() } catch (_: Exception) { }
+                                try { feedbackRecorder?.release() } catch (_: Exception) { }
+                                feedbackRecorder = null
+                                feedbackFile?.delete()
+                                feedbackFile = null
+                                feedbackRecording = false
+                                feedbackRecordingPaused = false
+                                feedbackRecordingSeconds = 0
+                                feedbackWaveform.clear()
+                            },
+                            modifier = Modifier.size(52.dp).background(Color(0xFFFCE7EC), CircleShape)
+                        ) {
+                            Icon(Icons.Default.Delete, contentDescription = "Səs yazısını sil", tint = Color(0xFFE91E63), modifier = Modifier.size(25.dp))
+                        }
+                        IconButton(
+                            onClick = { stopAndSendFeedbackVoice() },
+                            enabled = !feedbackBusy,
+                            modifier = Modifier.size(58.dp).background(Color(0xFF20A66A), CircleShape)
+                        ) {
+                            Icon(Icons.Default.Send, contentDescription = "Səsi göndər", tint = Color.White, modifier = Modifier.size(27.dp))
+                        }
                     }
-                    IconButton(onClick = {
-                        try { context.startActivity(Intent("android.media.action.IMAGE_CAPTURE")) }
-                        catch (_: Exception) { error = "Kamera açıla bilmədi." }
-                    }, modifier = Modifier.size(36.dp)) {
-                        Icon(Icons.Default.CameraAlt, contentDescription = "Kamera", tint = Color(0xFF60666B))
-                    }
-                    IconButton(
-                        onClick = {
-                            if (feedbackDraft.isNotBlank()) sendFeedbackText()
-                            else if (feedbackRecording) stopAndSendFeedbackVoice()
-                            else feedbackAudioPermission.launch(android.Manifest.permission.RECORD_AUDIO)
-                        },
-                        enabled = !feedbackBusy,
-                        modifier = Modifier.size(48.dp).background(Color(0xFF20A66A), RoundedCornerShape(50))
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().background(Color(0xFFF4F0E8), RoundedCornerShape(30.dp)).padding(horizontal = 8.dp, vertical = 7.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(5.dp)
                     ) {
-                        if (feedbackDraft.isNotBlank()) Icon(Icons.Default.Send, contentDescription = "Göndər", tint = Color.White)
-                        else Icon(Icons.Default.Mic, contentDescription = if (feedbackRecording) "Səsi göndər" else "Səs yaz", tint = Color.White)
+                        IconButton(onClick = { feedbackDraft += "🙂" }, modifier = Modifier.size(38.dp)) {
+                            Icon(Icons.Default.EmojiEmotions, contentDescription = "Emoji", tint = Color(0xFF60666B))
+                        }
+                        BasicTextField(
+                            value = feedbackDraft,
+                            onValueChange = { feedbackDraft = it },
+                            modifier = Modifier.weight(1f).padding(vertical = 10.dp),
+                            singleLine = true,
+                            enabled = !feedbackBusy,
+                            textStyle = TextStyle(color = Color(0xFF202124), fontSize = 16.sp),
+                            cursorBrush = androidx.compose.ui.graphics.SolidColor(Color(0xFF159B68)),
+                            decorationBox = { innerTextField ->
+                                Box {
+                                    if (feedbackDraft.isEmpty()) Text("Mesaj", color = Color(0xFF777D80), fontSize = 16.sp)
+                                    innerTextField()
+                                }
+                            }
+                        )
+                        IconButton(onClick = {
+                            try { context.startActivity(Intent(Intent.ACTION_GET_CONTENT).setType("*/*")) }
+                            catch (_: Exception) { error = "Fayl seçimi açıla bilmədi." }
+                        }, modifier = Modifier.size(36.dp)) {
+                            Icon(Icons.Default.AttachFile, contentDescription = "Fayl seç", tint = Color(0xFF60666B))
+                        }
+                        IconButton(onClick = {
+                            try { context.startActivity(Intent("android.media.action.IMAGE_CAPTURE")) }
+                            catch (_: Exception) { error = "Kamera açıla bilmədi." }
+                        }, modifier = Modifier.size(36.dp)) {
+                            Icon(Icons.Default.CameraAlt, contentDescription = "Kamera", tint = Color(0xFF60666B))
+                        }
+                        IconButton(
+                            onClick = {
+                                if (feedbackDraft.isNotBlank()) sendFeedbackText()
+                                else feedbackAudioPermission.launch(android.Manifest.permission.RECORD_AUDIO)
+                            },
+                            enabled = !feedbackBusy,
+                            modifier = Modifier.size(48.dp).background(Color(0xFF20A66A), RoundedCornerShape(50))
+                        ) {
+                            if (feedbackDraft.isNotBlank()) Icon(Icons.Default.Send, contentDescription = "Göndər", tint = Color.White)
+                            else Icon(Icons.Default.Mic, contentDescription = "Səs yaz", tint = Color.White)
+                        }
                     }
                 }
-                if (feedbackRecording) Text("Səs yazılır... Bitirmək və göndərmək üçün düyməyə toxun.", color = Color(0xFFFFD54F), fontSize = 12.sp)
+
             }
         } else {
         Column(
