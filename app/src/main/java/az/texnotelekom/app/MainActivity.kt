@@ -2972,9 +2972,12 @@ fun TexnoTelekomApp(
                             },
                             modifier = Modifier.size(52.dp).background(Color(0xFFF2F2F2), CircleShape)
                         ) {
-                            Icon(if (feedbackRecordingPaused) Icons.Default.PlayArrow else Icons.Default.Pause,
-                                contentDescription = if (feedbackRecordingPaused) "Davam et" else "Dayandır",
-                                tint = Color(0xFF202124), modifier = Modifier.size(27.dp))
+                            Text(
+                                if (feedbackRecordingPaused) "▶" else "Ⅱ",
+                                color = Color(0xFF202124),
+                                fontSize = 22.sp,
+                                fontWeight = FontWeight.Bold
+                            )
                         }
                         IconButton(
                             onClick = {
