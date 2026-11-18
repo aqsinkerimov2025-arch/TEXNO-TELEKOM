@@ -3733,30 +3733,6 @@ fun TexnoTelekomApp(
                 }
             }
             }
-            if (!showPhoneInfo) {
-                Spacer(Modifier.height(12.dp))
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF181818)),
-                    shape = RoundedCornerShape(24.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .border(1.dp, Color(0xFFC99A3A), RoundedCornerShape(24.dp))
-                        .clickable { showAbout = true }
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(18.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("ⓘ", color = Color(0xFFFFD978), fontSize = 29.sp, fontWeight = FontWeight.Black)
-                        Column(Modifier.weight(1f).padding(start = 12.dp)) {
-                            Text("HAQQINDA", color = Color(0xFFFFD978), fontSize = 18.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
-                            Text("TEXNO TELEKOM platforması haqqında", color = Color(0xFFCBC3B4), fontSize = 12.sp)
-                        }
-                        Text("➜", color = Color(0xFFFFD978), fontSize = 25.sp, fontWeight = FontWeight.Bold)
-                    }
-                }
-            }
-
             if (showAbout) {
                 Dialog(
                     onDismissRequest = { showAbout = false },
@@ -4056,6 +4032,13 @@ fun TexnoTelekomApp(
                     fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold,
                     letterSpacing = 0.5.sp
+                )
+                Text(
+                    "Haqqımızda",
+                    color = Color(0xFFFFD978),
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.clickable { showAbout = true }.padding(top = 8.dp, bottom = 8.dp)
                 )
             }
             }
