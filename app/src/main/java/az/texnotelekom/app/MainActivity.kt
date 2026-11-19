@@ -2226,6 +2226,36 @@ fun TexnoTelekomApp(
 
 
 
+    var notificationProgramId by remember { mutableStateOf<String?>(null) }
+    val notificationItemBringIntoView = remember { BringIntoViewRequester() }
+    BackHandler(enabled = showPhoneInfo || showPrograms || showGames || showFeedback || showAbout || showVipPanel) {
+        when {
+            showVipPanel -> showVipPanel = false
+            showFeedback -> showFeedback = false
+            showAbout -> showAbout = false
+            showGames -> showGames = false
+            showPrograms -> showPrograms = false
+            showPhoneInfo -> showPhoneInfo = false
+        }
+    }
+    var phoneInfoTitle by remember { mutableStateOf("") }
+    var phoneInfoBody by remember { mutableStateOf("") }
+    var phoneInfoImage by remember { mutableStateOf<Uri?>(null) }
+    var phoneInfoSticker by remember { mutableStateOf<Uri?>(null) }
+    var phoneInfoStickerBusy by remember { mutableStateOf(false) }
+    var phoneInfoBusy by remember { mutableStateOf(false) }
+    var adminOpen by remember { mutableStateOf(false) }
+    var showGroupManagementAdmin by remember { mutableStateOf(false) }
+    BackHandler(enabled = adminOpen && !showGroupManagementAdmin) { adminOpen = false }
+    BackHandler(enabled = showGroupManagementAdmin) { showGroupManagementAdmin = false }
+    var showSiteTextEditor by remember { mutableStateOf(false) }
+    var designAdminOpen by remember { mutableStateOf(false) }
+    var showDeviceInfo by remember { mutableStateOf(false) }
+    var revealDeviceCodeButton by remember { mutableStateOf(false) }
+    val deviceId = remember { Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID) ?: "Tapılmadı" }
+    val isAuthorizedDevice = deviceId in ADMIN_DEVICE_IDS
+    val savedAdminUser = remember { FirebaseAuth.getInstance().currentUser }
+    var loggedIn by remember { mutableStateOf(isAuthorizedDevice && savedAdminUser?.uid == ADMIN_UID && savedAdminUser.email == ADMIN_EMAIL) }
     LaunchedEffect(showVipPanel, loggedIn) {
         if (!showVipPanel || !loggedIn || FirebaseAuth.getInstance().currentUser?.uid != ADMIN_UID) return@LaunchedEffect
         vipReleaseLoading = true
@@ -2281,36 +2311,7 @@ fun TexnoTelekomApp(
         }
     }
 
-    var notificationProgramId by remember { mutableStateOf<String?>(null) }
-    val notificationItemBringIntoView = remember { BringIntoViewRequester() }
-    BackHandler(enabled = showPhoneInfo || showPrograms || showGames || showFeedback || showAbout || showVipPanel) {
-        when {
-            showVipPanel -> showVipPanel = false
-            showFeedback -> showFeedback = false
-            showAbout -> showAbout = false
-            showGames -> showGames = false
-            showPrograms -> showPrograms = false
-            showPhoneInfo -> showPhoneInfo = false
-        }
-    }
-    var phoneInfoTitle by remember { mutableStateOf("") }
-    var phoneInfoBody by remember { mutableStateOf("") }
-    var phoneInfoImage by remember { mutableStateOf<Uri?>(null) }
-    var phoneInfoSticker by remember { mutableStateOf<Uri?>(null) }
-    var phoneInfoStickerBusy by remember { mutableStateOf(false) }
-    var phoneInfoBusy by remember { mutableStateOf(false) }
-    var adminOpen by remember { mutableStateOf(false) }
-    var showGroupManagementAdmin by remember { mutableStateOf(false) }
-    BackHandler(enabled = adminOpen && !showGroupManagementAdmin) { adminOpen = false }
-    BackHandler(enabled = showGroupManagementAdmin) { showGroupManagementAdmin = false }
-    var showSiteTextEditor by remember { mutableStateOf(false) }
-    var designAdminOpen by remember { mutableStateOf(false) }
-    var showDeviceInfo by remember { mutableStateOf(false) }
-    var revealDeviceCodeButton by remember { mutableStateOf(false) }
-    val deviceId = remember { Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID) ?: "Tapılmadı" }
-    val isAuthorizedDevice = deviceId in ADMIN_DEVICE_IDS
-    val savedAdminUser = remember { FirebaseAuth.getInstance().currentUser }
-    var loggedIn by remember { mutableStateOf(isAuthorizedDevice && savedAdminUser?.uid == ADMIN_UID && savedAdminUser.email == ADMIN_EMAIL) }
+
     val pushPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
     LaunchedEffect(loggedIn) {
         val adminUser = FirebaseAuth.getInstance().currentUser
