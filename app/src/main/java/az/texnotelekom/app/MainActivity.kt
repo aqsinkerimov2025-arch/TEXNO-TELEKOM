@@ -2214,6 +2214,15 @@ fun TexnoTelekomApp(
     var vipHighlightEnabled by remember { mutableStateOf(vipPrefs.getBoolean("highlight", true)) }
     var vipProfileImageUrl by remember { mutableStateOf(vipPrefs.getString("profile_image_url", "") ?: "") }
     var vipProfileImageBusy by remember { mutableStateOf(false) }
+    var vipLatestReleaseTag by remember { mutableStateOf("Yoxlanılmayıb") }
+    var vipLatestReleaseUrl by remember { mutableStateOf("") }
+    var vipLatestReleaseNotes by remember { mutableStateOf("") }
+    var vipLatestReleaseDate by remember { mutableStateOf("") }
+    var vipReleaseLoading by remember { mutableStateOf(false) }
+    var vipReleaseError by remember { mutableStateOf("") }
+    val vipSecurityEvents = remember { mutableStateListOf<String>() }
+    var vipSecurityStatus by remember { mutableStateOf("Giriş tarixçəsi yüklənir...") }
+
 
 
     var notificationProgramId by remember { mutableStateOf<String?>(null) }
