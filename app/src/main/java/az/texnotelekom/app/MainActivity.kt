@@ -2225,6 +2225,62 @@ fun TexnoTelekomApp(
 
 
 
+
+    LaunchedEffect(showVipPanel, loggedIn) {
+        if (!showVipPanel || !loggedIn || FirebaseAuth.getInstance().currentUser?.uid != ADMIN_UID) return@LaunchedEffect
+        vipReleaseLoading = true
+        Thread {
+            try {
+                val connection = (URL("https://api.github.com/repos/aqsinkerimov2025-arch/TEXNO-TELEKOM/releases/latest").openConnection() as HttpURLConnection).apply {
+                    connectTimeout = 10000
+                    readTimeout = 10000
+                    setRequestProperty("Accept", "application/vnd.github+json")
+                    setRequestProperty("User-Agent", "TEXNO-TELEKOM-Android")
+                }
+                val json = connection.inputStream.bufferedReader().use { JSONObject(it.readText()) }
+                connection.disconnect()
+                Handler(Looper.getMainLooper()).post {
+                    vipLatestReleaseTag = json.optString("tag_name", "Məlum deyil")
+                    vipLatestReleaseNotes = json.optString("body", "").ifBlank { "Yeniləmə qeydi əlavə edilməyib." }
+                    vipLatestReleaseDate = json.optString("published_at", "")
+                    vipLatestReleaseUrl = json.optString("html_url", "")
+                    vipReleaseError = ""
+                    vipReleaseLoading = false
+                }
+            } catch (e: Exception) {
+                Handler(Looper.getMainLooper()).post {
+                    vipReleaseError = e.localizedMessage ?: "Buraxılış məlumatı alınmadı."
+                    vipReleaseLoading = false
+                }
+            }
+        }.start()
+    }
+
+    DisposableEffect(showVipPanel, loggedIn) {
+        if (!showVipPanel || !loggedIn || FirebaseAuth.getInstance().currentUser?.uid != ADMIN_UID) {
+            onDispose { }
+        } else {
+            val registration = db.collection("admin_security_events")
+                .orderBy("created_at", com.google.firebase.firestore.Query.Direction.DESCENDING)
+                .limit(10)
+                .addSnapshotListener { snap, e ->
+                    if (e != null) {
+                        vipSecurityStatus = "Giriş tarixçəsi oxunmadı: ${e.localizedMessage}"
+                    } else if (snap != null) {
+                        vipSecurityEvents.clear()
+                        snap.documents.forEach { d ->
+                            val time = d.getTimestamp("created_at")?.toDate()?.let {
+                                java.text.SimpleDateFormat("dd.MM.yyyy HH:mm", java.util.Locale.getDefault()).format(it)
+                            } ?: "Tarix gözlənilir"
+                            vipSecurityEvents.add("$time|${d.getString("result") ?: "Giriş"}|${d.getString("device_id") ?: "Naməlum cihaz"}|${d.getString("detail") ?: ""}")
+                        }
+                        vipSecurityStatus = if (vipSecurityEvents.isEmpty()) "Hələ giriş qeydi yoxdur." else "Son admin girişləri"
+                    }
+                }
+            onDispose { registration.remove() }
+        }
+    }
+
     var notificationProgramId by remember { mutableStateOf<String?>(null) }
     val notificationItemBringIntoView = remember { BringIntoViewRequester() }
     BackHandler(enabled = showPhoneInfo || showPrograms || showGames || showFeedback || showAbout || showVipPanel) {
@@ -3519,6 +3575,16 @@ fun TexnoTelekomApp(
                                     .addOnCompleteListener { task ->
                                         val user = FirebaseAuth.getInstance().currentUser
                                         if (task.isSuccessful && user?.uid == ADMIN_UID && user.email == ADMIN_EMAIL) {
+                                            val previousDevice = context.getSharedPreferences("texno_vip_admin", Context.MODE_PRIVATE).getString("last_admin_device", "")
+                                            val deviceKnown = deviceId in ADMIN_DEVICE_IDS
+                                            db.collection("admin_security_events").add(hashMapOf(
+                                                "uid" to ADMIN_UID,
+                                                "device_id" to deviceId,
+                                                "result" to "Uğurlu giriş",
+                                                "detail" to if (deviceKnown && (previousDevice.isNullOrBlank() || previousDevice == deviceId)) "Tanınan admin cihazı" else "Yeni və ya əvvəl istifadə edilməmiş cihaz",
+                                                "created_at" to FieldValue.serverTimestamp()
+                                            ))
+                                            context.getSharedPreferences("texno_vip_admin", Context.MODE_PRIVATE).edit().putString("last_admin_device", deviceId).apply()
                                             loggedIn = true; password = ""; message = "Admin girişi uğurludur."
                                         } else {
                                             FirebaseAuth.getInstance().signOut(); error = "Admin hesabı və ya şifrə yanlışdır."
