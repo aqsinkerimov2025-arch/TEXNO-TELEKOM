@@ -3853,7 +3853,7 @@ fun TexnoTelekomApp(
                             }
                         }
                         Text("TƏHLÜKƏSİZLİK", color = Color(0xFFFFD978), fontSize = 16.sp, fontWeight = FontWeight.Black)
-                        Text("TEXNO TELEKOM VIP ADMIN statusu yalnız təsdiqlənmiş admin hesabına məxsusdur. İdarəetmə imkanları xüsusi hesab yoxlaması ilə qorunur. Sənin hesabın və VIP parametrlərin sənə özəldir.", color = Color(0xFFBDBDBD), fontSize = 12.sp, lineHeight = 18.sp)
+                        Text("MR_R3HB3R xüsusi VIP ADMIN statusuna malikdir. Bu bölmə yalnız adminə məxsusdur və bütün VIP imkanları onun nəzarətindədir.", color = Color(0xFFBDBDBD), fontSize = 12.sp, lineHeight = 18.sp)
 
                         Button(onClick = { showVipPanel = false }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD6A437), contentColor = Color(0xFF211707)), modifier = Modifier.fillMaxWidth()) { Text("BAĞLA", fontWeight = FontWeight.Black) }
                     }
