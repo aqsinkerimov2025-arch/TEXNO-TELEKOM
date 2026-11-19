@@ -2212,6 +2212,9 @@ fun TexnoTelekomApp(
     var vipChatEnabled by remember { mutableStateOf(vipPrefs.getBoolean("chat", true)) }
     var vipNotificationsEnabled by remember { mutableStateOf(vipPrefs.getBoolean("notifications", true)) }
     var vipHighlightEnabled by remember { mutableStateOf(vipPrefs.getBoolean("highlight", true)) }
+    var vipProfileImageUrl by remember { mutableStateOf(vipPrefs.getString("profile_image_url", "") ?: "") }
+    var vipProfileImageBusy by remember { mutableStateOf(false) }
+
 
     var notificationProgramId by remember { mutableStateOf<String?>(null) }
     val notificationItemBringIntoView = remember { BringIntoViewRequester() }
@@ -2402,6 +2405,20 @@ fun TexnoTelekomApp(
     var pickedPostApk by remember { mutableStateOf<Uri?>(null) }
     var pickedPostApkName by remember { mutableStateOf("") }
     var postBusy by remember { mutableStateOf(false) }
+
+    val vipProfileImagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri != null && loggedIn && FirebaseAuth.getInstance().currentUser?.uid == ADMIN_UID) {
+            vipProfileImageBusy = true
+            uploadPhoneImage(context, uri) { result ->
+                vipProfileImageBusy = false
+                result.onSuccess { url ->
+                    vipProfileImageUrl = url
+                    vipPrefs.edit().putString("profile_image_url", url).apply()
+                    message = "VIP profil şəkli yadda saxlanıldı."
+                }.onFailure { error = "Profil şəklini yükləmək alınmadı: ${it.localizedMessage}" }
+            }
+        }
+    }
 
     val apkPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         pickedPostApk = uri
@@ -3795,10 +3812,30 @@ fun TexnoTelekomApp(
                             contentAlignment = Alignment.Center
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                                if (vipProfileImageUrl.isNotBlank()) {
+                                    AsyncImage(model = vipProfileImageUrl, contentDescription = "VIP ADMIN profil şəkli", modifier = Modifier.size(104.dp).clip(CircleShape).border(3.dp, Color(0xFFFFD36A), CircleShape), contentScale = ContentScale.Crop)
+                                } else {
+                                    Box(Modifier.size(104.dp).clip(CircleShape).border(3.dp, Color(0xFFFFD36A), CircleShape).background(Color(0xFF241A0B)), contentAlignment = Alignment.Center) {
+                                        Text("MR", color = Color(0xFFFFD36A), fontSize = 30.sp, fontWeight = FontWeight.Black)
+                                    }
+                                }
                                 if (vipCrownEnabled) Text("👑", color = Color(0xFFFFD36A), fontSize = 52.sp, modifier = Modifier.graphicsLayer { rotationZ = crownRotation })
                                 Text("MR_R3HB3R", color = Color(0xFFFFE3A0), fontSize = 26.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
                                 Text("VIP ADMIN  •  TEXNO TELEKOM", color = Color(0xFFFFD36A), fontSize = 12.sp, fontWeight = FontWeight.Black)
                                 Text("XÜSUSİ ADMİN STATUSU", color = Color.White.copy(alpha = 0.8f), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                        Button(
+                            onClick = { vipProfileImagePicker.launch("image/*") },
+                            enabled = !vipProfileImageBusy,
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD6A437), contentColor = Color(0xFF211707)),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(if (vipProfileImageBusy) "ŞƏKİL YÜKLƏNİR..." else if (vipProfileImageUrl.isBlank()) "PROFİL ŞƏKLİ ƏLAVƏ ET" else "PROFİL ŞƏKLİNİ DƏYİŞ", fontWeight = FontWeight.Black)
+                        }
+                        if (vipProfileImageUrl.isNotBlank()) {
+                            TextButton(onClick = { vipProfileImageUrl = ""; vipPrefs.edit().remove("profile_image_url").apply() }) {
+                                Text("PROFİL ŞƏKLİNİ SİL", color = Color(0xFFFFD36A))
                             }
                         }
                         Text("VIP İDARƏETMƏ", color = Color(0xFFFFD978), fontSize = 16.sp, fontWeight = FontWeight.Black)
