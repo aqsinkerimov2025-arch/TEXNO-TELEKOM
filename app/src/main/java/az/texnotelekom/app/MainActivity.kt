@@ -3929,6 +3929,62 @@ fun TexnoTelekomApp(
                         }
                         Text("TƏHLÜKƏSİZLİK", color = Color(0xFFFFD978), fontSize = 16.sp, fontWeight = FontWeight.Black)
                         Text("MR_R3HB3R xüsusi VIP ADMIN statusuna malikdir. Bu bölmə yalnız adminə məxsusdur və bütün VIP imkanları onun nəzarətindədir.", color = Color(0xFFBDBDBD), fontSize = 12.sp, lineHeight = 18.sp)
+                        Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF17130C)), shape = RoundedCornerShape(18.dp), modifier = Modifier.fillMaxWidth()) {
+                            Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text("VIP MESAJ QUTUSU", color = Color(0xFFFFD978), fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                Text("İstifadəçilərdən gələn son müraciətlər", color = Color.LightGray, fontSize = 12.sp)
+                                if (feedbackItems.isEmpty()) Text("Hələ müraciət yoxdur.", color = Color.White, fontSize = 13.sp)
+                                else feedbackItems.take(10).forEach { raw ->
+                                    val p = raw.split("|", limit = 5)
+                                    val sender = p.getOrNull(0).orEmpty()
+                                    val body = p.getOrNull(1).orEmpty()
+                                    val audio = p.getOrNull(2).orEmpty()
+                                    val time = p.getOrNull(3)?.toLongOrNull() ?: 0L
+                                    val stamp = if (time > 0L) java.text.SimpleDateFormat("dd.MM.yyyy HH:mm", java.util.Locale.getDefault()).format(java.util.Date(time)) else "Tarix gözlənilir"
+                                    Column(Modifier.fillMaxWidth().background(Color(0xFF241D12), RoundedCornerShape(12.dp)).padding(10.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                                        Text(sender, color = Color(0xFFFFD978), fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                                        if (body.isNotBlank()) Text(body, color = Color.White, fontSize = 13.sp)
+                                        if (audio.isNotBlank()) GroupVoiceMessagePlayer(audio, time.takeIf { it > 0L } ?: System.currentTimeMillis())
+                                        Text(stamp, color = Color.LightGray, fontSize = 10.sp)
+                                    }
+                                }
+                                Text("Bütün müraciətləri ADMİNLƏ-ƏLAQƏ bölməsində idarə edə bilərsən.", color = Color.LightGray, fontSize = 11.sp)
+                            }
+                        }
+                        Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF17130C)), shape = RoundedCornerShape(18.dp), modifier = Modifier.fillMaxWidth()) {
+                            Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text("APK VERSİYA NƏZARƏTİ", color = Color(0xFFFFD978), fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+                                Text("Quraşdırılmış versiya: ${packageInfo.versionName ?: "Naməlum"}", color = Color.White, fontSize = 13.sp)
+                                Text(if (vipReleaseLoading) "Son buraxılış yoxlanılır..." else "GitHub buraxılışı: $vipLatestReleaseTag", color = Color.White, fontSize = 13.sp)
+                                if (vipLatestReleaseDate.isNotBlank()) Text("Dərc tarixi: $vipLatestReleaseDate", color = Color.LightGray, fontSize = 11.sp)
+                                if (vipLatestReleaseNotes.isNotBlank()) Text(vipLatestReleaseNotes.take(1200), color = Color(0xFFE0E0E0), fontSize = 12.sp, lineHeight = 18.sp)
+                                if (vipReleaseError.isNotBlank()) Text(vipReleaseError, color = Color(0xFFFF8A80), fontSize = 11.sp)
+                                if (vipLatestReleaseUrl.startsWith("https://")) {
+                                    OutlinedButton(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(vipLatestReleaseUrl))) }, modifier = Modifier.fillMaxWidth()) {
+                                        Text("BURAXILIŞI AÇ", color = Color(0xFFFFD978))
+                                    }
+                                }
+                            }
+                        }
+                        Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF17130C)), shape = RoundedCornerShape(18.dp), modifier = Modifier.fillMaxWidth()) {
+                            Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text("TƏHLÜKƏSİZLİK MƏRKƏZİ", color = Color(0xFFFFD978), fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                Text(vipSecurityStatus, color = Color.LightGray, fontSize = 12.sp)
+                                if (vipSecurityEvents.isEmpty()) Text("Giriş qeydləri hələ toplanmayıb.", color = Color.White, fontSize = 13.sp)
+                                else vipSecurityEvents.forEach { entry ->
+                                    val p = entry.split("|", limit = 4)
+                                    Column(Modifier.fillMaxWidth().background(Color(0xFF241D12), RoundedCornerShape(10.dp)).padding(9.dp)) {
+                                        Text(p.getOrNull(1).orEmpty(), color = Color(0xFFFFD978), fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                        Text(p.getOrNull(0).orEmpty(), color = Color.White, fontSize = 11.sp)
+                                        Text("Cihaz: " + p.getOrNull(2).orEmpty(), color = Color.LightGray, fontSize = 10.sp)
+                                        if (!p.getOrNull(3).isNullOrBlank()) Text(p.getOrNull(3).orEmpty(), color = Color.LightGray, fontSize = 10.sp)
+                                    }
+                                }
+                                Text("Bu tarixçə tətbiqdə qeydə alınan uğurlu admin girişlərini göstərir; real-time hücum aşkarlanması deyil.", color = Color.LightGray, fontSize = 10.sp)
+                            }
+                        }
+
 
                         Button(onClick = { showVipPanel = false }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD6A437), contentColor = Color(0xFF211707)), modifier = Modifier.fillMaxWidth()) { Text("BAĞLA", fontWeight = FontWeight.Black) }
                     }
