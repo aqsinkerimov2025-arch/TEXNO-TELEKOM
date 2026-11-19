@@ -1636,7 +1636,21 @@ private fun GroupChatScreen(backgroundColor: Color, onClose: () -> Unit, onOpenB
                                 .clickable { reply = item }
                         ) {
                             Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                                Text(item.nickname, color = bubbleTextColor.copy(alpha = 0.78f), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    Text(if (adminMessage) "MR_R3HB3R" else item.nickname, color = bubbleTextColor.copy(alpha = 0.78f), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                    if (adminMessage) {
+                                        Text(
+                                            "👑 VIP ADMIN",
+                                            color = Color(0xFFFFD36A),
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Black,
+                                            modifier = Modifier
+                                                .background(Color(0xFF292015), RoundedCornerShape(6.dp))
+                                                .border(1.dp, Color(0xFFD6A437), RoundedCornerShape(6.dp))
+                                                .padding(horizontal = 6.dp, vertical = 3.dp)
+                                        )
+                                    }
+                                }
                                 if (item.replyToNickname.isNotBlank()) Text("↪ ${item.replyToNickname}: ${item.replyToText}", color = bubbleTextColor.copy(alpha = 0.75f), fontSize = 12.sp)
                                 if (item.text.isNotBlank()) Text(item.text, color = bubbleTextColor, fontSize = 17.sp, lineHeight = 24.sp)
                                 if (item.imageUrl.isNotBlank()) AsyncImage(model = item.imageUrl, contentDescription = "Qrup şəkli", modifier = Modifier.fillMaxWidth().heightIn(max = 240.dp), contentScale = ContentScale.Fit)
@@ -4043,6 +4057,20 @@ fun TexnoTelekomApp(
                     fontWeight = FontWeight.SemiBold,
                     letterSpacing = 0.5.sp
                 )
+                if (loggedIn && FirebaseAuth.getInstance().currentUser?.uid == ADMIN_UID) {
+                    Row(
+                        modifier = Modifier
+                            .padding(top = 6.dp)
+                            .background(Color(0xFF211A0D), RoundedCornerShape(10.dp))
+                            .border(1.dp, Color(0xFFD6A437), RoundedCornerShape(10.dp))
+                            .padding(horizontal = 12.dp, vertical = 7.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text("👑", fontSize = 15.sp)
+                        Text("MR_R3HB3R  •  VIP ADMIN", color = Color(0xFFFFD36A), fontSize = 12.sp, fontWeight = FontWeight.Black)
+                    }
+                }
                 Text(
                     "Haqqımızda",
                     color = Color(0xFFFFD978),
