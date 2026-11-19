@@ -40,6 +40,12 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -1610,7 +1616,7 @@ private fun GroupChatScreen(backgroundColor: Color, onClose: () -> Unit, onOpenB
                 items(messages.asReversed(), key = { it.id }) { item ->
                     val adminMessage = item.uid == ADMIN_UID
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = if (adminMessage) Arrangement.Start else Arrangement.End) {
-                        val bubbleColor = when (bubbleStyle) {
+                        val bubbleColor = if (adminMessage) Color(0xFF38280D) else when (bubbleStyle) {
                             "gold" -> Color(0xFFD6A437)
                             "royal" -> Color(0xFF35234F)
                             "diamond" -> Color(0xFFDDF7FA)
@@ -1620,8 +1626,8 @@ private fun GroupChatScreen(backgroundColor: Color, onClose: () -> Unit, onOpenB
                             "sapphire" -> Color(0xFF2856A6)
                             else -> Color(0xFFF4F0E8)
                         }
-                        val bubbleTextColor = if (bubbleStyle == "diamond" || bubbleStyle == "classic") Color(0xFF171717) else Color.White
-                        val bubbleShape = RoundedCornerShape(when (bubbleStyle) {
+                        val bubbleTextColor = if (!adminMessage && (bubbleStyle == "diamond" || bubbleStyle == "classic")) Color(0xFF171717) else Color.White
+                        val bubbleShape = RoundedCornerShape(if (adminMessage) 22.dp else when (bubbleStyle) {
                             "gold", "royal", "obsidian" -> 22.dp
                             "diamond" -> 28.dp
                             "rose" -> 26.dp
@@ -1632,7 +1638,7 @@ private fun GroupChatScreen(backgroundColor: Color, onClose: () -> Unit, onOpenB
                             colors = CardDefaults.cardColors(containerColor = bubbleColor),
                             shape = bubbleShape,
                             modifier = Modifier.fillMaxWidth(0.88f)
-                                .then(if (bubbleStyle == "gold" || bubbleStyle == "royal" || bubbleStyle == "obsidian") Modifier.border(2.dp, Color(0xFFFFD36A), bubbleShape) else Modifier)
+                                .then(if (adminMessage || bubbleStyle == "gold" || bubbleStyle == "royal" || bubbleStyle == "obsidian") Modifier.border(2.dp, Color(0xFFFFD36A), bubbleShape) else Modifier)
                                 .clickable { reply = item }
                         ) {
                             Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
@@ -2198,10 +2204,12 @@ fun TexnoTelekomApp(
     var showGames by remember { mutableStateOf(false) }
     var showPrograms by remember { mutableStateOf(false) }
     var showAbout by remember { mutableStateOf(false) }
+    var showVipPanel by remember { mutableStateOf(false) }
     var notificationProgramId by remember { mutableStateOf<String?>(null) }
     val notificationItemBringIntoView = remember { BringIntoViewRequester() }
-    BackHandler(enabled = showPhoneInfo || showPrograms || showGames || showFeedback || showAbout) {
+    BackHandler(enabled = showPhoneInfo || showPrograms || showGames || showFeedback || showAbout || showVipPanel) {
         when {
+            showVipPanel -> showVipPanel = false
             showFeedback -> showFeedback = false
             showAbout -> showAbout = false
             showGames -> showGames = false
@@ -3747,6 +3755,57 @@ fun TexnoTelekomApp(
                 }
             }
             }
+            if (showVipPanel && loggedIn && FirebaseAuth.getInstance().currentUser?.uid == ADMIN_UID) {
+                Dialog(onDismissRequest = { showVipPanel = false }, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+                    val vipMotion = rememberInfiniteTransition(label = "vipMotion")
+                    val crownRotation by vipMotion.animateFloat(
+                        initialValue = -8f, targetValue = 8f,
+                        animationSpec = infiniteRepeatable(tween(900, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+                        label = "crownRotation"
+                    )
+                    val borderAlpha by vipMotion.animateFloat(
+                        initialValue = 0.45f, targetValue = 1f,
+                        animationSpec = infiniteRepeatable(tween(1300), RepeatMode.Reverse),
+                        label = "borderAlpha"
+                    )
+                    Column(
+                        Modifier.fillMaxSize().background(Brush.linearGradient(listOf(Color(0xFF090806), Color(0xFF211707), Color(0xFF080808))))
+                            .verticalScroll(rememberScrollState()).padding(22.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp), horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                            Column(Modifier.weight(1f)) {
+                                Text("TEXNO TELEKOM", color = Color(0xFFFFD978), fontSize = 13.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
+                                Text("VIP ADMIN PROFİLİ", color = Color.White, fontSize = 23.sp, fontWeight = FontWeight.Black)
+                            }
+                            Text("✕", color = Color(0xFFFFD978), fontSize = 30.sp, modifier = Modifier.clickable { showVipPanel = false }.padding(6.dp))
+                        }
+                        Box(
+                            Modifier.fillMaxWidth().border(2.dp, Color(0xFFFFD36A).copy(alpha = borderAlpha), RoundedCornerShape(28.dp))
+                                .background(Brush.linearGradient(listOf(Color(0xFF49330F), Color(0xFF17120A), Color(0xFF3A280B))), RoundedCornerShape(28.dp))
+                                .padding(24.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                                Text("👑", color = Color(0xFFFFD36A), fontSize = 52.sp, modifier = Modifier.graphicsLayer { rotationZ = crownRotation })
+                                Text("MR_R3HB3R", color = Color(0xFFFFE3A0), fontSize = 26.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
+                                Text("VIP ADMIN  •  TEXNO TELEKOM", color = Color(0xFFFFD36A), fontSize = 12.sp, fontWeight = FontWeight.Black)
+                                Text("XÜSUSİ ADMİN STATUSU", color = Color.White.copy(alpha = 0.8f), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                        Text("AKTİV VIP İMKANLARI", color = Color(0xFFFFD978), fontSize = 16.sp, fontWeight = FontWeight.Black)
+                        listOf(
+                            "✓  Qızılı VIP profil kartı və çərçivə" ,
+                            "✓  Hərəkətli tac effekti" ,
+                            "✓  Qrupda MR_R3HB3R adı və VIP ADMIN nişanı" ,
+                            "✓  Admin mesajları üçün xüsusi qızılı dizayn" ,
+                            "✓  Mövcud admin idarəetmə bölmələrinə giriş"
+                        ).forEach { feature -> Text(feature, color = Color(0xFFECE3D2), fontSize = 14.sp, lineHeight = 21.sp, modifier = Modifier.fillMaxWidth()) }
+                        Text("Bu nişan TEXNO TELEKOM-un daxili admin statusudur; ödənişli xarici abunəlik və ya üçüncü tərəf xidməti demək deyil.", color = Color(0xFFBDBDBD), fontSize = 12.sp, lineHeight = 18.sp)
+                        Button(onClick = { showVipPanel = false }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD6A437), contentColor = Color(0xFF211707)), modifier = Modifier.fillMaxWidth()) { Text("BAĞLA", fontWeight = FontWeight.Black) }
+                    }
+                }
+            }
             if (showAbout) {
                 Dialog(
                     onDismissRequest = { showAbout = false },
@@ -4063,7 +4122,8 @@ fun TexnoTelekomApp(
                             .padding(top = 6.dp)
                             .background(Color(0xFF211A0D), RoundedCornerShape(10.dp))
                             .border(1.dp, Color(0xFFD6A437), RoundedCornerShape(10.dp))
-                            .padding(horizontal = 12.dp, vertical = 7.dp),
+                            .padding(horizontal = 12.dp, vertical = 7.dp)
+                            .clickable { showVipPanel = true },
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
