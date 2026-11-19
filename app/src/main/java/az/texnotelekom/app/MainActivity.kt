@@ -3853,7 +3853,7 @@ fun TexnoTelekomApp(
                             }
                         }
                         Text("TƏHLÜKƏSİZLİK", color = Color(0xFFFFD978), fontSize = 16.sp, fontWeight = FontWeight.Black)
-                        Text("Admin hesabı Firebase hesabı və admin UID yoxlaması ilə qorunur. İki mərhələli təsdiq üçün ayrıca hesab sazlaması tələb olunur.", color = Color(0xFFBDBDBD), fontSize = 12.sp, lineHeight = 18.sp)
+                        Text("TEXNO TELEKOM VIP ADMIN statusu yalnız təsdiqlənmiş admin hesabına məxsusdur. İdarəetmə imkanları xüsusi hesab yoxlaması ilə qorunur. Sənin hesabın və VIP parametrlərin sənə özəldir.", color = Color(0xFFBDBDBD), fontSize = 12.sp, lineHeight = 18.sp)
 
                         Button(onClick = { showVipPanel = false }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD6A437), contentColor = Color(0xFF211707)), modifier = Modifier.fillMaxWidth()) { Text("BAĞLA", fontWeight = FontWeight.Black) }
                     }
