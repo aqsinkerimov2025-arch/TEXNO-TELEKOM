@@ -2206,6 +2206,13 @@ fun TexnoTelekomApp(
     var showPrograms by remember { mutableStateOf(false) }
     var showAbout by remember { mutableStateOf(false) }
     var showVipPanel by remember { mutableStateOf(false) }
+    val vipPrefs = remember { context.getSharedPreferences("texno_vip_admin", Context.MODE_PRIVATE) }
+    var vipFrameEnabled by remember { mutableStateOf(vipPrefs.getBoolean("frame", true)) }
+    var vipCrownEnabled by remember { mutableStateOf(vipPrefs.getBoolean("crown", true)) }
+    var vipChatEnabled by remember { mutableStateOf(vipPrefs.getBoolean("chat", true)) }
+    var vipNotificationsEnabled by remember { mutableStateOf(vipPrefs.getBoolean("notifications", true)) }
+    var vipHighlightEnabled by remember { mutableStateOf(vipPrefs.getBoolean("highlight", true)) }
+
     var notificationProgramId by remember { mutableStateOf<String?>(null) }
     val notificationItemBringIntoView = remember { BringIntoViewRequester() }
     BackHandler(enabled = showPhoneInfo || showPrograms || showGames || showFeedback || showAbout || showVipPanel) {
@@ -3788,21 +3795,29 @@ fun TexnoTelekomApp(
                             contentAlignment = Alignment.Center
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                                Text("👑", color = Color(0xFFFFD36A), fontSize = 52.sp, modifier = Modifier.graphicsLayer { rotationZ = crownRotation })
+                                if (vipCrownEnabled) Text("👑", color = Color(0xFFFFD36A), fontSize = 52.sp, modifier = Modifier.graphicsLayer { rotationZ = crownRotation })
                                 Text("MR_R3HB3R", color = Color(0xFFFFE3A0), fontSize = 26.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
                                 Text("VIP ADMIN  •  TEXNO TELEKOM", color = Color(0xFFFFD36A), fontSize = 12.sp, fontWeight = FontWeight.Black)
                                 Text("XÜSUSİ ADMİN STATUSU", color = Color.White.copy(alpha = 0.8f), fontSize = 11.sp, fontWeight = FontWeight.Bold)
                             }
                         }
-                        Text("AKTİV VIP İMKANLARI", color = Color(0xFFFFD978), fontSize = 16.sp, fontWeight = FontWeight.Black)
-                        listOf(
-                            "✓  Qızılı VIP profil kartı və çərçivə" ,
-                            "✓  Hərəkətli tac effekti" ,
-                            "✓  Qrupda MR_R3HB3R adı və VIP ADMIN nişanı" ,
-                            "✓  Admin mesajları üçün xüsusi qızılı dizayn" ,
-                            "✓  Mövcud admin idarəetmə bölmələrinə giriş"
-                        ).forEach { feature -> Text(feature, color = Color(0xFFECE3D2), fontSize = 14.sp, lineHeight = 21.sp, modifier = Modifier.fillMaxWidth()) }
-                        Text("Bu nişan TEXNO TELEKOM-un daxili admin statusudur; ödənişli xarici abunəlik və ya üçüncü tərəf xidməti demək deyil.", color = Color(0xFFBDBDBD), fontSize = 12.sp, lineHeight = 18.sp)
+                        Text("VIP İDARƏETMƏ", color = Color(0xFFFFD978), fontSize = 16.sp, fontWeight = FontWeight.Black)
+                        Text("Parametrləri buradan dəyişə bilərsən. Seçimlər bu telefonda yadda saxlanılır.", color = Color(0xFFBDBDBD), fontSize = 12.sp)
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) { Text("Qızılı profil çərçivəsi", color = Color.White, modifier = Modifier.weight(1f)); Switch(vipFrameEnabled, { vipFrameEnabled = it; vipPrefs.edit().putBoolean("frame", it).apply() }) }
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) { Text("Hərəkətli tac animasiyası", color = Color.White, modifier = Modifier.weight(1f)); Switch(vipCrownEnabled, { vipCrownEnabled = it; vipPrefs.edit().putBoolean("crown", it).apply() }) }
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) { Text("Xüsusi qızılı çat dizaynı", color = Color.White, modifier = Modifier.weight(1f)); Switch(vipChatEnabled, { vipChatEnabled = it; vipPrefs.edit().putBoolean("chat", it).apply() }) }
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) { Text("VIP bildirişlərini göstər", color = Color.White, modifier = Modifier.weight(1f)); Switch(vipNotificationsEnabled, { vipNotificationsEnabled = it; vipPrefs.edit().putBoolean("notifications", it).apply() }) }
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) { Text("Admin mesajlarını vurğula", color = Color.White, modifier = Modifier.weight(1f)); Switch(vipHighlightEnabled, { vipHighlightEnabled = it; vipPrefs.edit().putBoolean("highlight", it).apply() }) }
+                        Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF17130C)), shape = RoundedCornerShape(18.dp), modifier = Modifier.fillMaxWidth()) {
+                            Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text("VIP STATİSTİKA", color = Color(0xFFFFD978), fontWeight = FontWeight.Bold)
+                                Text("Proqramlar: ${programs.size}   •   Oyunlar: ${games.size}", color = Color.White, fontSize = 13.sp)
+                                Text("Kanal paylaşımları: ${posts.size}   •   TEXNO-MƏLUMAT: ${phoneInfos.size}", color = Color.White, fontSize = 13.sp)
+                            }
+                        }
+                        Text("TƏHLÜKƏSİZLİK", color = Color(0xFFFFD978), fontSize = 16.sp, fontWeight = FontWeight.Black)
+                        Text("Admin hesabı Firebase hesabı və admin UID yoxlaması ilə qorunur. İki mərhələli təsdiq üçün ayrıca hesab sazlaması tələb olunur.", color = Color(0xFFBDBDBD), fontSize = 12.sp, lineHeight = 18.sp)
+
                         Button(onClick = { showVipPanel = false }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD6A437), contentColor = Color(0xFF211707)), modifier = Modifier.fillMaxWidth()) { Text("BAĞLA", fontWeight = FontWeight.Black) }
                     }
                 }
