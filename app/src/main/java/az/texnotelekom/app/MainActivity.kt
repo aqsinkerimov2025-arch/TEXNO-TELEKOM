@@ -2937,11 +2937,11 @@ fun TexnoTelekomApp(
                                 colors = CardDefaults.cardColors(containerColor = Color.White),
                                 shape = RoundedCornerShape(24.dp),
                                 modifier = Modifier.fillMaxWidth(0.92f)
-                                    .border(3.dp, Color(0xFF35140F), RoundedCornerShape(24.dp))
+                                    .border(3.dp, Color(0xFF168BFF), RoundedCornerShape(24.dp))
                             ) {
                                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                                        Text(sender, color = Color(0xFF6B3A20), fontSize = 13.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                                        Text(sender, color = Color(0xFF8CCBFF), fontSize = 13.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
                                         if (loggedIn && feedbackId.isNotBlank()) IconButton(onClick = {
                                             db.collection("admin_feedback").document(feedbackId).delete()
                                                 .addOnSuccessListener { message = "Mesaj silindi." }
@@ -2950,11 +2950,11 @@ fun TexnoTelekomApp(
                                             Icon(Icons.Default.Delete, contentDescription = "Mesajı sil", tint = Color(0xFFD94A4A))
                                         }
                                     }
-                                    if (body.isNotBlank()) Text(body, color = Color(0xFF171717), fontSize = 17.sp, lineHeight = 24.sp)
+                                    if (body.isNotBlank()) Text(body, color = Color(0xFFF1F7FF), fontSize = 17.sp, lineHeight = 24.sp)
                                     if (audio.isNotBlank()) GroupVoiceMessagePlayer(audio, sentAt.takeIf { it > 0L } ?: System.currentTimeMillis())
                                     if (sentAt > 0L) Text(
                                         java.text.SimpleDateFormat("dd.MM.yyyy HH:mm", java.util.Locale.getDefault()).format(java.util.Date(sentAt)),
-                                        color = Color(0xFF555555),
+                                        color = Color(0xFF9BB9D5),
                                         fontSize = 11.sp,
                                         modifier = Modifier.align(Alignment.End)
                                     )
@@ -2966,13 +2966,13 @@ fun TexnoTelekomApp(
                 }
                 if (feedbackRecording) {
                     Row(
-                        Modifier.fillMaxWidth().background(Color(0xFFFFFFFF), RoundedCornerShape(30.dp)).padding(horizontal = 12.dp, vertical = 12.dp),
+                        Modifier.fillMaxWidth().background(Color(0xFF10243A), RoundedCornerShape(30.dp)).padding(horizontal = 12.dp, vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         Text(
                             String.format(java.util.Locale.getDefault(), "%d:%02d", feedbackRecordingSeconds / 60, feedbackRecordingSeconds % 60),
-                            color = Color(0xFF161616), fontSize = 21.sp, fontWeight = FontWeight.Bold
+                            color = Color(0xFFF1F7FF), fontSize = 21.sp, fontWeight = FontWeight.Bold
                         )
                         Row(Modifier.weight(1f).height(52.dp), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
                             feedbackWaveform.forEachIndexed { index, height ->
@@ -3000,11 +3000,11 @@ fun TexnoTelekomApp(
                                     } catch (e: Exception) { error = "Səs yazısı dayandırıla bilmədi: ${e.localizedMessage}" }
                                 }
                             },
-                            modifier = Modifier.size(52.dp).background(Color(0xFFF2F2F2), CircleShape)
+                            modifier = Modifier.size(52.dp).background(Color(0xFF173B65), CircleShape)
                         ) {
                             Text(
                                 if (feedbackRecordingPaused) "▶" else "Ⅱ",
-                                color = Color(0xFF202124),
+                                color = Color(0xFFF1F7FF),
                                 fontSize = 22.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -3028,19 +3028,19 @@ fun TexnoTelekomApp(
                         IconButton(
                             onClick = { stopAndSendFeedbackVoice() },
                             enabled = !feedbackBusy,
-                            modifier = Modifier.size(58.dp).background(Color(0xFF20A66A), CircleShape)
+                            modifier = Modifier.size(58.dp).background(Color(0xFF087CEB), CircleShape)
                         ) {
                             Icon(Icons.Default.Send, contentDescription = "Səsi göndər", tint = Color.White, modifier = Modifier.size(27.dp))
                         }
                     }
                 } else {
                     Row(
-                        modifier = Modifier.fillMaxWidth().background(Color(0xFFF4F0E8), RoundedCornerShape(30.dp)).padding(horizontal = 8.dp, vertical = 7.dp),
+                        modifier = Modifier.fillMaxWidth().background(Color(0xFF10243A), RoundedCornerShape(30.dp)).padding(horizontal = 8.dp, vertical = 7.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(5.dp)
                     ) {
                         IconButton(onClick = { feedbackDraft += "🙂" }, modifier = Modifier.size(38.dp)) {
-                            Icon(Icons.Default.EmojiEmotions, contentDescription = "Emoji", tint = Color(0xFF60666B))
+                            Icon(Icons.Default.EmojiEmotions, contentDescription = "Emoji", tint = Color(0xFF8CCBFF))
                         }
                         BasicTextField(
                             value = feedbackDraft,
@@ -3048,11 +3048,11 @@ fun TexnoTelekomApp(
                             modifier = Modifier.weight(1f).padding(vertical = 10.dp),
                             singleLine = true,
                             enabled = !feedbackBusy,
-                            textStyle = TextStyle(color = Color(0xFF202124), fontSize = 16.sp),
-                            cursorBrush = androidx.compose.ui.graphics.SolidColor(Color(0xFF159B68)),
+                            textStyle = TextStyle(color = Color(0xFFF1F7FF), fontSize = 16.sp),
+                            cursorBrush = androidx.compose.ui.graphics.SolidColor(Color(0xFF42B8FF)),
                             decorationBox = { innerTextField ->
                                 Box {
-                                    if (feedbackDraft.isEmpty()) Text("Mesaj", color = Color(0xFF777D80), fontSize = 16.sp)
+                                    if (feedbackDraft.isEmpty()) Text("Mesaj", color = Color(0xFF9BB9D5), fontSize = 16.sp)
                                     innerTextField()
                                 }
                             }
@@ -3061,13 +3061,13 @@ fun TexnoTelekomApp(
                             try { context.startActivity(Intent(Intent.ACTION_GET_CONTENT).setType("*/*")) }
                             catch (_: Exception) { error = "Fayl seçimi açıla bilmədi." }
                         }, modifier = Modifier.size(36.dp)) {
-                            Icon(Icons.Default.AttachFile, contentDescription = "Fayl seç", tint = Color(0xFF60666B))
+                            Icon(Icons.Default.AttachFile, contentDescription = "Fayl seç", tint = Color(0xFF8CCBFF))
                         }
                         IconButton(onClick = {
                             try { context.startActivity(Intent("android.media.action.IMAGE_CAPTURE")) }
                             catch (_: Exception) { error = "Kamera açıla bilmədi." }
                         }, modifier = Modifier.size(36.dp)) {
-                            Icon(Icons.Default.CameraAlt, contentDescription = "Kamera", tint = Color(0xFF60666B))
+                            Icon(Icons.Default.CameraAlt, contentDescription = "Kamera", tint = Color(0xFF8CCBFF))
                         }
                         IconButton(
                             onClick = {
@@ -3075,7 +3075,7 @@ fun TexnoTelekomApp(
                                 else feedbackAudioPermission.launch(android.Manifest.permission.RECORD_AUDIO)
                             },
                             enabled = !feedbackBusy,
-                            modifier = Modifier.size(48.dp).background(Color(0xFF20A66A), RoundedCornerShape(50))
+                            modifier = Modifier.size(48.dp).background(Color(0xFF087CEB), RoundedCornerShape(50))
                         ) {
                             if (feedbackDraft.isNotBlank()) Icon(Icons.Default.Send, contentDescription = "Göndər", tint = Color.White)
                             else Icon(Icons.Default.Mic, contentDescription = "Səs yaz", tint = Color.White)
