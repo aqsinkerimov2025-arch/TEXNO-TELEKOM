@@ -3769,7 +3769,7 @@ fun TexnoTelekomApp(
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(Brush.linearGradient(listOf(Color(0xFF100F0D), Color(0xFF1B1710), Color(0xFF080808))))
+                            .background(Brush.linearGradient(listOf(Color(0xFF081321), Color(0xFF10243B), Color(0xFF050B14))))
                             .verticalScroll(rememberScrollState())
                             .padding(horizontal = 22.dp, vertical = 18.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -3779,28 +3779,28 @@ fun TexnoTelekomApp(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column(Modifier.weight(1f)) {
-                                Text("TEXNO TELEKOM", color = Color(0xFFFFD978), fontSize = 13.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
+                                Text("TEXNO TELEKOM", color = Color(0xFF42B8FF), fontSize = 13.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
                                 Text("HAQQINDA", color = Color.White, fontSize = 25.sp, fontWeight = FontWeight.Black)
                             }
                             Box(
                                 modifier = Modifier
                                     .size(46.dp)
-                                    .border(1.dp, Color(0xFFFFD978), CircleShape)
+                                    .border(1.dp, Color(0xFF42B8FF), CircleShape)
                                     .clickable { showAbout = false },
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text("×", color = Color(0xFFFFD978), fontSize = 32.sp, fontWeight = FontWeight.Light)
+                                Text("×", color = Color(0xFF42B8FF), fontSize = 32.sp, fontWeight = FontWeight.Light)
                             }
                         }
-                        HorizontalDivider(color = Color(0xFF725522))
-                        Text("YARANMA TARİXİ", color = Color(0xFFFFD978), fontSize = 13.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
+                        HorizontalDivider(color = Color(0xFF174A78))
+                        Text("YARANMA TARİXİ", color = Color(0xFF42B8FF), fontSize = 13.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
                         Text("25.11.2026", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-                        Text("FƏALİYYƏTƏ BAŞLAMA TARİXİ", color = Color(0xFFFFD978), fontSize = 13.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
+                        Text("FƏALİYYƏTƏ BAŞLAMA TARİXİ", color = Color(0xFF42B8FF), fontSize = 13.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
                         Text("25.11.2026", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-                        HorizontalDivider(color = Color(0xFF725522))
+                        HorizontalDivider(color = Color(0xFF174A78))
                         Text("TEXNO TELEKOM texnologiya və rəqəmsal məzmun platformasıdır.", color = Color.White, fontSize = 17.sp, lineHeight = 26.sp)
                         Text("Platformamız istifadəçilərə proqramlar, Android tətbiqləri, oyunlar və texnologiya yeniliklərini bir məkanda təqdim edir. Məqsədimiz texnologiya həvəskarları üçün rahat və faydalı platforma yaratmaqdır.", color = Color(0xFFE0E0E0), fontSize = 15.sp, lineHeight = 24.sp)
-                        Text("PLATFORMAMIZIN İMKANLARI", color = Color(0xFFFFD978), fontSize = 16.sp, fontWeight = FontWeight.Black, letterSpacing = 0.5.sp)
+                        Text("PLATFORMAMIZIN İMKANLARI", color = Color(0xFF42B8FF), fontSize = 16.sp, fontWeight = FontWeight.Black, letterSpacing = 0.5.sp)
                         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                             listOf(
                                 "✓  PROQRAMLAR — faydalı proqramlar və Android tətbiqləri",
@@ -3810,13 +3810,13 @@ fun TexnoTelekomApp(
                                 "✓  ADMİNLƏ ƏLAQƏ — sual, təklif və problemlərin adminə çatdırılması",
                                 "✓  YENİLİKLƏR — platformadakı yeni paylaşımlar və yenilənmələr"
                             ).forEach { item ->
-                                Text(item, color = Color(0xFFE8E1D4), fontSize = 15.sp, lineHeight = 22.sp)
+                                Text(item, color = Color(0xFFD5E8FF), fontSize = 15.sp, lineHeight = 22.sp)
                             }
                         }
-                        HorizontalDivider(color = Color(0xFF725522))
-                        Text("MİSSİYAMIZ", color = Color(0xFFFFD978), fontSize = 16.sp, fontWeight = FontWeight.Black, letterSpacing = 0.5.sp)
+                        HorizontalDivider(color = Color(0xFF174A78))
+                        Text("MİSSİYAMIZ", color = Color(0xFF42B8FF), fontSize = 16.sp, fontWeight = FontWeight.Black, letterSpacing = 0.5.sp)
                         Text("Texnologiyanı hər kəs üçün daha əlçatan etmək, faydalı proqramları və yenilikləri bir platformada toplamaq, istifadəçilərə rahat xidmət və dəstək göstərmək.", color = Color(0xFFE0E0E0), fontSize = 15.sp, lineHeight = 24.sp)
-                        Text("TEXNO TELEKOM — TEXNOLOGİYANIN ÜNVANI", color = Color(0xFFFFD978), fontSize = 16.sp, fontWeight = FontWeight.Black, lineHeight = 23.sp)
+                        Text("TEXNO TELEKOM — TEXNOLOGİYANIN ÜNVANI", color = Color(0xFF42B8FF), fontSize = 16.sp, fontWeight = FontWeight.Black, lineHeight = 23.sp)
                         Spacer(Modifier.height(20.dp))
                     }
                 }
@@ -3852,9 +3852,9 @@ fun TexnoTelekomApp(
                     Spacer(Modifier.height(12.dp))
                     if (shown.isEmpty()) Text("Hələ proqram paylaşılmayıb.", color = Color.LightGray)
             shown.forEach { p ->
-                val isGoldBankCard = designGoldCards
+                val isGoldBankCard = false // Standart mavi dizayn; qızılı premium kart görünüşü istifadə edilmir.
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = if (isGoldBankCard) Color(0xFFC58B22) else Color(0xFF202020)),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF101B2D)),
                     shape = RoundedCornerShape(30.dp),
                     modifier = Modifier.fillMaxWidth().padding(vertical = 7.dp).then(
                         if (p.id == notificationProgramId) Modifier.bringIntoViewRequester(notificationItemBringIntoView).border(3.dp, Color(0xFFFFD54F), RoundedCornerShape(30.dp)) else Modifier
@@ -3863,9 +3863,7 @@ fun TexnoTelekomApp(
                     Column(
                         Modifier.fillMaxWidth()
                             .background(
-                                if (isGoldBankCard) Brush.linearGradient(
-                                    listOf(Color(0xFFFFE69A), Color(0xFFC18A24), Color(0xFFF5C85B), Color(0xFF9A6418))
-                                ) else Brush.linearGradient(listOf(Color(0xFF202020), Color(0xFF202020))),
+                                Brush.linearGradient(listOf(Color(0xFF142743), Color(0xFF0B1424), Color(0xFF101B2D))),
                                 RoundedCornerShape(28.dp)
                             )
                             .padding(18.dp),
@@ -3892,7 +3890,7 @@ fun TexnoTelekomApp(
                         }
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Box(
-                                Modifier.size(74.dp).background(Color(0xFF2B2030), RoundedCornerShape(23.dp)),
+                                Modifier.size(74.dp).background(Color(0xFF173B65), RoundedCornerShape(23.dp)),
                                 contentAlignment = Alignment.Center
                             ) {
                                 if (p.iconUrl.isNotBlank()) ProgramIcon(p.iconUrl, p.name, 58)
@@ -3918,7 +3916,7 @@ fun TexnoTelekomApp(
                                 Box(
                                     Modifier.weight(1f).height(54.dp)
                                         .background(
-                                            if (isGoldBankCard) Brush.horizontalGradient(listOf(Color(0xFF9A6418), Color(0xFFE9B94D), Color(0xFFFFE69A))) else Brush.horizontalGradient(listOf(Color.White, Color(0xFFBDBDBD))),
+                                            Brush.horizontalGradient(listOf(Color(0xFF087CEB), Color(0xFF19B5FF))),
                                             RoundedCornerShape(18.dp)
                                         )
                                         .clickable {
@@ -3941,8 +3939,8 @@ fun TexnoTelekomApp(
                                         message = "Redaktə üçün seçildi."
                                     },
                                     shape = RoundedCornerShape(18.dp),
-                                    border = androidx.compose.foundation.BorderStroke(1.5.dp, Color(0xFF8C641E)),
-                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF4A2D08)),
+                                    border = androidx.compose.foundation.BorderStroke(1.5.dp, Color(0xFF168BFF)),
+                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF8CCBFF)),
                                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 14.dp)
                                 ) { Text("Redaktə", fontWeight = FontWeight.Bold) }
                                 Button(
@@ -3953,8 +3951,8 @@ fun TexnoTelekomApp(
                                         }.addOnFailureListener { error = "Silmək alınmadı: ${it.localizedMessage}" }
                                     },
                                     colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color(0xFFD7A63A),
-                                        contentColor = Color(0xFF4A2D08)
+                                        containerColor = Color(0xFF087CEB),
+                                        contentColor = Color.White
                                     ),
                                     shape = RoundedCornerShape(18.dp),
                                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 14.dp)
@@ -3984,7 +3982,7 @@ fun TexnoTelekomApp(
                 Spacer(Modifier.height(10.dp))
                 if (games.isEmpty()) Text("Hələ oyun əlavə edilməyib.", color = Color.LightGray)
                 games.filter { it.isActive || loggedIn }.forEach { g ->
-                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF202020)), modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp).then(
+                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF101B2D)), modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp).then(
                         if (g.id == notificationProgramId) Modifier.bringIntoViewRequester(notificationItemBringIntoView).border(3.dp, Color(0xFFFFD54F), RoundedCornerShape(12.dp)) else Modifier
                     )) {
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
