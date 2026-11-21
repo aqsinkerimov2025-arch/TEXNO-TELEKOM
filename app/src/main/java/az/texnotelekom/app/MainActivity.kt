@@ -2150,9 +2150,9 @@ fun TexnoTelekomApp(
     }
 
     // Server-managed design values update live without publishing a new APK.
-    var designBgHex by remember { mutableStateOf("#000000") }
-    var designPanelHex by remember { mutableStateOf("#181818") }
-    var designAccentHex by remember { mutableStateOf("#FFFFFF") }
+    var designBgHex by remember { mutableStateOf("#071525") }
+    var designPanelHex by remember { mutableStateOf("#10243A") }
+    var designAccentHex by remember { mutableStateOf("#168BFF") }
     var designGoldCards by remember { mutableStateOf(true) }
     val liveBg = remoteColor(designBgHex, bg)
     val livePanel = remoteColor(designPanelHex, panel)
@@ -3089,7 +3089,7 @@ fun TexnoTelekomApp(
             Modifier.fillMaxSize()
                 .background(
                     Brush.linearGradient(
-                        colorStops = arrayOf(
+                        colorStops = if (showPhoneInfo) arrayOf(
                             0.00f to Color(0xFF24104F),
                             0.12f to Color(0xFF302078),
                             0.23f to Color(0xFF263F9C),
@@ -3099,6 +3099,13 @@ fun TexnoTelekomApp(
                             0.79f to Color(0xFF49309A),
                             0.91f to Color(0xFF302078),
                             1.00f to Color(0xFF24104F)
+                        ) else arrayOf(
+                            0.00f to Color(0xFF050B14),
+                            0.16f to Color(0xFF08182A),
+                            0.36f to Color(0xFF0B2440),
+                            0.58f to Color(0xFF071525),
+                            0.78f to Color(0xFF0A2038),
+                            1.00f to Color(0xFF040912)
                         ),
                         start = Offset.Zero,
                         end = Offset(900f, 1500f)
@@ -3715,10 +3722,6 @@ fun TexnoTelekomApp(
                         OutlinedTextField(designBgHex, { designBgHex = it }, label = { Text("Arxa fon rəngi (#RRGGBB)") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
                         OutlinedTextField(designPanelHex, { designPanelHex = it }, label = { Text("Kart rəngi (#RRGGBB)") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
                         OutlinedTextField(designAccentHex, { designAccentHex = it }, label = { Text("Əsas vurğu rəngi (#RRGGBB)") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Checkbox(checked = designGoldCards, onCheckedChange = { designGoldCards = it })
-                            Text("Qızılı premium kart dizaynı", color = Color(0xFFFFFFFF))
-                        }
                         Button(onClick = { saveLiveDesign() }, modifier = Modifier.fillMaxWidth()) { Text("Dizaynı hamıda yenilə") }
                         OutlinedButton(onClick = { designAdminOpen = false }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)) { Text("Admin panelinə qayıt") }
                     }
