@@ -1484,17 +1484,17 @@ private fun GroupChatScreen(backgroundColor: Color, onClose: () -> Unit, onOpenB
             .background(homeBackgroundBrush)
             .drawBehind {
                 drawRect(brush = Brush.radialGradient(
-                    colors = listOf(Color(0xFFB8C9FF).copy(alpha = 0.30f), Color(0xFF6D8EFF).copy(alpha = 0.20f), Color.Transparent),
+                    colors = if (showPhoneInfo) listOf(Color(0xFFB8C9FF).copy(alpha = 0.30f), Color(0xFF6D8EFF).copy(alpha = 0.20f), Color.Transparent) else listOf(Color(0xFF168BFF).copy(alpha = 0.22f), Color(0xFF42B8FF).copy(alpha = 0.12f), Color.Transparent),
                     center = Offset(size.width * 0.28f, size.height * 0.78f),
                     radius = size.maxDimension * 0.62f
                 ))
                 drawRect(brush = Brush.radialGradient(
-                    colors = listOf(Color(0xFF9A7CFF).copy(alpha = 0.28f), Color(0xFF416BDF).copy(alpha = 0.18f), Color.Transparent),
+                    colors = if (showPhoneInfo) listOf(Color(0xFF9A7CFF).copy(alpha = 0.28f), Color(0xFF416BDF).copy(alpha = 0.18f), Color.Transparent) else listOf(Color(0xFF0B70C9).copy(alpha = 0.18f), Color(0xFF164A78).copy(alpha = 0.12f), Color.Transparent),
                     center = Offset(size.width * 0.86f, size.height * 0.42f),
                     radius = size.maxDimension * 0.58f
                 ))
                 drawRect(brush = Brush.linearGradient(
-                    colors = listOf(Color.Transparent, Color(0xFFB7C9FF).copy(alpha = 0.12f), Color.Transparent),
+                    colors = if (showPhoneInfo) listOf(Color.Transparent, Color(0xFFB7C9FF).copy(alpha = 0.12f), Color.Transparent) else listOf(Color.Transparent, Color(0xFF168BFF).copy(alpha = 0.10f), Color.Transparent),
                     start = Offset(0f, size.height * 0.84f),
                     end = Offset(size.width, size.height * 0.58f)
                 ))
@@ -3550,12 +3550,12 @@ fun TexnoTelekomApp(
 
             }
             if (adminOpen && isAuthorizedDevice) {
-                Column(Modifier.fillMaxSize().background(Color.Black).padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Column(Modifier.fillMaxSize().background(Color(0xFF071525)).padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Text("‹", color = Color.White, fontSize = 32.sp, modifier = Modifier.clickable { adminOpen = false }.padding(end = 12.dp))
-                        Text("ADMIN PANEL", color = Color.White, fontWeight = FontWeight.Black, fontSize = 20.sp)
+                        Text("ADMIN PANEL", color = Color(0xFF8CCBFF), fontWeight = FontWeight.Black, fontSize = 20.sp)
                     }
-                Card(colors = CardDefaults.cardColors(containerColor = Color.Black), modifier = Modifier.fillMaxWidth()) {
+                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF10243A)), modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         if (!loggedIn) {
                             Text("ADMIN GİRİŞİ", color = Color(0xFFFFFFFF), fontWeight = FontWeight.Bold)
@@ -3576,7 +3576,7 @@ fun TexnoTelekomApp(
                             OutlinedButton(onClick = { showGroupManagementAdmin = true }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFFD36A))) {
                                 Text("QRUP RƏHBƏRLİYİ", fontWeight = FontWeight.Bold)
                             }
-                            OutlinedButton(onClick = { designAdminOpen = true }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)) { Text("Canlı dizayn bölməsi") }
+                            OutlinedButton(onClick = { designAdminOpen = true }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF8CCBFF))) { Text("Canlı dizayn bölməsi") }
                             OutlinedButton(onClick = { showSiteTextEditor = !showSiteTextEditor }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)) {
                                 Text(if (showSiteTextEditor) "SAYT YAZILARINI BAĞLA ▲" else "SAYT YAZILARINI DÜZƏLT ▼", fontWeight = FontWeight.Bold)
                             }
