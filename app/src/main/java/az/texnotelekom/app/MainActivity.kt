@@ -4071,21 +4071,6 @@ fun TexnoTelekomApp(
                     fontWeight = FontWeight.SemiBold,
                     letterSpacing = 0.5.sp
                 )
-                if (loggedIn && FirebaseAuth.getInstance().currentUser?.uid == ADMIN_UID) {
-                    Row(
-                        modifier = Modifier
-                            .padding(top = 6.dp)
-                            .background(Color(0xFF211A0D), RoundedCornerShape(10.dp))
-                            .border(1.dp, Color(0xFFD6A437), RoundedCornerShape(10.dp))
-                            .padding(horizontal = 12.dp, vertical = 7.dp)
-                            .clickable { showVipPanel = true },
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Text("👑", fontSize = 15.sp)
-                        Text("MR_R3HB3R  •  VIP ADMIN", color = Color(0xFFFFD36A), fontSize = 12.sp, fontWeight = FontWeight.Black)
-                    }
-                }
                 Text(
                     "Haqqımızda",
                     color = Color(0xFFFFD978),
