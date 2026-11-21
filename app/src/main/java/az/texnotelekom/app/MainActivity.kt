@@ -3229,7 +3229,7 @@ fun TexnoTelekomApp(
                                 Button(
                                     onClick = { try { if (p.downloadUrl.isNotBlank()) context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(p.downloadUrl))) else error = "Yükləmə linki əlavə edilməyib." } catch (_: Exception) { error = "Yükləmə linki açıla bilmədi." } },
                                     modifier = Modifier.weight(1.2f),
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF9B6818), contentColor = Color(0xFFFFE7A0)),
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF087CEB), contentColor = Color.White),
                                     shape = RoundedCornerShape(18.dp)
                                 ) { Text("Yüklə", fontWeight = FontWeight.Black) }
                                 if (loggedIn) {
@@ -3242,7 +3242,7 @@ fun TexnoTelekomApp(
                                         },
                                         modifier = Modifier.weight(1f),
                                         shape = RoundedCornerShape(18.dp),
-                                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFFE7A0))
+                                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF8CCBFF))
                                     ) { Text("Redaktə", fontWeight = FontWeight.Bold) }
                                     Button(
                                         onClick = {
@@ -3251,7 +3251,7 @@ fun TexnoTelekomApp(
                                                 .addOnFailureListener { error = "Proqram silinmədi: ${it.localizedMessage}" }
                                         },
                                         shape = RoundedCornerShape(18.dp),
-                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD6A83D), contentColor = Color(0xFF4A2D08))
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF087CEB), contentColor = Color.White)
                                     ) { Text("Sil", fontWeight = FontWeight.Black) }
                                 }
                             }
@@ -3298,12 +3298,12 @@ fun TexnoTelekomApp(
                                     if (g.fileSize.isNotBlank()) Text(g.fileSize, color = Color(0xFF68470F), fontSize = 11.sp)
                                 }
                             }
-                            if (g.description.isNotBlank()) Text(g.description, color = Color(0xFF4A2D08), fontSize = 14.sp, lineHeight = 20.sp)
+                            if (g.description.isNotBlank()) Text(g.description, color = Color(0xFFD5E8FF), fontSize = 14.sp, lineHeight = 20.sp)
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                                 Button(
                                     onClick = { try { if (g.downloadUrl.isNotBlank()) context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(g.downloadUrl))) else error = "Oyun APK linki əlavə edilməyib." } catch (_: Exception) { error = "Oyun APK linki açıla bilmədi." } },
                                     modifier = Modifier.weight(1.2f),
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF9B6818), contentColor = Color(0xFFFFE7A0)),
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF087CEB), contentColor = Color.White),
                                     shape = RoundedCornerShape(18.dp)
                                 ) { Text("Yüklə", fontWeight = FontWeight.Black) }
                                 if (loggedIn) {
@@ -3315,7 +3315,7 @@ fun TexnoTelekomApp(
                                         },
                                         modifier = Modifier.weight(1f),
                                         shape = RoundedCornerShape(18.dp),
-                                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFFE7A0))
+                                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF8CCBFF))
                                     ) { Text("Redaktə", fontWeight = FontWeight.Bold) }
                                     Button(
                                         onClick = {
@@ -3324,7 +3324,7 @@ fun TexnoTelekomApp(
                                                 .addOnFailureListener { error = "Oyun silinmədi: ${it.localizedMessage}" }
                                         },
                                         shape = RoundedCornerShape(18.dp),
-                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD6A83D), contentColor = Color(0xFF4A2D08))
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF087CEB), contentColor = Color.White)
                                     ) { Text("Sil", fontWeight = FontWeight.Black) }
                                 }
                             }
@@ -3418,9 +3418,9 @@ fun TexnoTelekomApp(
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedTextColor = Color.White,
                             unfocusedTextColor = Color.White,
-                            focusedBorderColor = Color.White,
-                            unfocusedBorderColor = Color.White,
-                            cursorColor = Color.White
+                            focusedBorderColor = Color(0xFF168BFF),
+                            unfocusedBorderColor = Color(0xFF315B83),
+                            cursorColor = Color(0xFF42B8FF)
                         )
                     )
                 }
@@ -3439,7 +3439,7 @@ fun TexnoTelekomApp(
                 )
             }
             Spacer(Modifier.height(28.dp))
-            HorizontalDivider(color = Color(0xFF555555), thickness = 1.dp)
+            HorizontalDivider(color = Color(0xFF174A78), thickness = 1.dp)
             Spacer(Modifier.height(28.dp))
             if (infoTitle.isNotBlank()) {
                 Text(
@@ -3968,7 +3968,7 @@ fun TexnoTelekomApp(
                 }
 
             if (!showPhoneInfo) {
-            Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF202020)), shape = RoundedCornerShape(26.dp), modifier = Modifier.fillMaxWidth().clickable { showGames = !showGames; showPrograms = false }) {
+            Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF101B2D)), shape = RoundedCornerShape(26.dp), modifier = Modifier.fillMaxWidth().clickable { showGames = !showGames; showPrograms = false }) {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 20.dp), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text("🎮 OYUNLAR", color = Color(0xFFFFFFFF), fontSize = 20.sp, fontWeight = FontWeight.Bold)
