@@ -3456,6 +3456,22 @@ fun TexnoTelekomApp(
                                 }
                             }
                         }
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF10243A)), shape = RoundedCornerShape(22.dp), modifier = Modifier.weight(1f).clickable { showGroupChat = true }) {
+                                Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                                    Text("◎", color = Color(0xFF49B4FF), fontSize = 28.sp)
+                                    Text("TEXNO DƏSTƏK QRUPU", color = Color.White, fontWeight = FontWeight.Black, fontSize = 13.sp)
+                                    Text("İstifadəçi icması", color = Color(0xFF9BB9D5), fontSize = 11.sp)
+                                }
+                            }
+                            Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF10243A)), shape = RoundedCornerShape(22.dp), modifier = Modifier.weight(1f).clickable { showPhoneInfo = true }) {
+                                Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                                    Text("▤", color = Color(0xFF49B4FF), fontSize = 28.sp)
+                                    Text("TEXNO-MƏLUMAT", color = Color.White, fontWeight = FontWeight.Black, fontSize = 13.sp)
+                                    Text("Telefon məlumatları", color = Color(0xFF9BB9D5), fontSize = 11.sp)
+                                }
+                            }
+                        }
                     }
                 }
                 if (searchOpen) {
