@@ -1484,17 +1484,17 @@ private fun GroupChatScreen(backgroundColor: Color, onClose: () -> Unit, onOpenB
             .background(homeBackgroundBrush)
             .drawBehind {
                 drawRect(brush = Brush.radialGradient(
-                    colors = if (showPhoneInfo) listOf(Color(0xFFB8C9FF).copy(alpha = 0.30f), Color(0xFF6D8EFF).copy(alpha = 0.20f), Color.Transparent) else listOf(Color(0xFF168BFF).copy(alpha = 0.22f), Color(0xFF42B8FF).copy(alpha = 0.12f), Color.Transparent),
+                    colors = listOf(Color(0xFFB8C9FF).copy(alpha = 0.30f), Color(0xFF6D8EFF).copy(alpha = 0.20f), Color.Transparent),
                     center = Offset(size.width * 0.28f, size.height * 0.78f),
                     radius = size.maxDimension * 0.62f
                 ))
                 drawRect(brush = Brush.radialGradient(
-                    colors = if (showPhoneInfo) listOf(Color(0xFF9A7CFF).copy(alpha = 0.28f), Color(0xFF416BDF).copy(alpha = 0.18f), Color.Transparent) else listOf(Color(0xFF0B70C9).copy(alpha = 0.18f), Color(0xFF164A78).copy(alpha = 0.12f), Color.Transparent),
+                    colors = listOf(Color(0xFF9A7CFF).copy(alpha = 0.28f), Color(0xFF416BDF).copy(alpha = 0.18f), Color.Transparent),
                     center = Offset(size.width * 0.86f, size.height * 0.42f),
                     radius = size.maxDimension * 0.58f
                 ))
                 drawRect(brush = Brush.linearGradient(
-                    colors = if (showPhoneInfo) listOf(Color.Transparent, Color(0xFFB7C9FF).copy(alpha = 0.12f), Color.Transparent) else listOf(Color.Transparent, Color(0xFF168BFF).copy(alpha = 0.10f), Color.Transparent),
+                    colors = listOf(Color.Transparent, Color(0xFFB7C9FF).copy(alpha = 0.12f), Color.Transparent),
                     start = Offset(0f, size.height * 0.84f),
                     end = Offset(size.width, size.height * 0.58f)
                 ))
