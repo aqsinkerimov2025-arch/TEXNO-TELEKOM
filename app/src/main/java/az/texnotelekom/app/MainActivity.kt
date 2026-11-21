@@ -3885,6 +3885,12 @@ fun TexnoTelekomApp(
                         Text("MİSSİYAMIZ", color = Color(0xFF42B8FF), fontSize = 16.sp, fontWeight = FontWeight.Black, letterSpacing = 0.5.sp)
                         Text("Texnologiyanı hər kəs üçün daha əlçatan etmək, faydalı proqramları və yenilikləri bir platformada toplamaq, istifadəçilərə rahat xidmət və dəstək göstərmək.", color = Color(0xFFE0E0E0), fontSize = 15.sp, lineHeight = 24.sp)
                         Text("TEXNO TELEKOM — TEXNOLOGİYANIN ÜNVANI", color = Color(0xFF42B8FF), fontSize = 16.sp, fontWeight = FontWeight.Black, lineHeight = 23.sp)
+                        Button(onClick = { showAbout = false; showGroupChat = true }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF087CEB)), shape = RoundedCornerShape(16.dp)) {
+                            Text("TEXNO DƏSTƏK QRUPUNA DAXİL OL", fontWeight = FontWeight.Bold)
+                        }
+                        OutlinedButton(onClick = { showAbout = false; showFeedback = true }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF8CCBFF)), shape = RoundedCornerShape(16.dp)) {
+                            Text("ADMİNLƏ ƏLAQƏ")
+                        }
                         Spacer(Modifier.height(20.dp))
                     }
                 }
