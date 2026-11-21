@@ -2849,15 +2849,15 @@ fun TexnoTelekomApp(
                 Modifier.fillMaxSize().background(
                     Brush.linearGradient(
                         colorStops = arrayOf(
-                            0.00f to Color(0xFF24104F),
-                            0.12f to Color(0xFF302078),
-                            0.23f to Color(0xFF263F9C),
-                            0.38f to Color(0xFF315BC2),
-                            0.52f to Color(0xFF182F78),
-                            0.66f to Color(0xFF243D91),
-                            0.79f to Color(0xFF49309A),
-                            0.91f to Color(0xFF302078),
-                            1.00f to Color(0xFF24104F)
+                            0.00f to Color(0xFF050B14),
+                            0.12f to Color(0xFF08182A),
+                            0.23f to Color(0xFF0B2540),
+                            0.38f to Color(0xFF10345A),
+                            0.52f to Color(0xFF07182A),
+                            0.66f to Color(0xFF0B2948),
+                            0.79f to Color(0xFF102E50),
+                            0.91f to Color(0xFF08182A),
+                            1.00f to Color(0xFF050B14)
                         ),
                         start = Offset.Zero,
                         end = Offset(900f, 1500f)
@@ -3404,6 +3404,58 @@ fun TexnoTelekomApp(
                             modifier = Modifier.size(112.dp),
                             contentScale = ContentScale.Crop
                         )
+                    }
+                }
+
+                if (!showPhoneInfo && !showPrograms && !showGames && !showFeedback) {
+                    Column(
+                        Modifier.fillMaxWidth().padding(top = 18.dp, bottom = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                            Column(Modifier.weight(1f)) {
+                                Text("Xoş gəlmisiniz", color = Color(0xFF9CCFFF), fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                                Text("NƏ AXTARIRSINIZ?", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Black)
+                            }
+                            Box(
+                                Modifier.size(42.dp).clip(CircleShape)
+                                    .background(Color(0xFF102D4B))
+                                    .border(1.dp, Color(0xFF168BFF), CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) { Text("✦", color = Color(0xFF55B8FF), fontSize = 22.sp) }
+                        }
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF10243A)), shape = RoundedCornerShape(22.dp), modifier = Modifier.weight(1f).clickable { showPrograms = true; showGames = false }) {
+                                Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                                    Text("▣", color = Color(0xFF49B4FF), fontSize = 28.sp)
+                                    Text("PROQRAMLAR", color = Color.White, fontWeight = FontWeight.Black, fontSize = 14.sp)
+                                    Text("Android tətbiqləri", color = Color(0xFF9BB9D5), fontSize = 11.sp)
+                                }
+                            }
+                            Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF10243A)), shape = RoundedCornerShape(22.dp), modifier = Modifier.weight(1f).clickable { showGames = true; showPrograms = false }) {
+                                Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                                    Text("◈", color = Color(0xFF49B4FF), fontSize = 28.sp)
+                                    Text("OYUNLAR", color = Color.White, fontWeight = FontWeight.Black, fontSize = 14.sp)
+                                    Text("Android oyunları", color = Color(0xFF9BB9D5), fontSize = 11.sp)
+                                }
+                            }
+                        }
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF10243A)), shape = RoundedCornerShape(22.dp), modifier = Modifier.weight(1f).clickable { showFeedback = true }) {
+                                Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                                    Text("✉", color = Color(0xFF49B4FF), fontSize = 28.sp)
+                                    Text("ADMİNLƏ ƏLAQƏ", color = Color.White, fontWeight = FontWeight.Black, fontSize = 13.sp)
+                                    Text("Rəy və dəstək", color = Color(0xFF9BB9D5), fontSize = 11.sp)
+                                }
+                            }
+                            Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF10243A)), shape = RoundedCornerShape(22.dp), modifier = Modifier.weight(1f).clickable { showAbout = true }) {
+                                Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                                    Text("ⓘ", color = Color(0xFF49B4FF), fontSize = 28.sp)
+                                    Text("HAQQINDA", color = Color.White, fontWeight = FontWeight.Black, fontSize = 14.sp)
+                                    Text("TEXNO-TELEKOM", color = Color(0xFF9BB9D5), fontSize = 11.sp)
+                                }
+                            }
+                        }
                     }
                 }
                 if (searchOpen) {
