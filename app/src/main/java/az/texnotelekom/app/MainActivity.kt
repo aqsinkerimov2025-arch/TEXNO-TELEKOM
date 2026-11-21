@@ -2205,32 +2205,14 @@ fun TexnoTelekomApp(
     var showGames by remember { mutableStateOf(false) }
     var showPrograms by remember { mutableStateOf(false) }
     var showAbout by remember { mutableStateOf(false) }
-    var showVipPanel by remember { mutableStateOf(false) }
-    val vipPrefs = remember { context.getSharedPreferences("texno_vip_admin", Context.MODE_PRIVATE) }
-    var vipFrameEnabled by remember { mutableStateOf(vipPrefs.getBoolean("frame", true)) }
-    var vipCrownEnabled by remember { mutableStateOf(vipPrefs.getBoolean("crown", true)) }
-    var vipChatEnabled by remember { mutableStateOf(vipPrefs.getBoolean("chat", true)) }
-    var vipNotificationsEnabled by remember { mutableStateOf(vipPrefs.getBoolean("notifications", true)) }
-    var vipHighlightEnabled by remember { mutableStateOf(vipPrefs.getBoolean("highlight", true)) }
-    var vipProfileImageUrl by remember { mutableStateOf(vipPrefs.getString("profile_image_url", "") ?: "") }
-    var vipProfileImageBusy by remember { mutableStateOf(false) }
-    var vipLatestReleaseTag by remember { mutableStateOf("Yoxlanılmayıb") }
-    var vipLatestReleaseUrl by remember { mutableStateOf("") }
-    var vipLatestReleaseNotes by remember { mutableStateOf("") }
-    var vipLatestReleaseDate by remember { mutableStateOf("") }
-    var vipReleaseLoading by remember { mutableStateOf(false) }
-    var vipReleaseError by remember { mutableStateOf("") }
-    val vipSecurityEvents = remember { mutableStateListOf<String>() }
-    var vipSecurityStatus by remember { mutableStateOf("Giriş tarixçəsi yüklənir...") }
 
 
 
 
     var notificationProgramId by remember { mutableStateOf<String?>(null) }
     val notificationItemBringIntoView = remember { BringIntoViewRequester() }
-    BackHandler(enabled = showPhoneInfo || showPrograms || showGames || showFeedback || showAbout || showVipPanel) {
+    BackHandler(enabled = showPhoneInfo || showPrograms || showGames || showFeedback || showAbout) {
         when {
-            showVipPanel -> showVipPanel = false
             showFeedback -> showFeedback = false
             showAbout -> showAbout = false
             showGames -> showGames = false
@@ -2256,60 +2238,6 @@ fun TexnoTelekomApp(
     val isAuthorizedDevice = deviceId in ADMIN_DEVICE_IDS
     val savedAdminUser = remember { FirebaseAuth.getInstance().currentUser }
     var loggedIn by remember { mutableStateOf(isAuthorizedDevice && savedAdminUser?.uid == ADMIN_UID && savedAdminUser.email == ADMIN_EMAIL) }
-    LaunchedEffect(showVipPanel, loggedIn) {
-        if (!showVipPanel || !loggedIn || FirebaseAuth.getInstance().currentUser?.uid != ADMIN_UID) return@LaunchedEffect
-        vipReleaseLoading = true
-        Thread {
-            try {
-                val connection = (URL("https://api.github.com/repos/aqsinkerimov2025-arch/TEXNO-TELEKOM/releases/latest").openConnection() as HttpURLConnection).apply {
-                    connectTimeout = 10000
-                    readTimeout = 10000
-                    setRequestProperty("Accept", "application/vnd.github+json")
-                    setRequestProperty("User-Agent", "TEXNO-TELEKOM-Android")
-                }
-                val json = connection.inputStream.bufferedReader().use { JSONObject(it.readText()) }
-                connection.disconnect()
-                Handler(Looper.getMainLooper()).post {
-                    vipLatestReleaseTag = json.optString("tag_name", "Məlum deyil")
-                    vipLatestReleaseNotes = json.optString("body", "").ifBlank { "Yeniləmə qeydi əlavə edilməyib." }
-                    vipLatestReleaseDate = json.optString("published_at", "")
-                    vipLatestReleaseUrl = json.optString("html_url", "")
-                    vipReleaseError = ""
-                    vipReleaseLoading = false
-                }
-            } catch (e: Exception) {
-                Handler(Looper.getMainLooper()).post {
-                    vipReleaseError = e.localizedMessage ?: "Buraxılış məlumatı alınmadı."
-                    vipReleaseLoading = false
-                }
-            }
-        }.start()
-    }
-
-    DisposableEffect(showVipPanel, loggedIn) {
-        if (!showVipPanel || !loggedIn || FirebaseAuth.getInstance().currentUser?.uid != ADMIN_UID) {
-            onDispose { }
-        } else {
-            val registration = db.collection("admin_security_events")
-                .orderBy("created_at", com.google.firebase.firestore.Query.Direction.DESCENDING)
-                .limit(10)
-                .addSnapshotListener { snap, e ->
-                    if (e != null) {
-                        vipSecurityStatus = "Giriş tarixçəsi oxunmadı: ${e.localizedMessage}"
-                    } else if (snap != null) {
-                        vipSecurityEvents.clear()
-                        snap.documents.forEach { d ->
-                            val time = d.getTimestamp("created_at")?.toDate()?.let {
-                                java.text.SimpleDateFormat("dd.MM.yyyy HH:mm", java.util.Locale.getDefault()).format(it)
-                            } ?: "Tarix gözlənilir"
-                            vipSecurityEvents.add("$time|${d.getString("result") ?: "Giriş"}|${d.getString("device_id") ?: "Naməlum cihaz"}|${d.getString("detail") ?: ""}")
-                        }
-                        vipSecurityStatus = if (vipSecurityEvents.isEmpty()) "Hələ giriş qeydi yoxdur." else "Son admin girişləri"
-                    }
-                }
-            onDispose { registration.remove() }
-        }
-    }
 
 
     val pushPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
@@ -2472,19 +2400,6 @@ fun TexnoTelekomApp(
     var pickedPostApkName by remember { mutableStateOf("") }
     var postBusy by remember { mutableStateOf(false) }
 
-    val vipProfileImagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        if (uri != null && loggedIn && FirebaseAuth.getInstance().currentUser?.uid == ADMIN_UID) {
-            vipProfileImageBusy = true
-            uploadPhoneImage(context, uri) { result ->
-                vipProfileImageBusy = false
-                result.onSuccess { url ->
-                    vipProfileImageUrl = url
-                    vipPrefs.edit().putString("profile_image_url", url).apply()
-                    message = "VIP profil şəkli yadda saxlanıldı."
-                }.onFailure { error = "Profil şəklini yükləmək alınmadı: ${it.localizedMessage}" }
-            }
-        }
-    }
 
     val apkPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         pickedPostApk = uri
@@ -3576,16 +3491,6 @@ fun TexnoTelekomApp(
                                     .addOnCompleteListener { task ->
                                         val user = FirebaseAuth.getInstance().currentUser
                                         if (task.isSuccessful && user?.uid == ADMIN_UID && user.email == ADMIN_EMAIL) {
-                                            val previousDevice = context.getSharedPreferences("texno_vip_admin", Context.MODE_PRIVATE).getString("last_admin_device", "")
-                                            val deviceKnown = deviceId in ADMIN_DEVICE_IDS
-                                            db.collection("admin_security_events").add(hashMapOf(
-                                                "uid" to ADMIN_UID,
-                                                "device_id" to deviceId,
-                                                "result" to "Uğurlu giriş",
-                                                "detail" to if (deviceKnown && (previousDevice.isNullOrBlank() || previousDevice == deviceId)) "Tanınan admin cihazı" else "Yeni və ya əvvəl istifadə edilməmiş cihaz",
-                                                "created_at" to FieldValue.serverTimestamp()
-                                            ))
-                                            context.getSharedPreferences("texno_vip_admin", Context.MODE_PRIVATE).edit().putString("last_admin_device", deviceId).apply()
                                             loggedIn = true; password = ""; message = "Admin girişi uğurludur."
                                         } else {
                                             FirebaseAuth.getInstance().signOut(); error = "Admin hesabı və ya şifrə yanlışdır."
@@ -3855,141 +3760,6 @@ fun TexnoTelekomApp(
                     }
                 }
             }
-            }
-            if (showVipPanel && loggedIn && FirebaseAuth.getInstance().currentUser?.uid == ADMIN_UID) {
-                Dialog(onDismissRequest = { showVipPanel = false }, properties = DialogProperties(usePlatformDefaultWidth = false)) {
-                    val vipMotion = rememberInfiniteTransition(label = "vipMotion")
-                    val crownRotation by vipMotion.animateFloat(
-                        initialValue = -8f, targetValue = 8f,
-                        animationSpec = infiniteRepeatable(tween(900, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-                        label = "crownRotation"
-                    )
-                    val borderAlpha by vipMotion.animateFloat(
-                        initialValue = 0.45f, targetValue = 1f,
-                        animationSpec = infiniteRepeatable(tween(1300), RepeatMode.Reverse),
-                        label = "borderAlpha"
-                    )
-                    Column(
-                        Modifier.fillMaxSize().background(Brush.linearGradient(listOf(Color(0xFF090806), Color(0xFF211707), Color(0xFF080808))))
-                            .verticalScroll(rememberScrollState()).padding(22.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp), horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                            Column(Modifier.weight(1f)) {
-                                Text("TEXNO TELEKOM", color = Color(0xFFFFD978), fontSize = 13.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
-                                Text("VIP ADMIN PROFİLİ", color = Color.White, fontSize = 23.sp, fontWeight = FontWeight.Black)
-                            }
-                            Text("✕", color = Color(0xFFFFD978), fontSize = 30.sp, modifier = Modifier.clickable { showVipPanel = false }.padding(6.dp))
-                        }
-                        Box(
-                            Modifier.fillMaxWidth().border(2.dp, Color(0xFFFFD36A).copy(alpha = borderAlpha), RoundedCornerShape(28.dp))
-                                .background(Brush.linearGradient(listOf(Color(0xFF49330F), Color(0xFF17120A), Color(0xFF3A280B))), RoundedCornerShape(28.dp))
-                                .padding(24.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                                if (vipProfileImageUrl.isNotBlank()) {
-                                    AsyncImage(model = vipProfileImageUrl, contentDescription = "VIP ADMIN profil şəkli", modifier = Modifier.size(104.dp).clip(CircleShape).border(3.dp, Color(0xFFFFD36A), CircleShape), contentScale = ContentScale.Crop)
-                                } else {
-                                    Box(Modifier.size(104.dp).clip(CircleShape).border(3.dp, Color(0xFFFFD36A), CircleShape).background(Color(0xFF241A0B)), contentAlignment = Alignment.Center) {
-                                        Text("MR", color = Color(0xFFFFD36A), fontSize = 30.sp, fontWeight = FontWeight.Black)
-                                    }
-                                }
-                                if (vipCrownEnabled) Text("👑", color = Color(0xFFFFD36A), fontSize = 52.sp, modifier = Modifier.graphicsLayer { rotationZ = crownRotation })
-                                Text("MR_R3HB3R", color = Color(0xFFFFE3A0), fontSize = 26.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
-                                Text("VIP ADMIN  •  TEXNO TELEKOM", color = Color(0xFFFFD36A), fontSize = 12.sp, fontWeight = FontWeight.Black)
-                                Text("XÜSUSİ ADMİN STATUSU", color = Color.White.copy(alpha = 0.8f), fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                            }
-                        }
-                        Button(
-                            onClick = { vipProfileImagePicker.launch("image/*") },
-                            enabled = !vipProfileImageBusy,
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD6A437), contentColor = Color(0xFF211707)),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(if (vipProfileImageBusy) "ŞƏKİL YÜKLƏNİR..." else if (vipProfileImageUrl.isBlank()) "PROFİL ŞƏKLİ ƏLAVƏ ET" else "PROFİL ŞƏKLİNİ DƏYİŞ", fontWeight = FontWeight.Black)
-                        }
-                        if (vipProfileImageUrl.isNotBlank()) {
-                            TextButton(onClick = { vipProfileImageUrl = ""; vipPrefs.edit().remove("profile_image_url").apply() }) {
-                                Text("PROFİL ŞƏKLİNİ SİL", color = Color(0xFFFFD36A))
-                            }
-                        }
-                        Text("VIP İDARƏETMƏ", color = Color(0xFFFFD978), fontSize = 16.sp, fontWeight = FontWeight.Black)
-                        Text("Parametrləri buradan dəyişə bilərsən. Seçimlər bu telefonda yadda saxlanılır.", color = Color(0xFFBDBDBD), fontSize = 12.sp)
-                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) { Text("Qızılı profil çərçivəsi", color = Color.White, modifier = Modifier.weight(1f)); Switch(vipFrameEnabled, { vipFrameEnabled = it; vipPrefs.edit().putBoolean("frame", it).apply() }) }
-                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) { Text("Hərəkətli tac animasiyası", color = Color.White, modifier = Modifier.weight(1f)); Switch(vipCrownEnabled, { vipCrownEnabled = it; vipPrefs.edit().putBoolean("crown", it).apply() }) }
-                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) { Text("Xüsusi qızılı çat dizaynı", color = Color.White, modifier = Modifier.weight(1f)); Switch(vipChatEnabled, { vipChatEnabled = it; vipPrefs.edit().putBoolean("chat", it).apply() }) }
-                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) { Text("VIP bildirişlərini göstər", color = Color.White, modifier = Modifier.weight(1f)); Switch(vipNotificationsEnabled, { vipNotificationsEnabled = it; vipPrefs.edit().putBoolean("notifications", it).apply() }) }
-                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) { Text("Admin mesajlarını vurğula", color = Color.White, modifier = Modifier.weight(1f)); Switch(vipHighlightEnabled, { vipHighlightEnabled = it; vipPrefs.edit().putBoolean("highlight", it).apply() }) }
-                        Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF17130C)), shape = RoundedCornerShape(18.dp), modifier = Modifier.fillMaxWidth()) {
-                            Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Text("VIP STATİSTİKA", color = Color(0xFFFFD978), fontWeight = FontWeight.Bold)
-                                Text("Proqramlar: ${programs.size}   •   Oyunlar: ${games.size}", color = Color.White, fontSize = 13.sp)
-                                Text("Kanal paylaşımları: ${posts.size}   •   TEXNO-MƏLUMAT: ${phoneInfos.size}", color = Color.White, fontSize = 13.sp)
-                            }
-                        }
-                        Text("TƏHLÜKƏSİZLİK", color = Color(0xFFFFD978), fontSize = 16.sp, fontWeight = FontWeight.Black)
-                        Text("MR_R3HB3R xüsusi VIP ADMIN statusuna malikdir. Bu bölmə yalnız adminə məxsusdur və bütün VIP imkanları onun nəzarətindədir.", color = Color(0xFFBDBDBD), fontSize = 12.sp, lineHeight = 18.sp)
-                        Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF17130C)), shape = RoundedCornerShape(18.dp), modifier = Modifier.fillMaxWidth()) {
-                            Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Text("VIP MESAJ QUTUSU", color = Color(0xFFFFD978), fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                                Text("İstifadəçilərdən gələn son müraciətlər", color = Color.LightGray, fontSize = 12.sp)
-                                if (feedbackItems.isEmpty()) Text("Hələ müraciət yoxdur.", color = Color.White, fontSize = 13.sp)
-                                else feedbackItems.take(10).forEach { raw ->
-                                    val p = raw.split("|", limit = 5)
-                                    val sender = p.getOrNull(0).orEmpty()
-                                    val body = p.getOrNull(1).orEmpty()
-                                    val audio = p.getOrNull(2).orEmpty()
-                                    val time = p.getOrNull(3)?.toLongOrNull() ?: 0L
-                                    val stamp = if (time > 0L) java.text.SimpleDateFormat("dd.MM.yyyy HH:mm", java.util.Locale.getDefault()).format(java.util.Date(time)) else "Tarix gözlənilir"
-                                    Column(Modifier.fillMaxWidth().background(Color(0xFF241D12), RoundedCornerShape(12.dp)).padding(10.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                                        Text(sender, color = Color(0xFFFFD978), fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                                        if (body.isNotBlank()) Text(body, color = Color.White, fontSize = 13.sp)
-                                        if (audio.isNotBlank()) GroupVoiceMessagePlayer(audio, time.takeIf { it > 0L } ?: System.currentTimeMillis())
-                                        Text(stamp, color = Color.LightGray, fontSize = 10.sp)
-                                    }
-                                }
-                                Text("Bütün müraciətləri ADMİNLƏ-ƏLAQƏ bölməsində idarə edə bilərsən.", color = Color.LightGray, fontSize = 11.sp)
-                            }
-                        }
-                        Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF17130C)), shape = RoundedCornerShape(18.dp), modifier = Modifier.fillMaxWidth()) {
-                            Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Text("APK VERSİYA NƏZARƏTİ", color = Color(0xFFFFD978), fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                                val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-                                Text("Quraşdırılmış versiya: ${packageInfo.versionName ?: "Naməlum"}", color = Color.White, fontSize = 13.sp)
-                                Text(if (vipReleaseLoading) "Son buraxılış yoxlanılır..." else "GitHub buraxılışı: $vipLatestReleaseTag", color = Color.White, fontSize = 13.sp)
-                                if (vipLatestReleaseDate.isNotBlank()) Text("Dərc tarixi: $vipLatestReleaseDate", color = Color.LightGray, fontSize = 11.sp)
-                                if (vipLatestReleaseNotes.isNotBlank()) Text(vipLatestReleaseNotes.take(1200), color = Color(0xFFE0E0E0), fontSize = 12.sp, lineHeight = 18.sp)
-                                if (vipReleaseError.isNotBlank()) Text(vipReleaseError, color = Color(0xFFFF8A80), fontSize = 11.sp)
-                                if (vipLatestReleaseUrl.startsWith("https://")) {
-                                    OutlinedButton(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(vipLatestReleaseUrl))) }, modifier = Modifier.fillMaxWidth()) {
-                                        Text("BURAXILIŞI AÇ", color = Color(0xFFFFD978))
-                                    }
-                                }
-                            }
-                        }
-                        Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF17130C)), shape = RoundedCornerShape(18.dp), modifier = Modifier.fillMaxWidth()) {
-                            Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Text("TƏHLÜKƏSİZLİK MƏRKƏZİ", color = Color(0xFFFFD978), fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                                Text(vipSecurityStatus, color = Color.LightGray, fontSize = 12.sp)
-                                if (vipSecurityEvents.isEmpty()) Text("Giriş qeydləri hələ toplanmayıb.", color = Color.White, fontSize = 13.sp)
-                                else vipSecurityEvents.forEach { entry ->
-                                    val p = entry.split("|", limit = 4)
-                                    Column(Modifier.fillMaxWidth().background(Color(0xFF241D12), RoundedCornerShape(10.dp)).padding(9.dp)) {
-                                        Text(p.getOrNull(1).orEmpty(), color = Color(0xFFFFD978), fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                                        Text(p.getOrNull(0).orEmpty(), color = Color.White, fontSize = 11.sp)
-                                        Text("Cihaz: " + p.getOrNull(2).orEmpty(), color = Color.LightGray, fontSize = 10.sp)
-                                        if (!p.getOrNull(3).isNullOrBlank()) Text(p.getOrNull(3).orEmpty(), color = Color.LightGray, fontSize = 10.sp)
-                                    }
-                                }
-                                Text("Bu tarixçə tətbiqdə qeydə alınan uğurlu admin girişlərini göstərir; real-time hücum aşkarlanması deyil.", color = Color.LightGray, fontSize = 10.sp)
-                            }
-                        }
-
-
-                        Button(onClick = { showVipPanel = false }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD6A437), contentColor = Color(0xFF211707)), modifier = Modifier.fillMaxWidth()) { Text("BAĞLA", fontWeight = FontWeight.Black) }
-                    }
-                }
             }
             if (showAbout) {
                 Dialog(
