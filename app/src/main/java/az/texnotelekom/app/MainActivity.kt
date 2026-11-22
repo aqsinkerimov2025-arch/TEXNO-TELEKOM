@@ -3098,7 +3098,7 @@ fun TexnoTelekomApp(
             }
         } else {
         Box(
-            Modifier.weight(1f).fillMaxWidth()
+            Modifier.fillMaxSize()
                 .background(
                     Brush.linearGradient(
                         colorStops = arrayOf(
