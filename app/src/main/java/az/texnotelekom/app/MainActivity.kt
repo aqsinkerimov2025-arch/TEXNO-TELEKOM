@@ -2232,6 +2232,16 @@ fun TexnoTelekomApp(
     var showGroupManagementAdmin by remember { mutableStateOf(false) }
     BackHandler(enabled = adminOpen && !showGroupManagementAdmin) { adminOpen = false }
     BackHandler(enabled = showGroupManagementAdmin) { showGroupManagementAdmin = false }
+    BackHandler(
+        enabled = !showGroupChat && !showPhoneInfo && !showPrograms && !showGames &&
+            !showFeedback && !showAbout && !adminOpen && !showGroupManagementAdmin
+    ) {
+        when {
+            searchOpen -> { searchOpen = false; query = "" }
+            selectedBottomTab != 0 -> selectedBottomTab = 0
+            else -> Unit
+        }
+    }
     var showSiteTextEditor by remember { mutableStateOf(false) }
     var designAdminOpen by remember { mutableStateOf(false) }
     var showDeviceInfo by remember { mutableStateOf(false) }
