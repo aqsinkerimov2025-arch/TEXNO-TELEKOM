@@ -122,9 +122,9 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.messaging.FirebaseMessaging
 
-private val bg = Color(0xFF000000)
-private val panel = Color(0xFF181818)
-private val accent = Color(0xFFFFFFFF)
+private val bg = Color(0xFF050A18)
+private val panel = Color(0xFF111A2C)
+private val accent = Color(0xFF168BFF)
 private const val INSTANT_PUSH_WORKER_URL = "https://texno-telekom-push-v2.aqsin-kerimov-2025.workers.dev"
 
 private fun triggerInstantPush() {
@@ -2150,9 +2150,9 @@ fun TexnoTelekomApp(
     }
 
     // Server-managed design values update live without publishing a new APK.
-    var designBgHex by remember { mutableStateOf("#000000") }
-    var designPanelHex by remember { mutableStateOf("#181818") }
-    var designAccentHex by remember { mutableStateOf("#FFFFFF") }
+    var designBgHex by remember { mutableStateOf("#050A18") }
+    var designPanelHex by remember { mutableStateOf("#111A2C") }
+    var designAccentHex by remember { mutableStateOf("#168BFF") }
     var designGoldCards by remember { mutableStateOf(true) }
     val liveBg = remoteColor(designBgHex, bg)
     val livePanel = remoteColor(designPanelHex, panel)
@@ -2802,10 +2802,10 @@ fun TexnoTelekomApp(
         colorScheme = darkColorScheme(
             background = liveBg,
             surface = livePanel,
-            surfaceVariant = Color(0xFF242424),
-            primary = Color(0xFF303030),
-            secondary = Color(0xFFBDBDBD),
-            tertiary = Color(0xFFFFFFFF),
+            surfaceVariant = Color(0xFF17233A),
+            primary = Color(0xFF168BFF),
+            secondary = Color(0xFF62B7FF),
+            tertiary = Color(0xFF168BFF),
             onPrimary = Color.White,
             onSecondary = Color(0xFFFFFFFF),
             onBackground = Color.White,
