@@ -3130,7 +3130,28 @@ fun TexnoTelekomApp(
                 }
                 .statusBarsPadding()
         ) {
-        Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp).padding(bottom = 92.dp)) {
+        val homeScrollState = rememberScrollState()
+        var bottomBarVisible by remember { mutableStateOf(true) }
+        LaunchedEffect(selectedBottomTab) {
+            bottomBarVisible = true
+            homeScrollState.scrollTo(0)
+        }
+        LaunchedEffect(homeScrollState, selectedBottomTab) {
+            var previousScroll = homeScrollState.value
+            snapshotFlow { homeScrollState.value }.collect { currentScroll ->
+                if (selectedBottomTab == 0) {
+                    when {
+                        currentScroll <= 0 -> bottomBarVisible = true
+                        currentScroll > previousScroll -> bottomBarVisible = false
+                        currentScroll < previousScroll -> bottomBarVisible = true
+                    }
+                } else {
+                    bottomBarVisible = true
+                }
+                previousScroll = currentScroll
+            }
+        }
+        Column(Modifier.fillMaxSize().verticalScroll(homeScrollState).padding(horizontal = 16.dp).padding(bottom = 92.dp)) {
             if (selectedBottomTab != 0) {
                 when (selectedBottomTab) {
                     1 -> {
@@ -4111,7 +4132,8 @@ fun TexnoTelekomApp(
             Column(
                 modifier = Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 18.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(6.dp)
+                verticalArrangement = Arr        if (bottomBarVisible || selectedBottomTab != 0) {
+angement.spacedBy(6.dp)
             ) {
                 Text(
                     "TEXNO-TELEKOM",
@@ -4154,7 +4176,8 @@ fun TexnoTelekomApp(
                     Modifier.weight(1f).fillMaxHeight()
                         .clip(RoundedCornerShape(16.dp))
                         .background(if (active) Color(0xFF12345A) else Color.Transparent)
-                        .clickable { selectedBottomTab = index; if (index == 0) query = "" }
+                        .clickable { selectedBottomTab = index; if (index == 0) query 
+        }= "" }
                         .padding(horizontal = 1.dp, vertical = 7.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
