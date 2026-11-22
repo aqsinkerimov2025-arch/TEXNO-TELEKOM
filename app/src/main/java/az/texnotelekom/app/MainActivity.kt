@@ -3098,7 +3098,7 @@ fun TexnoTelekomApp(
             }
         } else {
         Box(
-            Modifier.fillMaxSize()
+            Modifier.weight(1f).fillMaxWidth()
                 .background(
                     Brush.linearGradient(
                         colorStops = arrayOf(
@@ -4171,7 +4171,7 @@ fun TexnoTelekomApp(
         }
         if (bottomBarVisible || selectedBottomTab != 0) {
         Row(
-            Modifier.align(Alignment.BottomCenter).fillMaxWidth()
+            Modifier.fillMaxWidth()
                 .background(Color(0xFF080F1D))
                 .navigationBarsPadding()
                 .padding(horizontal = 7.dp, vertical = 7.dp)
