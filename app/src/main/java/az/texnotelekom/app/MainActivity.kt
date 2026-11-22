@@ -4138,7 +4138,7 @@ fun TexnoTelekomApp(
             }
         }
         Row(
-            Modifier.align(Alignment.BottomCenter).fillMaxWidth()
+            Modifier.fillMaxWidth()
                 .background(Color(0xFF080F1D))
                 .navigationBarsPadding()
                 .padding(horizontal = 4.dp, vertical = 8.dp),
@@ -4162,6 +4162,7 @@ fun TexnoTelekomApp(
             }
         }
     }
+}
 }
 }
 }
