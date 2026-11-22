@@ -3162,7 +3162,7 @@ fun TexnoTelekomApp(
                 previousScroll = currentScroll
             }
         }
-        Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(homeScrollState).padding(horizontal = 16.dp).padding(bottom = 92.dp)) {
+        Column(Modifier.fillMaxSize().verticalScroll(homeScrollState).padding(horizontal = 16.dp).padding(bottom = 92.dp)) {
             if (selectedBottomTab != 0) {
                 when (selectedBottomTab) {
                     1 -> {
@@ -4171,7 +4171,7 @@ fun TexnoTelekomApp(
         }
         if (bottomBarVisible || selectedBottomTab != 0) {
         Row(
-            Modifier.fillMaxWidth()
+            Modifier.align(Alignment.BottomCenter).fillMaxWidth()
                 .background(Color(0xFF080F1D))
                 .navigationBarsPadding()
                 .padding(horizontal = 7.dp, vertical = 7.dp)
