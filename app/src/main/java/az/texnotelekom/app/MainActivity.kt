@@ -4136,7 +4136,6 @@ fun TexnoTelekomApp(
                 )
             }
             }
-        }
         Row(
             Modifier.align(Alignment.BottomCenter).fillMaxWidth()
                 .background(Color(0xFF080F1D))
@@ -4163,5 +4162,6 @@ fun TexnoTelekomApp(
         }
         }
     }
+}
 }
 }
