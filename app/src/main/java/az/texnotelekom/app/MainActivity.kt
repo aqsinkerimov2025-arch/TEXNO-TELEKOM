@@ -3162,7 +3162,7 @@ fun TexnoTelekomApp(
                 previousScroll = currentScroll
             }
         }
-        Column(Modifier.fillMaxSize().verticalScroll(homeScrollState).padding(horizontal = 16.dp).padding(bottom = 92.dp)) {
+        Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(homeScrollState).padding(horizontal = 16.dp).padding(bottom = 92.dp)) {
             if (selectedBottomTab != 0) {
                 when (selectedBottomTab) {
                     1 -> {
