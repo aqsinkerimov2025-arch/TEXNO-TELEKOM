@@ -4132,8 +4132,7 @@ fun TexnoTelekomApp(
             Column(
                 modifier = Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 18.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arr        if (bottomBarVisible || selectedBottomTab != 0) {
-angement.spacedBy(6.dp)
+                verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Text(
                     "TEXNO-TELEKOM",
@@ -4159,6 +4158,7 @@ angement.spacedBy(6.dp)
             }
             }
         }
+        if (bottomBarVisible || selectedBottomTab != 0) {
         Row(
             Modifier.fillMaxWidth()
                 .background(Color(0xFF080F1D))
@@ -4176,8 +4176,7 @@ angement.spacedBy(6.dp)
                     Modifier.weight(1f).fillMaxHeight()
                         .clip(RoundedCornerShape(16.dp))
                         .background(if (active) Color(0xFF12345A) else Color.Transparent)
-                        .clickable { selectedBottomTab = index; if (index == 0) query 
-        }= "" }
+                        .clickable { selectedBottomTab = index; if (index == 0) query = "" }
                         .padding(horizontal = 1.dp, vertical = 7.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
@@ -4198,6 +4197,7 @@ angement.spacedBy(6.dp)
                     )
                 }
             }
+        }
         }
     }
 }
