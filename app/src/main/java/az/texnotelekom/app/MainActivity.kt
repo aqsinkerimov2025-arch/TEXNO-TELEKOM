@@ -2198,6 +2198,7 @@ fun TexnoTelekomApp(
     }
     var query by remember { mutableStateOf("") }
     var searchOpen by remember { mutableStateOf(false) }
+    var selectedBottomTab by remember { mutableIntStateOf(0) }
     var showPhoneInfo by remember { mutableStateOf(false) }
     val texnoInfoLogo = remember {
         BitmapFactory.decodeResource(context.resources, R.drawable.texno_telekom_program_logo).asImageBitmap()
@@ -3085,7 +3086,7 @@ fun TexnoTelekomApp(
 
             }
         } else {
-        Column(
+        Box(
             Modifier.fillMaxSize()
                 .background(
                     Brush.linearGradient(
@@ -3127,9 +3128,64 @@ fun TexnoTelekomApp(
                         )
                     )
                 }
-                .statusBarsPadding().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)
+                .statusBarsPadding()
         ) {
-            if (showPhoneInfo) {
+        Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp).padding(bottom = 92.dp)) {
+            if (selectedBottomTab != 0) {
+                when (selectedBottomTab) {
+                    1 -> {
+                        Text("KATEQORİYALAR", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Black, modifier = Modifier.padding(vertical = 18.dp))
+                        val categoryNames = programs.filter { it.isActive || loggedIn }.map { it.category }.filter { it.isNotBlank() }.distinct().sorted()
+                        if (categoryNames.isEmpty()) Text("Hələ kateqoriya əlavə edilməyib.", color = Color.LightGray)
+                        categoryNames.forEach { cat ->
+                            Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF101C31)), modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp).clickable { query = cat; searchOpen = true; selectedBottomTab = 0 }) {
+                                Row(Modifier.fillMaxWidth().padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    Text("▦", color = Color(0xFF168BFF), fontSize = 24.sp, modifier = Modifier.padding(end = 14.dp))
+                                    Text(cat, color = Color.White, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                                    Text("›", color = Color(0xFF168BFF), fontSize = 26.sp)
+                                }
+                            }
+                        }
+                    }
+                    2 -> {
+                        Text("FAVORİLƏR", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Black, modifier = Modifier.padding(vertical = 18.dp))
+                        Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF101C31)), modifier = Modifier.fillMaxWidth()) {
+                            Column(Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text("☆", color = Color(0xFF168BFF), fontSize = 42.sp)
+                                Text("Favori siyahısı", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                                Text("Sevdiyin proqramları bu bölmədə görəcəksən.", color = Color.LightGray, fontSize = 13.sp)
+                            }
+                        }
+                    }
+                    3 -> {
+                        Text("PREMIUM", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Black, modifier = Modifier.padding(vertical = 18.dp))
+                        val premiumPosts = posts.filter { it.isVip }
+                        if (premiumPosts.isEmpty()) Text("Hazırda premium paylaşım yoxdur.", color = Color.LightGray)
+                        premiumPosts.forEach { post ->
+                            Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF101C31)), modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
+                                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    Text("👑 " + post.title, color = Color(0xFF65B9FF), fontWeight = FontWeight.Black, fontSize = 17.sp)
+                                    if (post.version.isNotBlank()) Text("Versiya: ${post.version}", color = Color.LightGray)
+                                    Text(post.description, color = Color.White)
+                                    if (post.downloadUrl.isNotBlank()) Button(onClick = { try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(post.downloadUrl))) } catch (_: Exception) { error = "Link açıla bilmədi." } }) { Text("Yüklə") }
+                                }
+                            }
+                        }
+                    }
+                    4 -> {
+                        Text("PROFİL", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Black, modifier = Modifier.padding(vertical = 18.dp))
+                        Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF101C31)), modifier = Modifier.fillMaxWidth()) {
+                            Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text("●", color = Color(0xFF168BFF), fontSize = 44.sp)
+                                Text(groupNickname.ifBlank { "İstifadəçi" }, color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                                Text(if (loggedIn) "ADMİN HESABI" else "TEXNO-TELEKOM İSTİFADƏÇİSİ", color = Color.LightGray, fontSize = 12.sp)
+                                OutlinedButton(onClick = { showGroupChat = true; selectedBottomTab = 0 }, modifier = Modifier.fillMaxWidth()) { Text("Qrup söhbətinə keç") }
+                                OutlinedButton(onClick = { showFeedback = true; selectedBottomTab = 0 }, modifier = Modifier.fillMaxWidth()) { Text("Adminlə əlaqə") }
+                            }
+                        }
+                    }
+                }
+            } else if (showPhoneInfo) {
                 Row(Modifier.fillMaxWidth().padding(vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text("‹", color = Color.White, fontSize = 32.sp, modifier = Modifier.clickable { showPhoneInfo = false }.padding(end = 12.dp))
                     Text("TEXNO-MƏLUMAT", color = Color.White, fontSize = 21.sp, fontWeight = FontWeight.Black)
@@ -4080,6 +4136,29 @@ fun TexnoTelekomApp(
                 )
             }
             }
+        }
+        Row(
+            Modifier.align(Alignment.BottomCenter).fillMaxWidth()
+                .background(Color(0xFF080F1D))
+                .navigationBarsPadding()
+                .padding(horizontal = 4.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            val navLabels = listOf("Ana Səhifə", "Kateqoriyalar", "Favorilər", "Premium", "Profil")
+            val navIcons = listOf("⌂", "▦", "★", "♛", "●")
+            navLabels.forEachIndexed { index, label ->
+                val active = selectedBottomTab == index
+                Column(
+                    Modifier.weight(1f).clip(RoundedCornerShape(14.dp))
+                        .clickable { selectedBottomTab = index; if (index == 0) query = "" }
+                        .padding(vertical = 5.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(3.dp)
+                ) {
+                    Text(navIcons[index], color = if (active) Color(0xFF168BFF) else Color(0xFF8996AA), fontSize = 21.sp, fontWeight = FontWeight.Bold)
+                    Text(label, color = if (active) Color(0xFF168BFF) else Color(0xFFB7C1D0), fontSize = 9.sp, fontWeight = if (active) FontWeight.Bold else FontWeight.Medium, maxLines = 1)
+                }
             }
         }
         }
