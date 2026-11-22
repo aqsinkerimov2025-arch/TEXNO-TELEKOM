@@ -1466,15 +1466,15 @@ private fun GroupChatScreen(backgroundColor: Color, onClose: () -> Unit, onOpenB
 
     val homeBackgroundBrush = Brush.linearGradient(
         colorStops = arrayOf(
-            0.00f to Color(0xFF24104F),
-            0.12f to Color(0xFF302078),
-            0.23f to Color(0xFF263F9C),
-            0.38f to Color(0xFF315BC2),
-            0.52f to Color(0xFF182F78),
-            0.66f to Color(0xFF243D91),
-            0.79f to Color(0xFF49309A),
-            0.91f to Color(0xFF302078),
-            1.00f to Color(0xFF24104F)
+            0.00f to Color(0xFF030712),
+            0.12f to Color(0xFF071329),
+            0.23f to Color(0xFF081B38),
+            0.38f to Color(0xFF0B2550),
+            0.52f to Color(0xFF050B18),
+            0.66f to Color(0xFF081A35),
+            0.79f to Color(0xFF0A2450),
+            0.91f to Color(0xFF071329),
+            1.00f to Color(0xFF030712)
         ),
         start = Offset.Zero,
         end = Offset(900f, 1500f)
@@ -1484,17 +1484,17 @@ private fun GroupChatScreen(backgroundColor: Color, onClose: () -> Unit, onOpenB
             .background(homeBackgroundBrush)
             .drawBehind {
                 drawRect(brush = Brush.radialGradient(
-                    colors = listOf(Color(0xFFB8C9FF).copy(alpha = 0.30f), Color(0xFF6D8EFF).copy(alpha = 0.20f), Color.Transparent),
+                    colors = listOf(Color(0xFF168BFF).copy(alpha = 0.24f), Color(0xFF168BFF).copy(alpha = 0.12f), Color.Transparent),
                     center = Offset(size.width * 0.28f, size.height * 0.78f),
                     radius = size.maxDimension * 0.62f
                 ))
                 drawRect(brush = Brush.radialGradient(
-                    colors = listOf(Color(0xFF9A7CFF).copy(alpha = 0.28f), Color(0xFF416BDF).copy(alpha = 0.18f), Color.Transparent),
+                    colors = listOf(Color(0xFF008DFF).copy(alpha = 0.22f), Color(0xFF0054C8).copy(alpha = 0.16f), Color.Transparent),
                     center = Offset(size.width * 0.86f, size.height * 0.42f),
                     radius = size.maxDimension * 0.58f
                 ))
                 drawRect(brush = Brush.linearGradient(
-                    colors = listOf(Color.Transparent, Color(0xFFB7C9FF).copy(alpha = 0.12f), Color.Transparent),
+                    colors = listOf(Color.Transparent, Color(0xFF36A9FF).copy(alpha = 0.12f), Color.Transparent),
                     start = Offset(0f, size.height * 0.84f),
                     end = Offset(size.width, size.height * 0.58f)
                 ))
@@ -1858,8 +1858,8 @@ private fun GroupManagementAdminPanel() {
                     "sapphire" -> Color(0xFF2856A6)
                     else -> Color(0xFFF4F0E8)
                 }
-                val foreground = if (key == "diamond" || key == "classic") Color(0xFF202020) else Color.White
-                Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(Color(0xFF202020))
+                val foreground = if (key == "diamond" || key == "classic") Color(0xFF111A2C) else Color.White
+                Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(Color(0xFF111A2C))
                     .clickable { saveBubbleStyle(key) }.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
                     Box(Modifier.weight(1f).clip(RoundedCornerShape(14.dp)).background(preview)
                         .then(if (key == "gold" || key == "royal" || key == "obsidian") Modifier.border(2.dp, Color(0xFFFFD36A), RoundedCornerShape(14.dp)) else Modifier)
@@ -2849,15 +2849,15 @@ fun TexnoTelekomApp(
                 Modifier.fillMaxSize().background(
                     Brush.linearGradient(
                         colorStops = arrayOf(
-                            0.00f to Color(0xFF24104F),
-                            0.12f to Color(0xFF302078),
-                            0.23f to Color(0xFF263F9C),
-                            0.38f to Color(0xFF315BC2),
-                            0.52f to Color(0xFF182F78),
-                            0.66f to Color(0xFF243D91),
-                            0.79f to Color(0xFF49309A),
-                            0.91f to Color(0xFF302078),
-                            1.00f to Color(0xFF24104F)
+                            0.00f to Color(0xFF030712),
+                            0.12f to Color(0xFF071329),
+                            0.23f to Color(0xFF081B38),
+                            0.38f to Color(0xFF0B2550),
+                            0.52f to Color(0xFF050B18),
+                            0.66f to Color(0xFF081A35),
+                            0.79f to Color(0xFF0A2450),
+                            0.91f to Color(0xFF071329),
+                            1.00f to Color(0xFF030712)
                         ),
                         start = Offset.Zero,
                         end = Offset(900f, 1500f)
@@ -2870,7 +2870,7 @@ fun TexnoTelekomApp(
                     Text("ADMİNLƏ-ƏLAQƏ", color = Color.White, fontSize = 21.sp, fontWeight = FontWeight.Black)
                 }
                 Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF101010)), shape = RoundedCornerShape(18.dp), modifier = Modifier.fillMaxWidth()) {
+                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF0B1425)), shape = RoundedCornerShape(18.dp), modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                             Text("MR_R3HB3R", color = Color.White, fontSize = 23.sp, fontWeight = FontWeight.Black)
                             HorizontalDivider(color = Color.DarkGray)
@@ -2954,7 +2954,7 @@ fun TexnoTelekomApp(
                                     if (audio.isNotBlank()) GroupVoiceMessagePlayer(audio, sentAt.takeIf { it > 0L } ?: System.currentTimeMillis())
                                     if (sentAt > 0L) Text(
                                         java.text.SimpleDateFormat("dd.MM.yyyy HH:mm", java.util.Locale.getDefault()).format(java.util.Date(sentAt)),
-                                        color = Color(0xFF555555),
+                                        color = Color(0xFF243650),
                                         fontSize = 11.sp,
                                         modifier = Modifier.align(Alignment.End)
                                     )
@@ -3090,15 +3090,15 @@ fun TexnoTelekomApp(
                 .background(
                     Brush.linearGradient(
                         colorStops = arrayOf(
-                            0.00f to Color(0xFF24104F),
-                            0.12f to Color(0xFF302078),
-                            0.23f to Color(0xFF263F9C),
-                            0.38f to Color(0xFF315BC2),
-                            0.52f to Color(0xFF182F78),
-                            0.66f to Color(0xFF243D91),
-                            0.79f to Color(0xFF49309A),
-                            0.91f to Color(0xFF302078),
-                            1.00f to Color(0xFF24104F)
+                            0.00f to Color(0xFF030712),
+                            0.12f to Color(0xFF071329),
+                            0.23f to Color(0xFF081B38),
+                            0.38f to Color(0xFF0B2550),
+                            0.52f to Color(0xFF050B18),
+                            0.66f to Color(0xFF081A35),
+                            0.79f to Color(0xFF0A2450),
+                            0.91f to Color(0xFF071329),
+                            1.00f to Color(0xFF030712)
                         ),
                         start = Offset.Zero,
                         end = Offset(900f, 1500f)
@@ -3107,21 +3107,21 @@ fun TexnoTelekomApp(
                 .drawBehind {
                     drawRect(
                         brush = Brush.radialGradient(
-                            colors = listOf(Color(0xFFB8C9FF).copy(alpha = 0.30f), Color(0xFF6D8EFF).copy(alpha = 0.20f), Color.Transparent),
+                            colors = listOf(Color(0xFF168BFF).copy(alpha = 0.24f), Color(0xFF168BFF).copy(alpha = 0.12f), Color.Transparent),
                             center = Offset(size.width * 0.28f, size.height * 0.78f),
                             radius = size.maxDimension * 0.62f
                         )
                     )
                     drawRect(
                         brush = Brush.radialGradient(
-                            colors = listOf(Color(0xFF9A7CFF).copy(alpha = 0.28f), Color(0xFF416BDF).copy(alpha = 0.18f), Color.Transparent),
+                            colors = listOf(Color(0xFF008DFF).copy(alpha = 0.22f), Color(0xFF0054C8).copy(alpha = 0.16f), Color.Transparent),
                             center = Offset(size.width * 0.86f, size.height * 0.42f),
                             radius = size.maxDimension * 0.58f
                         )
                     )
                     drawRect(
                         brush = Brush.linearGradient(
-                            colors = listOf(Color.Transparent, Color(0xFFB7C9FF).copy(alpha = 0.12f), Color.Transparent),
+                            colors = listOf(Color.Transparent, Color(0xFF36A9FF).copy(alpha = 0.12f), Color.Transparent),
                             start = Offset(0f, size.height * 0.84f),
                             end = Offset(size.width, size.height * 0.58f)
                         )
@@ -3363,14 +3363,14 @@ fun TexnoTelekomApp(
                     ) {
                         Text(
                             heroTitle,
-                            style = TextStyle(brush = Brush.horizontalGradient(listOf(Color(0xFFBDBDBD), Color.White, Color(0xFFBDBDBD)))),
+                            style = TextStyle(brush = Brush.horizontalGradient(listOf(Color(0xFF65B9FF), Color.White, Color(0xFF65B9FF)))),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Black,
                             maxLines = 1
                         )
                         Text(
                             "TEXNO-MƏLUMAT",
-                            style = TextStyle(brush = Brush.horizontalGradient(listOf(Color(0xFFBDBDBD), Color.White, Color(0xFFBDBDBD)))),
+                            style = TextStyle(brush = Brush.horizontalGradient(listOf(Color(0xFF65B9FF), Color.White, Color(0xFF65B9FF)))),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Black,
                             maxLines = 1
@@ -3439,7 +3439,7 @@ fun TexnoTelekomApp(
                 )
             }
             Spacer(Modifier.height(28.dp))
-            HorizontalDivider(color = Color(0xFF555555), thickness = 1.dp)
+            HorizontalDivider(color = Color(0xFF243650), thickness = 1.dp)
             Spacer(Modifier.height(28.dp))
             if (infoTitle.isNotBlank()) {
                 Text(
@@ -3506,7 +3506,7 @@ fun TexnoTelekomApp(
                                 Text(if (showSiteTextEditor) "SAYT YAZILARINI BAĞLA ▲" else "SAYT YAZILARINI DÜZƏLT ▼", fontWeight = FontWeight.Bold)
                             }
                             if (showSiteTextEditor) {
-                                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF101010)), modifier = Modifier.fillMaxWidth()) {
+                                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF0B1425)), modifier = Modifier.fillMaxWidth()) {
                                     Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                         Text("SAYT YAZILARI", color = Color(0xFFFFFFFF), fontWeight = FontWeight.Bold, fontSize = 17.sp)
                                         OutlinedTextField(heroTitle, { heroTitle = it }, label = { Text("Əsas başlıq") }, modifier = Modifier.fillMaxWidth())
@@ -3566,7 +3566,7 @@ fun TexnoTelekomApp(
                             }
                             Text("Oyunlar: ${games.size}", color = Color(0xFFFFFFFF), fontWeight = FontWeight.Bold)
                             games.forEach { g ->
-                                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF202020)), modifier = Modifier.fillMaxWidth()) {
+                                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2C)), modifier = Modifier.fillMaxWidth()) {
                                     Row(Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
                                         if (g.iconUrl.isNotBlank()) ProgramIcon(g.iconUrl, g.name, 40)
                                         Column(Modifier.weight(1f).padding(horizontal = 8.dp)) {
@@ -3608,7 +3608,7 @@ fun TexnoTelekomApp(
                             HorizontalDivider()
                             Text("Proqramlar: ${programs.size}", color = Color(0xFFFFFFFF), fontWeight = FontWeight.Bold)
                             programs.forEach { p ->
-                                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF202020)), modifier = Modifier.fillMaxWidth()) {
+                                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2C)), modifier = Modifier.fillMaxWidth()) {
                                     Row(Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
                                         if (p.iconUrl.isNotBlank()) ProgramIcon(p.iconUrl, p.name, 40)
                                         Column(Modifier.weight(1f).padding(horizontal = 8.dp)) {
@@ -3703,7 +3703,7 @@ fun TexnoTelekomApp(
             }
             Spacer(Modifier.height(22.dp))
             Card(
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF202020)),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2C)),
                 shape = RoundedCornerShape(28.dp),
                 modifier = Modifier.fillMaxWidth().clickable { showPhoneInfo = !showPhoneInfo; newPhoneInfoNotice = false }
             ) {
@@ -3729,7 +3729,7 @@ fun TexnoTelekomApp(
             if (showPhoneInfo) {
                 Spacer(Modifier.height(12.dp))
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF181818)),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2C)),
                     shape = RoundedCornerShape(22.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -3824,7 +3824,7 @@ fun TexnoTelekomApp(
 
             if (!showPhoneInfo) {
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF202020)),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2C)),
                     shape = RoundedCornerShape(26.dp),
                     modifier = Modifier.fillMaxWidth().clickable { showPrograms = !showPrograms; showGames = false }
                 ) {
@@ -3854,7 +3854,7 @@ fun TexnoTelekomApp(
             shown.forEach { p ->
                 val isGoldBankCard = designGoldCards
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = if (isGoldBankCard) Color(0xFFC58B22) else Color(0xFF202020)),
+                    colors = CardDefaults.cardColors(containerColor = if (isGoldBankCard) Color(0xFFC58B22) else Color(0xFF111A2C)),
                     shape = RoundedCornerShape(30.dp),
                     modifier = Modifier.fillMaxWidth().padding(vertical = 7.dp).then(
                         if (p.id == notificationProgramId) Modifier.bringIntoViewRequester(notificationItemBringIntoView).border(3.dp, Color(0xFFFFD54F), RoundedCornerShape(30.dp)) else Modifier
@@ -3865,7 +3865,7 @@ fun TexnoTelekomApp(
                             .background(
                                 if (isGoldBankCard) Brush.linearGradient(
                                     listOf(Color(0xFFFFE69A), Color(0xFFC18A24), Color(0xFFF5C85B), Color(0xFF9A6418))
-                                ) else Brush.linearGradient(listOf(Color(0xFF202020), Color(0xFF202020))),
+                                ) else Brush.linearGradient(listOf(Color(0xFF111A2C), Color(0xFF111A2C))),
                                 RoundedCornerShape(28.dp)
                             )
                             .padding(18.dp),
@@ -3970,7 +3970,7 @@ fun TexnoTelekomApp(
                 }
 
             if (!showPhoneInfo) {
-            Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF202020)), shape = RoundedCornerShape(26.dp), modifier = Modifier.fillMaxWidth().clickable { showGames = !showGames; showPrograms = false }) {
+            Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2C)), shape = RoundedCornerShape(26.dp), modifier = Modifier.fillMaxWidth().clickable { showGames = !showGames; showPrograms = false }) {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 20.dp), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text("🎮 OYUNLAR", color = Color(0xFFFFFFFF), fontSize = 20.sp, fontWeight = FontWeight.Bold)
@@ -3984,7 +3984,7 @@ fun TexnoTelekomApp(
                 Spacer(Modifier.height(10.dp))
                 if (games.isEmpty()) Text("Hələ oyun əlavə edilməyib.", color = Color.LightGray)
                 games.filter { it.isActive || loggedIn }.forEach { g ->
-                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF202020)), modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp).then(
+                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2C)), modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp).then(
                         if (g.id == notificationProgramId) Modifier.bringIntoViewRequester(notificationItemBringIntoView).border(3.dp, Color(0xFFFFD54F), RoundedCornerShape(12.dp)) else Modifier
                     )) {
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -4006,7 +4006,7 @@ fun TexnoTelekomApp(
 
             if (!showPhoneInfo) {
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF181818)),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2C)),
                     shape = RoundedCornerShape(22.dp),
                     modifier = Modifier.fillMaxWidth().clickable {
                         context.getSharedPreferences("texno_admin_notices", Context.MODE_PRIVATE)
@@ -4031,7 +4031,7 @@ fun TexnoTelekomApp(
                 Text("Kanal paylaşımları", color = Color(0xFFFFFFFF), fontSize = 23.sp, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(10.dp))
                 posts.forEach { post ->
-                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF181818)), modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
+                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2C)), modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text(post.title + if (post.isVip) "  👑 VIP PREMIUM" else "", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                             if (post.version.isNotBlank()) Text("Versiya: ${post.version}", color = Color(0xFFFFFFFF), fontSize = 12.sp)
