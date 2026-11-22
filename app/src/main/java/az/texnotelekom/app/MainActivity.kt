@@ -4141,7 +4141,8 @@ fun TexnoTelekomApp(
             Modifier.fillMaxWidth()
                 .background(Color(0xFF080F1D))
                 .navigationBarsPadding()
-                .padding(horizontal = 4.dp, vertical = 8.dp),
+                .padding(horizontal = 7.dp, vertical = 7.dp)
+                .heightIn(min = 72.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -4150,14 +4151,28 @@ fun TexnoTelekomApp(
             navLabels.forEachIndexed { index, label ->
                 val active = selectedBottomTab == index
                 Column(
-                    Modifier.weight(1f).clip(RoundedCornerShape(14.dp))
+                    Modifier.weight(1f).fillMaxHeight()
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(if (active) Color(0xFF12345A) else Color.Transparent)
                         .clickable { selectedBottomTab = index; if (index == 0) query = "" }
-                        .padding(vertical = 5.dp),
+                        .padding(horizontal = 1.dp, vertical = 7.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(3.dp)
+                    verticalArrangement = Arrangement.Center
                 ) {
-                    Text(navIcons[index], color = if (active) Color(0xFF168BFF) else Color(0xFF8996AA), fontSize = 21.sp, fontWeight = FontWeight.Bold)
-                    Text(label, color = if (active) Color(0xFF168BFF) else Color(0xFFB7C1D0), fontSize = 9.sp, fontWeight = if (active) FontWeight.Bold else FontWeight.Medium, maxLines = 1)
+                    Text(
+                        navIcons[index],
+                        color = if (active) Color(0xFF39A5FF) else Color(0xFF8996AA),
+                        fontSize = 26.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(Modifier.height(3.dp))
+                    Text(
+                        label,
+                        color = if (active) Color(0xFF63B5FF) else Color(0xFFB7C1D0),
+                        fontSize = 10.sp,
+                        fontWeight = if (active) FontWeight.Bold else FontWeight.Medium,
+                        maxLines = 1
+                    )
                 }
             }
         }
