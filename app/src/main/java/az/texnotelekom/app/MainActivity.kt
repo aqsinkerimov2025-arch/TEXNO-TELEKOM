@@ -3421,6 +3421,12 @@ fun TexnoTelekomApp(
                 .statusBarsPadding()
         ) {
         val homeScrollState = rememberScrollState()
+        BackHandler(enabled = selectedBottomTab == 3 && isAuthorizedDevice && adminEntry != null) {
+            adminEntry = null
+            clearForm()
+            clearGameForm()
+            clearPostForm()
+        }
         var bottomBarVisible by remember { mutableStateOf(true) }
         LaunchedEffect(selectedBottomTab) {
             bottomBarVisible = true
