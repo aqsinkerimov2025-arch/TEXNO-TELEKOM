@@ -3246,7 +3246,7 @@ fun TexnoTelekomApp(
                         Text("Qaranlıq Rejim", color = Color(0xFFF1F5FF), fontSize = 18.sp, modifier = Modifier.weight(1f))
                         Switch(checked = profileDarkMode, onCheckedChange = { profileDarkMode = it })
                     }
-                    ProfileItem("⏻", "Çıxış", Color(0xFFFF2448)) { showAbout = true }
+                    ProfileItem("🚪", "Çıxış", Color(0xFFFF2448)) { showAbout = true }
                     Spacer(Modifier.height(12.dp))
                     Card(
                         modifier = Modifier.fillMaxWidth().height(94.dp),
