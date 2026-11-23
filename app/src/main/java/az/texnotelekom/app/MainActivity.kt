@@ -2893,12 +2893,59 @@ fun TexnoTelekomApp(
                             when (selectedSetting.second) {
                                 "Hesab məlumatları" -> {
                                     val account = FirebaseAuth.getInstance().currentUser
-                                    val displayName = account?.displayName ?: "TEXNO-TELEKOM istifadəçisi"
-                                    val email = account?.email ?: "Hesaba e-poçt əlavə edilməyib"
-                                    val loginStatus = if (account != null) "Daxil olunub" else "Qonaq"
-                                    Text("İstifadəçi: $displayName", color = Color.White, fontSize = 14.sp)
-                                    Text("E-poçt: $email", color = Color.White, fontSize = 14.sp)
-                                    Text("Giriş statusu: $loginStatus", color = Color.White, fontSize = 14.sp)
+                                    var editableName by remember(account?.uid) {
+                                        mutableStateOf(
+                                            account?.displayName
+                                                ?: context.getSharedPreferences("texno_telekom", Context.MODE_PRIVATE)
+                                                    .getString("profile_display_name", "TEXNO-TELEKOM istifadəçisi")
+                                                ?: "TEXNO-TELEKOM istifadəçisi"
+                                        )
+                                    }
+                                    Text("İstifadəçi adı", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                                    OutlinedTextField(
+                                        value = editableName,
+                                        onValueChange = { editableName = it },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        singleLine = true,
+                                        placeholder = { Text("İstifadəçi adını yazın") },
+                                        colors = OutlinedTextFieldDefaults.colors(
+                                            focusedTextColor = Color.White,
+                                            unfocusedTextColor = Color.White,
+                                            focusedBorderColor = Color(0xFFFFD36A),
+                                            unfocusedBorderColor = Color.Gray,
+                                            cursorColor = Color(0xFFFFD36A)
+                                        )
+                                    )
+                                    Button(
+                                        onClick = {
+                                            val newName = editableName.trim()
+                                            if (newName.isNotEmpty()) {
+                                                if (account != null) {
+                                                    val profile = com.google.firebase.auth.UserProfileChangeRequest.Builder()
+                                                        .setDisplayName(newName)
+                                                        .build()
+                                                    account.updateProfile(profile).addOnCompleteListener { task ->
+                                                        if (task.isSuccessful) {
+                                                            context.getSharedPreferences("texno_telekom", Context.MODE_PRIVATE)
+                                                                .edit().putString("profile_display_name", newName).apply()
+                                                            android.widget.Toast.makeText(context, "İstifadəçi adı yeniləndi", android.widget.Toast.LENGTH_SHORT).show()
+                                                        } else {
+                                                            android.widget.Toast.makeText(context, "Adı dəyişmək mümkün olmadı", android.widget.Toast.LENGTH_SHORT).show()
+                                                        }
+                                                    }
+                                                } else {
+                                                    context.getSharedPreferences("texno_telekom", Context.MODE_PRIVATE)
+                                                        .edit().putString("profile_display_name", newName).apply()
+                                                    android.widget.Toast.makeText(context, "İstifadəçi adı yadda saxlanıldı", android.widget.Toast.LENGTH_SHORT).show()
+                                                }
+                                            } else {
+                                                android.widget.Toast.makeText(context, "İstifadəçi adı boş ola bilməz", android.widget.Toast.LENGTH_SHORT).show()
+                                            }
+                                        },
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD36A))
+                                    ) {
+                                        Text("Yadda saxla", color = Color(0xFF101827), fontWeight = FontWeight.Bold)
+                                    }
                                 }
                                 "Cihaz məlumatları" -> {
                                     val device = Build.MODEL ?: "Naməlum"
