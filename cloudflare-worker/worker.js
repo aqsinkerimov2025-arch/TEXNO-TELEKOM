@@ -135,7 +135,7 @@ async function runPush(env) {
       message: {
         topic: "texno_updates",
         data: { title, body, type: fromValue(fields.type) || "update", content_type: fromValue(fields.content_type) || fromValue(fields.type) || "program", program_id: fromValue(fields.program_id) || "" },
-        android: { priority: "HIGH" }
+        android: { priority: "HIGH", ttl: "2419200s" }
       }
     };
     const fcm = await fetch("https://fcm.googleapis.com/v1/projects/" + PROJECT_ID + "/messages:send", {
