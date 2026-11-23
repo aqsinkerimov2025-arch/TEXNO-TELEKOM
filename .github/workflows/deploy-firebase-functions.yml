@@ -4,8 +4,6 @@ on:
   push:
     paths:
       - "functions/**"
-      - "firebase.json"
-      - ".github/workflows/deploy-firebase-functions.yml"
 permissions:
   contents: read
 jobs:
