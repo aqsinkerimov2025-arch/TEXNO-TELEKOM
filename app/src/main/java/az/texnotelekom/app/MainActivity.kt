@@ -2211,15 +2211,19 @@ fun TexnoTelekomApp(
     var showPrograms by remember { mutableStateOf(false) }
     var showAbout by remember { mutableStateOf(false) }
     var showSecurity by remember { mutableStateOf(false) }
+    var showSettings by remember { mutableStateOf(false) }
+    var settingsSelected by remember { mutableStateOf<String?>(null) }
 
 
 
 
     var notificationProgramId by remember { mutableStateOf<String?>(null) }
     val notificationItemBringIntoView = remember { BringIntoViewRequester() }
-    BackHandler(enabled = showPhoneInfo || showPrograms || showGames || showFeedback || showAbout || showSecurity) {
+    BackHandler(enabled = showPhoneInfo || showPrograms || showGames || showFeedback || showAbout || showSecurity || showSettings) {
         when {
             showFeedback -> showFeedback = false
+            showSettings && settingsSelected != null -> settingsSelected = null
+            showSettings -> showSettings = false
             showSecurity -> showSecurity = false
             showAbout -> showAbout = false
             showGames -> showGames = false
@@ -2239,7 +2243,7 @@ fun TexnoTelekomApp(
     BackHandler(enabled = showGroupManagementAdmin) { showGroupManagementAdmin = false }
     BackHandler(
         enabled = !showGroupChat && !showPhoneInfo && !showPrograms && !showGames &&
-            !showFeedback && !showAbout && !showSecurity && !adminOpen && !showGroupManagementAdmin
+            !showFeedback && !showAbout && !showSecurity && !showSettings && !adminOpen && !showGroupManagementAdmin
     ) {
         when {
             searchOpen -> { searchOpen = false; query = "" }
@@ -2834,7 +2838,91 @@ fun TexnoTelekomApp(
             large = RoundedCornerShape(28.dp)
         )
     ) {
-        if (showSecurity) {
+        if (showSettings) {
+            val settingItems = listOf(
+                Triple("👤", "Hesab məlumatları", "Hesab adını, e-poçt ünvanını və giriş məlumatlarını göstərir."),
+                Triple("🔔", "Bildirişlər", "Tətbiq yenilikləri və vacib elanlar barədə bildirişlərin idarəsini izah edir."),
+                Triple("🎨", "Görünüş", "Tətbiqin rəngləri və ekran görünüşü haqqında məlumat verir."),
+                Triple("🔐", "Şifrə və hesab təhlükəsizliyi", "Hesabın qorunması və şifrənin yenilənməsi barədə məlumat verir."),
+                Triple("📱", "Cihaz məlumatları", "Telefon modeli, Android versiyası və tətbiq versiyasını göstərir."),
+                Triple("💬", "Rəy və təklif", "Fikir, təklif və şikayətləri administratora göndərməyə imkan verir."),
+                Triple("🛡️", "Məxfilik və təhlükəsizlik", "Şəxsi məlumatların qorunması və təhlükəsiz istifadə qaydalarını açıqlayır."),
+                Triple("🆘", "Kömək və dəstək", "Tətbiqdən istifadə zamanı yaranan suallar və problemlər üçün kömək göstərir."),
+                Triple("📜", "İstifadə şərtləri", "Platformadan istifadə qaydalarını və istifadəçi məsuliyyətlərini göstərir.")
+            )
+            val selectedSetting = settingItems.firstOrNull { it.second == settingsSelected }
+            Column(
+                Modifier.fillMaxSize().background(liveBg).statusBarsPadding().navigationBarsPadding()
+                    .verticalScroll(rememberScrollState()).padding(horizontal = 18.dp, vertical = 14.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Text("‹", color = Color.White, fontSize = 34.sp,
+                        modifier = Modifier.clickable {
+                            if (settingsSelected != null) settingsSelected = null else showSettings = false
+                        }.padding(end = 14.dp))
+                    Text(if (selectedSetting == null) "AYARLAR" else selectedSetting.second.uppercase(),
+                        color = Color.White, fontSize = 19.sp, fontWeight = FontWeight.Black)
+                }
+                if (selectedSetting == null) {
+                    Text("Tətbiqin seçimləri və hesab məlumatları", color = Color(0xFFCBD6EB), fontSize = 14.sp)
+                    settingItems.forEach { item ->
+                        Card(
+                            modifier = Modifier.fillMaxWidth().clickable {
+                                if (item.second == "Rəy və təklif") showFeedback = true
+                                else settingsSelected = item.second
+                            },
+                            shape = RoundedCornerShape(18.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))
+                        ) {
+                            Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 16.dp),
+                                verticalAlignment = Alignment.CenterVertically) {
+                                Text(item.first, fontSize = 27.sp, modifier = Modifier.width(48.dp))
+                                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    Text(item.second, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                                    Text(item.third, color = Color(0xFFB8C5DC), fontSize = 12.sp, lineHeight = 17.sp, maxLines = 2)
+                                }
+                                Text("›", color = Color(0xFFFFD36A), fontSize = 30.sp)
+                            }
+                        }
+                    }
+                } else {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(22.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))
+                    ) {
+                        Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                            Text(selectedSetting.first, fontSize = 38.sp)
+                            Text(selectedSetting.second, color = Color(0xFFFFD36A), fontSize = 19.sp, fontWeight = FontWeight.Bold)
+                            Text(selectedSetting.third, color = Color.White, fontSize = 15.sp, lineHeight = 23.sp)
+                            when (selectedSetting.second) {
+                                "Hesab məlumatları" -> {
+                                    val account = FirebaseAuth.getInstance().currentUser
+                                    Text("İstifadəçi: \${account?.displayName ?: "TEXNO-TELEKOM istifadəçisi"}", color = Color.White, fontSize = 14.sp)
+                                    Text("E-poçt: \${account?.email ?: "Hesaba e-poçt əlavə edilməyib"}", color = Color.White, fontSize = 14.sp)
+                                    Text("Giriş statusu: \${if (account != null) "Daxil olunub" else "Qonaq"}", color = Color.White, fontSize = 14.sp)
+                                }
+                                "Cihaz məlumatları" -> {
+                                    val device = Build.MODEL ?: "Naməlum"
+                                    val version = Build.VERSION.RELEASE ?: "Naməlum"
+                                    val appVersion = try { context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "Naməlum" } catch (_: Exception) { "Naməlum" }
+                                    Text("Telefon modeli: $device", color = Color.White, fontSize = 14.sp)
+                                    Text("Android versiyası: $version", color = Color.White, fontSize = 14.sp)
+                                    Text("Tətbiq versiyası: $appVersion", color = Color.White, fontSize = 14.sp)
+                                }
+                                "Şifrə və hesab təhlükəsizliyi" -> Text("Şifrənizi heç kimlə paylaşmayın. Şifrəni yeniləmək üçün istifadə etdiyiniz hesabın rəsmi giriş və bərpa vasitələrindən yararlanın.", color = Color.White, fontSize = 14.sp, lineHeight = 22.sp)
+                                "Bildirişlər" -> Text("Bildiriş icazəsini telefonunuzun Ayarlar → Tətbiqlər → TEXNO-TELEKOM → Bildirişlər bölməsindən idarə edə bilərsiniz.", color = Color.White, fontSize = 14.sp, lineHeight = 22.sp)
+                                "Görünüş" -> Text("TEXNO-TELEKOM hazırda tünd rəngli interfeysdən istifadə edir. Bu görünüş rahat oxunuş üçün hazırlanıb.", color = Color.White, fontSize = 14.sp, lineHeight = 22.sp)
+                                "Məxfilik və təhlükəsizlik" -> Text("Hesab məlumatlarınızı qoruyun, şifrənizi paylaşmayın və yalnız etibarlı mənbələrdən fayllar yükləyin. Şübhəli fəaliyyət gördükdə administratorla əlaqə saxlayın.", color = Color.White, fontSize = 14.sp, lineHeight = 22.sp)
+                                "Kömək və dəstək" -> Text("Kömək almaq və problem bildirmək üçün Profil bölməsindəki Təklif Qutusu və ya Ayarlar → Rəy və təklif bölməsindən istifadə edin.", color = Color.White, fontSize = 14.sp, lineHeight = 22.sp)
+                                "İstifadə şərtləri" -> Text("Tətbiqdən məsuliyyətlə istifadə edin. Müəllif hüquqlarına hörmət edin, zərərli məzmun paylaşmayın və digər istifadəçilərlə nəzakətli davranın.", color = Color.White, fontSize = 14.sp, lineHeight = 22.sp)
+                            }
+                        }
+                    }
+                }
+            }
+        } else if (showSecurity) {
             Column(
                 Modifier.fillMaxSize().background(liveBg).statusBarsPadding().navigationBarsPadding()
                     .verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 14.dp),
@@ -3318,7 +3406,7 @@ fun TexnoTelekomApp(
                     ProfileItem("🛡️", "Təhlükəsizlik Məlumatı", Color(0xFF168BFF)) { showSecurity = true }
                     ProfileItem("💬", "Təklif Qutusu", Color(0xFF00D5C5)) { showFeedback = true }
                     ProfileItem("ℹ️", "Tətbiq Haqqında", Color(0xFF247BFF)) { showAbout = true }
-                    ProfileItem("⚙️", "Ayarlar", Color(0xFF247BFF)) { showPhoneInfo = true }
+                    ProfileItem("⚙️", "Ayarlar", Color(0xFF247BFF)) { showSettings = true; settingsSelected = null }
                     Spacer(Modifier.height(12.dp))
                     Card(
                         modifier = Modifier.fillMaxWidth().height(94.dp),
