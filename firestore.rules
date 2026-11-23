@@ -74,3 +74,4 @@ service cloud.firestore {
     }
   }
 }
+// Trigger rules deployment after Firebase config was registered.
