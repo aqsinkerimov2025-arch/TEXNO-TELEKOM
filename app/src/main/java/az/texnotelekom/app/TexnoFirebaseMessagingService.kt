@@ -43,7 +43,7 @@ class TexnoFirebaseMessagingService : FirebaseMessagingService() {
             PendingIntent.FLAG_UPDATE_CURRENT or if (Build.VERSION.SDK_INT >= 23) PendingIntent.FLAG_IMMUTABLE else 0
         )
         val notification = NotificationCompat.Builder(this, channelId)
-            .setSmallIcon(R.drawable.texno_logo)
+            .setSmallIcon(R.drawable.texno_notification_icon)
             .setContentTitle(title)
             .setContentText(body)
             .setStyle(NotificationCompat.BigTextStyle().bigText(body))
