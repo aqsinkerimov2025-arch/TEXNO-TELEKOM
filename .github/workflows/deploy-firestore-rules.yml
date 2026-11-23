@@ -4,7 +4,7 @@ on:
   push:
     paths:
       - "firestore.rules"
-      - ".github/workflows/deploy-firestore-rules.yml"
+      - "firebase.json"
 permissions:
   contents: read
 jobs:
