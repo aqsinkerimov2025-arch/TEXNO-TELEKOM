@@ -2191,11 +2191,13 @@ fun TexnoTelekomApp(
                 val info = context.packageManager.getPackageInfo(context.packageName, 0)
                 val currentCode = if (Build.VERSION.SDK_INT >= 28) info.longVersionCode else @Suppress("DEPRECATION") info.versionCode.toLong()
                 if (remoteCode > currentCode && apkUrl.startsWith("https://")) {
+                    val displayVersion = Regex("""\d+\.\d+(?:\.\d+)?""")
+                        .find(json.optString("name"))?.value ?: (info.versionName ?: "2.5")
                     val update = ReleaseUpdate(
                         remoteCode,
-                        tag.removePrefix("app-v"),
+                        displayVersion,
                         apkUrl,
-                        json.optString("body").ifBlank { "TEXNO-TELEKOM tətbiqinin yeni versiyası hazırdır." }
+                        json.optString("body").ifBlank { "Yeni Funksiya\nYeni Dizayn əlavə edildi" }
                     )
                     Handler(Looper.getMainLooper()).post {
                         availableUpdate = update
@@ -3757,10 +3759,11 @@ fun TexnoTelekomApp(
     availableUpdate?.let { update ->
         AlertDialog(
             onDismissRequest = { availableUpdate = null },
-            title = { Text("Tətbiq yeniləməsi mövcuddur") },
+            title = { Text("TEXNO-TELEKOM") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("TEXNO-TELEKOM v${update.versionName} versiyası hazırdır.")
+                    Text("Yeni Versiya: ${update.versionName}", fontWeight = FontWeight.Bold)
+                    Text("Yeni Funksiya", fontWeight = FontWeight.Bold)
                     Text(update.notes)
                     Text("Yeni versiyanı indi yükləmək istəyirsiniz?")
                 }
