@@ -3210,3 +3210,13 @@ fun TexnoTelekomApp(
 }
 }
 }
+
+@Composable
+private fun HomeDesignCard(emoji: String, label: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    Card(modifier = modifier.heightIn(min = 150.dp).clickable(onClick = onClick), shape = RoundedCornerShape(28.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF151F3B))) {
+        Column(Modifier.fillMaxWidth().padding(18.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(emoji, fontSize = 48.sp)
+            Text(label, color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Medium, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+        }
+    }
+}
