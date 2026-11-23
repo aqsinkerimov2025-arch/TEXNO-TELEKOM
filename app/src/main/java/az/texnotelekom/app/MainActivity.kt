@@ -3783,7 +3783,6 @@ fun TexnoTelekomApp(
                             Card(modifier = Modifier.fillMaxWidth().clickable { showGroupChat = true }, shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))) {
                                 Text("👥  Qrup rəhbərliyi", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(18.dp))
                             }
-                        }
                     } else {
                         val fieldColors = OutlinedTextFieldDefaults.colors(
                             focusedTextColor = Color.White, unfocusedTextColor = Color.White,
