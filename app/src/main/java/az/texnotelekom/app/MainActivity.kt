@@ -2897,16 +2897,22 @@ fun TexnoTelekomApp(
                 ) {
                     Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                         TexnoTelekomLogo(size = 116.dp)
-                        Text("TEXNO TELEKOM HAQQINDA", color = Color(0xFFFFD36A), fontSize = 19.sp, fontWeight = FontWeight.Black)
-                        Text("TEXNO TELEKOM texnologiya və rəqəmsal yenilikləri istifadəçilərə təqdim etmək məqsədilə yaradılmış platformadır.", color = Color.White, fontSize = 15.sp, lineHeight = 23.sp)
-                        Text("Platformamızda istifadəçilər müxtəlif proqramlar, Android tətbiqləri, oyunlar və texnologiya xəbərləri ilə tanış ola bilərlər.", color = Color.White, fontSize = 15.sp, lineHeight = 23.sp)
+                        Text("TEXNOLOGİYANIN ÜNVANI!", color = Color(0xFFFFD36A), fontSize = 20.sp, fontWeight = FontWeight.Black)
+                        Text("Xoş gəlmisiniz! TEXNO-TELEKOM müasir texnologiyaları, rəqəmsal yenilikləri və faydalı tətbiqləri bir araya gətirən xüsusi platformadır.", color = Color.White, fontSize = 15.sp, lineHeight = 23.sp)
+                        Text("Məqsədimiz istifadəçilərə texnologiya dünyasını daha yaxından tanıtmaq, faydalı proqramları və maraqlı yenilikləri bir məkanda təqdim etməkdir.", color = Color.White, fontSize = 15.sp, lineHeight = 23.sp)
                         HorizontalDivider(color = Color(0xFF34445F))
-                        Text("ƏSAS İMKANLARIMIZ", color = Color(0xFFFFD36A), fontSize = 17.sp, fontWeight = FontWeight.Bold)
-                        Text("• Proqramların paylaşılması\n• Android oyunları\n• TEXNO-MƏLUMAT bölməsi\n• Yeni yeniliklər və paylaşımlar\n• İstifadəçilərlə əlaqə", color = Color.White, fontSize = 15.sp, lineHeight = 27.sp)
+                        Text("🚀 PLATFORMAMIZIN İMKANLARI", color = Color(0xFFFFD36A), fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                        Text("📱 Proqramlar – Android üçün faydalı və maraqlı tətbiqlər.\n\n🎮 Oyunlar – Müxtəlif janrlarda əyləncəli mobil oyunlar.\n\n💡 TEXNO-MƏLUMAT – Telefonlar, texnologiyalar və rəqəmsal yeniliklər haqqında məlumatlar.\n\n⭐ Sevimlilər – Bəyəndiyiniz proqramları və oyunları yadda saxlayın.\n\n👥 TEXNO-TELEKOM QRUPU – Digər istifadəçilərlə ünsiyyət qurun və fikirlərinizi bölüşün.\n\n📢 Yeniliklər – Platformadakı yeniliklərdən və paylaşımlardan xəbərdar olun.", color = Color.White, fontSize = 14.sp, lineHeight = 23.sp)
                         HorizontalDivider(color = Color(0xFF34445F))
-                        Text("MİSSİYAMIZ", color = Color(0xFFFFD36A), fontSize = 17.sp, fontWeight = FontWeight.Bold)
-                        Text("Texnologiyanı hər kəs üçün daha əlçatan etmək, yenilikləri bir platformada toplamaq və istifadəçilərə rahat xidmət göstərmək.", color = Color.White, fontSize = 15.sp, lineHeight = 23.sp)
-                        Text("TEXNO TELEKOM — TEXNOLOGİYANIN ÜNVANI.", color = Color(0xFFFFD36A), fontSize = 16.sp, fontWeight = FontWeight.Black)
+                        Text("🎯 MİSSİYAMIZ", color = Color(0xFFFFD36A), fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                        Text("Texnologiyanı hər kəs üçün daha əlçatan etmək, istifadəçilərə rahat və müasir platforma təqdim etmək, rəqəmsal dünyadakı yenilikləri daim izləmək.", color = Color.White, fontSize = 15.sp, lineHeight = 23.sp)
+                        HorizontalDivider(color = Color(0xFF34445F))
+                        Text("💙 DƏYƏRİMİZ", color = Color(0xFFFFD36A), fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                        Text("Bizim üçün hər bir istifadəçi önəmlidir. İstifadəçilərin rahatlığı, məmnuniyyəti və platformanın davamlı inkişafı əsas prioritetlərimizdəndir.", color = Color.White, fontSize = 15.sp, lineHeight = 23.sp)
+                        Text("✨ GƏLƏCƏYİ BİRLİKDƏ QURAQ!", color = Color(0xFFFFD36A), fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                        Text("TEXNO-TELEKOM ilə texnologiya dünyasını kəşf edin, yeniliklərdən geri qalmayın və rəqəmsal imkanlardan faydalanın!", color = Color.White, fontSize = 15.sp, lineHeight = 23.sp)
+                        Text("TEXNO-TELEKOM — Texnologiya hər kəs üçün!", color = Color(0xFFFFD36A), fontSize = 16.sp, fontWeight = FontWeight.Black)
+                        Text("© 2026 TEXNO-TELEKOM\nBütün hüquqlar qorunur.", color = Color(0xFFCBD6EB), fontSize = 12.sp, lineHeight = 18.sp)
                     }
                 }
             }
