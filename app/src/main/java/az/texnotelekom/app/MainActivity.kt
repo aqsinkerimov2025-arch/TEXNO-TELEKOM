@@ -3024,7 +3024,39 @@ fun TexnoTelekomApp(
                     colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))
                 ) {
                     Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                        Text("📅 Yaranma tarixi: 25.11.2025", color = Color(0xFFFFD36A), fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(14.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .width(66.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(Color(0xFFFFD36A)),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    "NOYABR",
+                                    modifier = Modifier.fillMaxWidth().background(Color(0xFFE0A92F)).padding(vertical = 6.dp),
+                                    color = Color(0xFF172033),
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Black,
+                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                )
+                                Text(
+                                    "25",
+                                    modifier = Modifier.padding(vertical = 5.dp),
+                                    color = Color(0xFF172033),
+                                    fontSize = 27.sp,
+                                    fontWeight = FontWeight.Black
+                                )
+                            }
+                            Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                                Text("Yaranma tarixi", color = Color(0xFFFFD36A), fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                                Text("25.11.2025", color = Color.White, fontSize = 14.sp)
+                            }
+                        }
                         TexnoTelekomLogo(size = 116.dp)
                         Text("TEXNOLOGİYANIN ÜNVANI!", color = Color(0xFFFFD36A), fontSize = 20.sp, fontWeight = FontWeight.Black)
                         Text("Xoş gəlmisiniz! TEXNO-TELEKOM müasir texnologiyaları, rəqəmsal yenilikləri və faydalı tətbiqləri bir araya gətirən xüsusi platformadır.", color = Color.White, fontSize = 15.sp, lineHeight = 23.sp)
