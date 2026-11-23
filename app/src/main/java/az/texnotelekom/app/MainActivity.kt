@@ -2843,12 +2843,7 @@ fun TexnoTelekomApp(
                 Triple("👤", "Hesab məlumatları", "Hesab adını, e-poçt ünvanını və giriş məlumatlarını göstərir."),
                 Triple("🔔", "Bildirişlər", "Tətbiq yenilikləri və vacib elanlar barədə bildirişlərin idarəsini izah edir."),
                 Triple("🎨", "Görünüş", "Tətbiqin rəngləri və ekran görünüşü haqqında məlumat verir."),
-                Triple("🔐", "Şifrə və hesab təhlükəsizliyi", "Hesabın qorunması və şifrənin yenilənməsi barədə məlumat verir."),
                 Triple("📱", "Cihaz məlumatları", "Telefon modeli, Android versiyası və tətbiq versiyasını göstərir."),
-                Triple("💬", "Rəy və təklif", "Fikir, təklif və şikayətləri administratora göndərməyə imkan verir."),
-                Triple("🛡️", "Məxfilik və təhlükəsizlik", "Şəxsi məlumatların qorunması və təhlükəsiz istifadə qaydalarını açıqlayır."),
-                Triple("🆘", "Kömək və dəstək", "Tətbiqdən istifadə zamanı yaranan suallar və problemlər üçün kömək göstərir."),
-                Triple("📜", "İstifadə şərtləri", "Platformadan istifadə qaydalarını və istifadəçi məsuliyyətlərini göstərir.")
             )
             val selectedSetting = settingItems.firstOrNull { it.second == settingsSelected }
             Column(
@@ -2869,8 +2864,7 @@ fun TexnoTelekomApp(
                     settingItems.forEach { item ->
                         Card(
                             modifier = Modifier.fillMaxWidth().clickable {
-                                if (item.second == "Rəy və təklif") showFeedback = true
-                                else settingsSelected = item.second
+                                settingsSelected = item.second
                             },
                             shape = RoundedCornerShape(18.dp),
                             colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))
@@ -2914,12 +2908,8 @@ fun TexnoTelekomApp(
                                     Text("Android versiyası: $version", color = Color.White, fontSize = 14.sp)
                                     Text("Tətbiq versiyası: $appVersion", color = Color.White, fontSize = 14.sp)
                                 }
-                                "Şifrə və hesab təhlükəsizliyi" -> Text("Şifrənizi heç kimlə paylaşmayın. Şifrəni yeniləmək üçün istifadə etdiyiniz hesabın rəsmi giriş və bərpa vasitələrindən yararlanın.", color = Color.White, fontSize = 14.sp, lineHeight = 22.sp)
                                 "Bildirişlər" -> Text("Bildiriş icazəsini telefonunuzun Ayarlar → Tətbiqlər → TEXNO-TELEKOM → Bildirişlər bölməsindən idarə edə bilərsiniz.", color = Color.White, fontSize = 14.sp, lineHeight = 22.sp)
                                 "Görünüş" -> Text("TEXNO-TELEKOM hazırda tünd rəngli interfeysdən istifadə edir. Bu görünüş rahat oxunuş üçün hazırlanıb.", color = Color.White, fontSize = 14.sp, lineHeight = 22.sp)
-                                "Məxfilik və təhlükəsizlik" -> Text("Hesab məlumatlarınızı qoruyun, şifrənizi paylaşmayın və yalnız etibarlı mənbələrdən fayllar yükləyin. Şübhəli fəaliyyət gördükdə administratorla əlaqə saxlayın.", color = Color.White, fontSize = 14.sp, lineHeight = 22.sp)
-                                "Kömək və dəstək" -> Text("Kömək almaq və problem bildirmək üçün Profil bölməsindəki Təklif Qutusu və ya Ayarlar → Rəy və təklif bölməsindən istifadə edin.", color = Color.White, fontSize = 14.sp, lineHeight = 22.sp)
-                                "İstifadə şərtləri" -> Text("Tətbiqdən məsuliyyətlə istifadə edin. Müəllif hüquqlarına hörmət edin, zərərli məzmun paylaşmayın və digər istifadəçilərlə nəzakətli davranın.", color = Color.White, fontSize = 14.sp, lineHeight = 22.sp)
                             }
                         }
                     }
