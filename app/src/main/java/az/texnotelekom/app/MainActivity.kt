@@ -2191,9 +2191,14 @@ fun TexnoTelekomApp(
                 val info = context.packageManager.getPackageInfo(context.packageName, 0)
                 val currentCode = if (Build.VERSION.SDK_INT >= 28) info.longVersionCode else @Suppress("DEPRECATION") info.versionCode.toLong()
                 if (remoteCode > currentCode && apkUrl.startsWith("https://")) {
+                    val update = ReleaseUpdate(
+                        remoteCode,
+                        tag.removePrefix("app-v"),
+                        apkUrl,
+                        json.optString("body").ifBlank { "TEXNO-TELEKOM tətbiqinin yeni versiyası hazırdır." }
+                    )
                     Handler(Looper.getMainLooper()).post {
-                        // Yeni versiya aşkarlananda istifadəçidən əlavə düymə tələb etmədən yükləməni başlat.
-                        onInstallUpdate(apkUrl)
+                        availableUpdate = update
                     }
                 }
             } catch (_: Exception) { }
@@ -3705,7 +3710,28 @@ fun TexnoTelekomApp(
         }
 }
 }
-}
+    availableUpdate?.let { update ->
+        AlertDialog(
+            onDismissRequest = { availableUpdate = null },
+            title = { Text("Tətbiq yeniləməsi mövcuddur") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("TEXNO-TELEKOM v${update.versionName} versiyası hazırdır.")
+                    Text(update.notes)
+                    Text("Yeni versiyanı indi yükləmək istəyirsiniz?")
+                }
+            },
+            confirmButton = {
+                Button(onClick = {
+                    availableUpdate = null
+                    onInstallUpdate(update.apkUrl)
+                }) { Text("İNDİ YENİLƏ") }
+            },
+            dismissButton = {
+                TextButton(onClick = { availableUpdate = null }) { Text("SONRA") }
+            }
+        )
+    }
 }
 
 @Composable
