@@ -3487,6 +3487,43 @@ fun TexnoTelekomApp(
                         }
                     }
                 }
+            } else if (selectedBottomTab == 1) {
+                Column(
+                    Modifier.weight(1f).fillMaxWidth().verticalScroll(homeScrollState)
+                        .padding(horizontal = 16.dp, vertical = 20.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    Text("KATEQORİYALAR", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Black)
+                    Text("İstədiyiniz bölməni seçin", color = Color(0xFFCBD6EB), fontSize = 14.sp)
+                    listOf(
+                        Triple("📰", "TEXNO-MƏLUMAT", "phone_info"),
+                        Triple("📱", "PROQRAMLAR", "programs"),
+                        Triple("🎮", "OYUNLAR", "games")
+                    ).forEach { item ->
+                        Card(
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 88.dp).clickable {
+                                when (item.third) {
+                                    "phone_info" -> { showPhoneInfo = true; showPrograms = false; showGames = false }
+                                    "programs" -> { showPrograms = true; showPhoneInfo = false; showGames = false }
+                                    "games" -> { showGames = true; showPhoneInfo = false; showPrograms = false }
+                                }
+                            },
+                            shape = RoundedCornerShape(20.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))
+                        ) {
+                            Row(
+                                Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 22.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(item.first, fontSize = 30.sp)
+                                Text(item.second, color = Color.White, fontSize = 17.sp,
+                                    fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 16.dp))
+                                Spacer(Modifier.weight(1f))
+                                Text("›", color = Color(0xFF168BFF), fontSize = 30.sp)
+                            }
+                        }
+                    }
+                }
             } else if (selectedBottomTab == 3 && isAuthorizedDevice) {
                 Column(
                     Modifier.weight(1f).fillMaxWidth().verticalScroll(homeScrollState)
