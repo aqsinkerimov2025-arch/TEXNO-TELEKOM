@@ -3475,6 +3475,64 @@ fun TexnoTelekomApp(
                         }
                     }
                 }
+            } else if (selectedBottomTab == 3 && isAuthorizedDevice) {
+                Column(
+                    Modifier.weight(1f).fillMaxWidth().verticalScroll(homeScrollState)
+                        .padding(horizontal = 16.dp, vertical = 18.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    Text("ADMİN PANELİ", color = Color(0xFFFFD36A), fontSize = 24.sp, fontWeight = FontWeight.Black)
+                    Text("TEXNO-TELEKOM idarəetmə bölməsi", color = Color.White, fontSize = 14.sp)
+                    Card(
+                        modifier = Modifier.fillMaxWidth().clickable { showPrograms = true },
+                        shape = RoundedCornerShape(18.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))
+                    ) {
+                        Row(Modifier.fillMaxWidth().padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Text("📱", fontSize = 28.sp)
+                            Text("Proqramları idarə et", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 14.dp))
+                            Spacer(Modifier.weight(1f))
+                            Text("›", color = Color.White, fontSize = 28.sp)
+                        }
+                    }
+                    Card(
+                        modifier = Modifier.fillMaxWidth().clickable { showGames = true },
+                        shape = RoundedCornerShape(18.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))
+                    ) {
+                        Row(Modifier.fillMaxWidth().padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Text("🎮", fontSize = 28.sp)
+                            Text("Oyunları idarə et", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 14.dp))
+                            Spacer(Modifier.weight(1f))
+                            Text("›", color = Color.White, fontSize = 28.sp)
+                        }
+                    }
+                    if (loggedIn) {
+                        Card(
+                            modifier = Modifier.fillMaxWidth().clickable { showGroupChat = true },
+                            shape = RoundedCornerShape(18.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))
+                        ) {
+                            Row(Modifier.fillMaxWidth().padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Text("👥", fontSize = 28.sp)
+                                Text("Qrup rəhbərliyi", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 14.dp))
+                                Spacer(Modifier.weight(1f))
+                                Text("›", color = Color.White, fontSize = 28.sp)
+                            }
+                        }
+                    }
+                }
+            } else if (selectedBottomTab == 3) {
+                Column(
+                    Modifier.weight(1f).fillMaxWidth().padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text("ADMİNLƏ ƏLAQƏ", color = Color(0xFFFFD36A), fontSize = 22.sp, fontWeight = FontWeight.Black)
+                    Text("Sual və təkliflərinizi adminə göndərin.", color = Color.White, fontSize = 14.sp)
+                    Button(onClick = { showFeedback = true }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0868E8))) {
+                        Text("Adminlə əlaqə saxla", color = Color.White)
+                    }
+                }
             } else if (selectedBottomTab == 4) {
                 Column(
                     Modifier.weight(1f).fillMaxWidth().verticalScroll(homeScrollState)
@@ -3596,9 +3654,13 @@ fun TexnoTelekomApp(
 
             }
             Row(Modifier.fillMaxWidth().background(Color(0xFF080D1E)).navigationBarsPadding().padding(vertical = 10.dp), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
-                val tabs = listOf("🏠" to "Əsas səhifə", "📱" to "Kateqoriyalar", "⭐" to "Favorilər", "👑" to "Premium", "👤" to "Profil")
+                val tabs = listOf("🏠" to "Əsas səhifə", "📱" to "Kateqoriyalar", "⭐" to "Favorilər", (if (isAuthorizedDevice) "🛠️" to "Admin Paneli" else "💬" to "Adminlə əlaqə"), "👤" to "Profil")
                 tabs.forEachIndexed { index, tab ->
-                    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { selectedBottomTab = index; if (index == 0) { showPrograms = false; showGames = false } }) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable {
+                        selectedBottomTab = index
+                        if (index == 0) { showPrograms = false; showGames = false }
+                        if (index == 3 && !isAuthorizedDevice) showFeedback = true
+                    }) {
                         Text(tab.first, fontSize = 25.sp)
                         Text(tab.second, color = if (selectedBottomTab == index) Color(0xFF168BFF) else Color(0xFF8993A9), fontSize = 11.sp)
                     }
