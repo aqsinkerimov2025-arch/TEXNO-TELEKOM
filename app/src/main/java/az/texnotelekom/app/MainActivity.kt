@@ -3884,6 +3884,29 @@ fun TexnoTelekomApp(
                 }
             } else {
             Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(homeScrollState).padding(horizontal = 16.dp, vertical = 12.dp).padding(bottom = 28.dp)) {
+                if (availableUpdate != null) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF123B78))
+                    ) {
+                        Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Text("Tətbiq yeniləməsi mövcuddur", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                            Text("TEXNO-TELEKOM • Yeni Versiya: ${availableUpdate!!.versionName}", color = Color(0xFFE1EDFF))
+                            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                Button(
+                                    onClick = {
+                                        val update = availableUpdate
+                                        availableUpdate = null
+                                        if (update != null) onInstallUpdate(update.apkUrl)
+                                    },
+                                    modifier = Modifier.weight(1f)
+                                ) { Text("İNDİ YENİLƏ") }
+                                TextButton(onClick = { availableUpdate = null }) { Text("SONRA", color = Color.White) }
+                            }
+                        }
+                    }
+                }
                 TexnoTelekomLogo(size = 176.dp)
                 Spacer(Modifier.height(18.dp))
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
