@@ -205,7 +205,7 @@ private fun showAppUpdateNotification(context: Context, versionName: String, not
         .setAutoCancel(true)
         .setContentIntent(pendingIntent)
     builder.setDefaults(Notification.DEFAULT_ALL)
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) builder.priority = Notification.PRIORITY_HIGH
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) builder.setPriority(Notification.PRIORITY_HIGH)
     manager.notify(UPDATE_NOTIFICATION_ID, builder.build())
     return true
 }
