@@ -2404,7 +2404,7 @@ fun TexnoTelekomApp(
     val phoneInfos = remember { mutableStateListOf<PhoneInfo>() }
     var newPhoneInfoNotice by remember { mutableStateOf(false) }
     var newProgramNotice by remember { mutableStateOf(false) }
-    var appNoticeItems by remember { mutableStateOf(listOf<Pair<String, String>>()) }
+    var appNoticeItems by remember { mutableStateOf(listOf<Triple<String, String, Long>>()) }
     var latestAdminFeedbackAt by remember { mutableLongStateOf(0L) }
     var showAdminFeedbackNotice by remember { mutableStateOf(false) }
     var postTitle by remember { mutableStateOf("") }
@@ -2473,7 +2473,12 @@ fun TexnoTelekomApp(
         val noticeListener = db.collection("app_notifications").orderBy("created_at", com.google.firebase.firestore.Query.Direction.DESCENDING).limit(30)
             .addSnapshotListener { snap, e ->
                 if (e == null && snap != null) {
-                    appNoticeItems = snap.documents.map { d -> (d.getString("type") ?: "") to (d.getString("title") ?: "Yeni bildiriş") }
+                    appNoticeItems = snap.documents.map { d ->
+                        val title = d.getString("title") ?: "Yeni yenilik"
+                        val body = d.getString("body") ?: title
+                        val time = d.getTimestamp("created_at")?.toDate()?.time ?: 0L
+                        Triple(title, body, time)
+                    }
                 }
             }
         onDispose { noticeListener.remove() }
@@ -2733,7 +2738,14 @@ fun TexnoTelekomApp(
         val programDocument = if (id == null) db.collection("programs").document() else db.collection("programs").document(id)
         programDocument.set(values, SetOptions.merge()).addOnSuccessListener {
             newProgramNotice = true
-            db.collection("app_notifications").add(hashMapOf("type" to "program", "title" to if (id == null) "Yeni proqram əlavə edildi" else "Proqram yeniləndi", "body" to name.trim() + " — " + version.trim(), "created_at" to FieldValue.serverTimestamp(), "program_id" to programDocument.id, "content_type" to "program")).addOnSuccessListener { triggerInstantPush() }
+            db.collection("app_notifications").add(hashMapOf(
+                "type" to "program",
+                "title" to if (id == null) "Yeni proqram əlavə edildi" else "Proqram yeniləndi",
+                "body" to if (id == null) "${name.trim()} əlavə edildi." else "${name.trim()} yeniləndi. Yeni versiya: ${version.trim().ifBlank { "mövcuddur" }}",
+                "created_at" to FieldValue.serverTimestamp(),
+                "program_id" to programDocument.id,
+                "content_type" to "program"
+            )).addOnSuccessListener { triggerInstantPush() }
             message = if (id == null) "Proqram əlavə edildi." else "Proqram yeniləndi."
             clearForm(); busy = false
         }.addOnFailureListener {
@@ -2752,7 +2764,14 @@ fun TexnoTelekomApp(
             val gameDocument = if (id == null) db.collection("programs").document() else db.collection("programs").document(id)
             gameDocument.set(values, SetOptions.merge()).addOnSuccessListener {
                 newProgramNotice = true
-                db.collection("app_notifications").add(hashMapOf("type" to "game", "title" to if (id == null) "Yeni oyun əlavə edildi" else "Oyun yeniləndi", "body" to gameName.trim() + " — " + gameVersion.trim(), "created_at" to FieldValue.serverTimestamp(), "program_id" to gameDocument.id, "content_type" to "game")).addOnSuccessListener { triggerInstantPush() }
+                db.collection("app_notifications").add(hashMapOf(
+                    "type" to "game",
+                    "title" to if (id == null) "Yeni oyun əlavə edildi" else "Oyun yeniləndi",
+                    "body" to if (id == null) "${gameName.trim()} oyunu əlavə edildi." else "${gameName.trim()} oyunu yeniləndi. Yeni versiya: ${gameVersion.trim().ifBlank { "mövcuddur" }}",
+                    "created_at" to FieldValue.serverTimestamp(),
+                    "program_id" to gameDocument.id,
+                    "content_type" to "game"
+                )).addOnSuccessListener { triggerInstantPush() }
                 message = if (id == null) "Oyun əlavə edildi." else "Oyun yeniləndi."
                 clearGameForm(); busy = false
             }.addOnFailureListener { error = "Oyun yadda saxlanmadı: ${it.localizedMessage}"; busy = false }
@@ -3417,7 +3436,46 @@ fun TexnoTelekomApp(
             }
         }
         Column(Modifier.fillMaxSize()) {
-            if (selectedBottomTab == 4) {
+            if (showPhoneInfo) {
+                Column(
+                    Modifier.weight(1f).fillMaxWidth().verticalScroll(homeScrollState)
+                        .padding(horizontal = 16.dp, vertical = 16.dp).padding(bottom = 20.dp)
+                ) {
+                    Row(
+                        Modifier.fillMaxWidth().padding(bottom = 22.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("‹", color = Color.White, fontSize = 34.sp,
+                            modifier = Modifier.clickable { showPhoneInfo = false }.padding(end = 14.dp))
+                        Text("Yeniliklər", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                    }
+                    if (appNoticeItems.isEmpty()) {
+                        Text("Hələlik yenilik yoxdur.", color = Color(0xFFCBD6EB), fontSize = 15.sp,
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 28.dp),
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                    } else {
+                        appNoticeItems.forEach { item ->
+                            Card(
+                                modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                                shape = RoundedCornerShape(18.dp),
+                                colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))
+                            ) {
+                                Column(Modifier.fillMaxWidth().padding(16.dp)) {
+                                    Text(item.second, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                                    if (item.third > 0L) {
+                                        Text(
+                                            java.text.SimpleDateFormat("dd.MM.yyyy • HH:mm", java.util.Locale("az"))
+                                                .format(java.util.Date(item.third)),
+                                            color = Color(0xFF8FA3C7), fontSize = 12.sp,
+                                            modifier = Modifier.padding(top = 7.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } else if (selectedBottomTab == 4) {
                 Column(
                     Modifier.weight(1f).fillMaxWidth().verticalScroll(homeScrollState)
                         .padding(horizontal = 16.dp, vertical = 12.dp).padding(bottom = 20.dp)
