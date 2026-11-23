@@ -2210,15 +2210,17 @@ fun TexnoTelekomApp(
     var showGames by remember { mutableStateOf(false) }
     var showPrograms by remember { mutableStateOf(false) }
     var showAbout by remember { mutableStateOf(false) }
+    var showSecurity by remember { mutableStateOf(false) }
 
 
 
 
     var notificationProgramId by remember { mutableStateOf<String?>(null) }
     val notificationItemBringIntoView = remember { BringIntoViewRequester() }
-    BackHandler(enabled = showPhoneInfo || showPrograms || showGames || showFeedback || showAbout) {
+    BackHandler(enabled = showPhoneInfo || showPrograms || showGames || showFeedback || showAbout || showSecurity) {
         when {
             showFeedback -> showFeedback = false
+            showSecurity -> showSecurity = false
             showAbout -> showAbout = false
             showGames -> showGames = false
             showPrograms -> showPrograms = false
@@ -2237,7 +2239,7 @@ fun TexnoTelekomApp(
     BackHandler(enabled = showGroupManagementAdmin) { showGroupManagementAdmin = false }
     BackHandler(
         enabled = !showGroupChat && !showPhoneInfo && !showPrograms && !showGames &&
-            !showFeedback && !showAbout && !adminOpen && !showGroupManagementAdmin
+            !showFeedback && !showAbout && !showSecurity && !adminOpen && !showGroupManagementAdmin
     ) {
         when {
             searchOpen -> { searchOpen = false; query = "" }
@@ -2832,7 +2834,48 @@ fun TexnoTelekomApp(
             large = RoundedCornerShape(28.dp)
         )
     ) {
-        if (showAbout) {
+        if (showSecurity) {
+            Column(
+                Modifier.fillMaxSize().background(liveBg).statusBarsPadding().navigationBarsPadding()
+                    .verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 14.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Text("‹", color = Color.White, fontSize = 34.sp,
+                        modifier = Modifier.clickable { showSecurity = false }.padding(end = 14.dp))
+                    Text("TƏHLÜKƏSİZLİK MƏLUMATI", color = Color.White, fontSize = 19.sp, fontWeight = FontWeight.Black)
+                }
+                Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))) {
+                    Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                        TexnoTelekomLogo(size = 104.dp)
+                        Text("TEXNO-TELEKOM", color = Color(0xFFFFD36A), fontSize = 20.sp, fontWeight = FontWeight.Black)
+                        Text("TƏHLÜKƏSİZLİK VƏ MƏXFİLİK MƏLUMATI", color = Color(0xFFFFD36A), fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Text("Xoş gəlmisiniz! TEXNO-TELEKOM istifadəçilərinə rahat və təhlükəsiz rəqəmsal mühit təqdim etməyi hədəfləyir. Bu bölmədə platformadan istifadə zamanı diqqət edilməli təhlükəsizlik qaydaları ilə tanış ola bilərsiniz.", color = Color.White, fontSize = 14.sp, lineHeight = 22.sp)
+                        HorizontalDivider(color = Color(0xFF34445F))
+                        Text("🔒 1. Məxfilik siyasəti", color = Color(0xFFFFD36A), fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Text("Şəxsi məlumatlarınızı qoruyun. Şifrələrinizi və hesabınıza aid məxfi məlumatları başqa şəxslərlə paylaşmayın.", color = Color.White, fontSize = 14.sp, lineHeight = 22.sp)
+                        Text("👤 2. Hesab təhlükəsizliyi", color = Color(0xFFFFD36A), fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Text("Hesabınızı qorumaq üçün güclü şifrələrdən istifadə edin və tanımadığınız şəxslərə hesabınıza giriş imkanı verməyin.", color = Color.White, fontSize = 14.sp, lineHeight = 22.sp)
+                        Text("📥 3. Proqramların təhlükəsiz yüklənməsi", color = Color(0xFFFFD36A), fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Text("Proqramları etibarlı mənbələrdən yükləyin. Quraşdırmadan əvvəl tətbiqin tələb etdiyi icazələri yoxlayın.", color = Color.White, fontSize = 14.sp, lineHeight = 22.sp)
+                        Text("⚠️ 4. Təhlükəsizlik xəbərdarlıqları", color = Color(0xFFFFD36A), fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Text("Şübhəli keçidlərə daxil olmayın, naməlum faylları açmayın və şəxsi məlumatlarınızı şübhəli saytlara daxil etməyin.", color = Color.White, fontSize = 14.sp, lineHeight = 22.sp)
+                        Text("🛡️ 5. İstifadəçi hüquqları", color = Color(0xFFFFD36A), fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Text("Hər bir istifadəçi şəxsi məlumatlarının məxfiliyinə hörmət edilməsini gözləmək hüququna malikdir.", color = Color.White, fontSize = 14.sp, lineHeight = 22.sp)
+                        Text("📞 6. Təhlükəsizlik dəstəyi", color = Color(0xFFFFD36A), fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Text("Tətbiqdən istifadə zamanı təhlükəsizlik problemi və ya şübhəli fəaliyyətlə qarşılaşsanız, TEXNO-TELEKOM admini ilə əlaqə saxlayın.", color = Color.White, fontSize = 14.sp, lineHeight = 22.sp)
+                        Text("📋 7. İstifadə qaydaları", color = Color(0xFFFFD36A), fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Text("Platformadan məsuliyyətlə istifadə edin. Digər istifadəçilərə hörmətlə yanaşın və zərərli məzmun paylaşmayın.", color = Color.White, fontSize = 14.sp, lineHeight = 22.sp)
+                        Text("🔄 8. Yeniləmələr", color = Color(0xFFFFD36A), fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Text("Tətbiqin yeni versiyalarını izləyin və mümkün olduqda ən son versiyadan istifadə edin.", color = Color.White, fontSize = 14.sp, lineHeight = 22.sp)
+                        HorizontalDivider(color = Color(0xFF34445F))
+                        Text("TEXNO-TELEKOM — Texnologiya, etibar və təhlükəsizlik bir arada!", color = Color(0xFFFFD36A), fontSize = 16.sp, fontWeight = FontWeight.Black, lineHeight = 23.sp)
+                        Text("© TEXNO-TELEKOM — Bütün hüquqlar qorunur.", color = Color(0xFFCBD6EB), fontSize = 12.sp)
+                    }
+                }
+            }
+        } else if (showAbout) {
             Column(
                 Modifier.fillMaxSize()
                     .background(liveBg)
@@ -3265,7 +3308,7 @@ fun TexnoTelekomApp(
                         }
                     }
                     ProfileItem("⚡", "Yeniliklər", Color(0xFFFFD21C)) { showPhoneInfo = true }
-                    ProfileItem("🛡️", "Təhlükəsizlik Məlumatı", Color(0xFF168BFF)) { showAbout = true }
+                    ProfileItem("🛡️", "Təhlükəsizlik Məlumatı", Color(0xFF168BFF)) { showSecurity = true }
                     ProfileItem("💬", "Təklif Qutusu", Color(0xFF00D5C5)) { showFeedback = true }
                     ProfileItem("ℹ️", "Tətbiq Haqqında", Color(0xFF247BFF)) { showAbout = true }
                     ProfileItem("⚙️", "Ayarlar", Color(0xFF247BFF)) { showPhoneInfo = true }
