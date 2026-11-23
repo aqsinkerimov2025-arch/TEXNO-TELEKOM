@@ -2896,6 +2896,7 @@ fun TexnoTelekomApp(
                     colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))
                 ) {
                     Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                        Text("📅 Yaranma tarixi: 25.11.2025", color = Color(0xFFFFD36A), fontSize = 16.sp, fontWeight = FontWeight.Bold)
                         TexnoTelekomLogo(size = 116.dp)
                         Text("TEXNOLOGİYANIN ÜNVANI!", color = Color(0xFFFFD36A), fontSize = 20.sp, fontWeight = FontWeight.Black)
                         Text("Xoş gəlmisiniz! TEXNO-TELEKOM müasir texnologiyaları, rəqəmsal yenilikləri və faydalı tətbiqləri bir araya gətirən xüsusi platformadır.", color = Color.White, fontSize = 15.sp, lineHeight = 23.sp)
