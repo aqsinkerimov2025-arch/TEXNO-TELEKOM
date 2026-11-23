@@ -3197,7 +3197,7 @@ fun TexnoTelekomApp(
                 if (adminOpen && isAuthorizedDevice) { /* admin panel remains below in its existing section */ }
             }
             Row(Modifier.fillMaxWidth().background(Color(0xFF080D1E)).navigationBarsPadding().padding(vertical = 10.dp), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
-                val tabs = listOf("🏠" to "Əsas səhifə", "🧩" to "Kateqoriyalar", "⭐" to "Favorilər", "👑" to "Premium", "👤" to "Profil")
+                val tabs = listOf("🏠" to "Əsas səhifə", "📱" to "Kateqoriyalar", "⭐" to "Favorilər", "👑" to "Premium", "👤" to "Profil")
                 tabs.forEachIndexed { index, tab ->
                     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { selectedBottomTab = index; if (index == 0) { showPrograms = false; showGames = false } }) {
                         Text(tab.first, fontSize = 25.sp)
