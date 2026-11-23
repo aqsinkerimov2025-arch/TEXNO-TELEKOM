@@ -985,6 +985,7 @@ data class ChannelPost(
 )
 data class PhoneInfo(val id: String, val title: String, val body: String, val imageUrl: String, val stickerUrl: String, val stickerMime: String)
 data class ChannelMessage(val id: String, val title: String, val body: String, val imageUrl: String, val createdAt: Long)
+data class RegisteredDevice(val id: String, val manufacturer: String, val model: String, val device: String, val androidVersion: String, val sdk: Long, val appVersion: String, val firstSeen: Long, val lastSeen: Long)
 data class GroupChatMessage(val id: String, val uid: String, val nickname: String, val text: String, val imageUrl: String, val audioUrl: String, val videoUrl: String = "", val createdAt: Long, val replyToId: String = "", val replyToNickname: String = "", val replyToText: String = "")
 
 
@@ -2372,7 +2373,12 @@ fun TexnoTelekomApp(
     var showDeviceInfo by remember { mutableStateOf(false) }
     var revealDeviceCodeButton by remember { mutableStateOf(false) }
     val deviceId = remember { Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID) ?: "Tapılmadı" }
+    var showDeviceConsent by remember { mutableStateOf(false) }
+    val deviceConsentPrefs = remember { context.getSharedPreferences("texno_device_registration", Context.MODE_PRIVATE) }
+    val registeredDevices = remember { mutableStateListOf<RegisteredDevice>() }
+    var registeredDevicesStatus by remember { mutableStateOf("") }
     val isAuthorizedDevice = deviceId in ADMIN_DEVICE_IDS
+    LaunchedEffect(Unit) { if (!deviceConsentPrefs.contains("consent_decided")) showDeviceConsent = true }
     val savedAdminUser = remember { FirebaseAuth.getInstance().currentUser }
     var loggedIn by remember { mutableStateOf(isAuthorizedDevice && savedAdminUser?.uid == ADMIN_UID && savedAdminUser.email == ADMIN_EMAIL) }
 
@@ -3781,6 +3787,36 @@ fun TexnoTelekomApp(
                             }
                         }
                         if (loggedIn) {
+                            Card(
+                                modifier = Modifier.fillMaxWidth().clickable {
+                                    adminEntry = "devices"
+                                    registeredDevicesStatus = "Cihazlar yüklənir..."
+                                    db.collection("registered_devices").get()
+                                        .addOnSuccessListener { snapshot ->
+                                            registeredDevices.clear()
+                                            snapshot.documents.forEach { doc ->
+                                                registeredDevices.add(RegisteredDevice(
+                                                    id = doc.getString("device_id") ?: doc.id,
+                                                    manufacturer = doc.getString("manufacturer") ?: "Naməlum",
+                                                    model = doc.getString("model") ?: "Naməlum",
+                                                    device = doc.getString("device") ?: "Naməlum",
+                                                    androidVersion = doc.getString("android_version") ?: "Naməlum",
+                                                    sdk = doc.getLong("sdk_int") ?: 0L,
+                                                    appVersion = doc.getString("app_version") ?: "Naməlum",
+                                                    firstSeen = doc.getLong("first_seen") ?: 0L,
+                                                    lastSeen = doc.getTimestamp("last_seen")?.toDate()?.time ?: 0L
+                                                ))
+                                            }
+                                            registeredDevices.sortByDescending { it.lastSeen }
+                                            registeredDevicesStatus = if (registeredDevices.isEmpty()) "Hələ razılıq verən cihaz yoxdur." else ""
+                                        }
+                                        .addOnFailureListener { registeredDevicesStatus = "Cihazlar yüklənmədi: ${it.localizedMessage}" }
+                                },
+                                shape = RoundedCornerShape(18.dp),
+                                colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))
+                            ) {
+                                Text("📲  Yükləyən cihazlar", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(18.dp))
+                            }
                             Card(modifier = Modifier.fillMaxWidth().clickable { showGroupChat = true }, shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))) {
                                 Text("👥  Qrup rəhbərliyi", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(18.dp))
                             }
@@ -3793,6 +3829,47 @@ fun TexnoTelekomApp(
                             cursorColor = Color(0xFFFFD36A)
                         )
                         when (adminEntry) {
+                            "devices" -> {
+                                Text("YÜKLƏYƏN CİHAZLAR", color = Color(0xFFFFD36A), fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                                Text("Yalnız cihaz məlumatlarının paylaşılmasına razılıq verən quraşdırmalar göstərilir.", color = Color(0xFFCBD6EB), fontSize = 12.sp)
+                                OutlinedButton(onClick = {
+                                    registeredDevicesStatus = "Cihazlar yenilənir..."
+                                    db.collection("registered_devices").get()
+                                        .addOnSuccessListener { snapshot ->
+                                            registeredDevices.clear()
+                                            snapshot.documents.forEach { doc ->
+                                                registeredDevices.add(RegisteredDevice(
+                                                    id = doc.getString("device_id") ?: doc.id,
+                                                    manufacturer = doc.getString("manufacturer") ?: "Naməlum",
+                                                    model = doc.getString("model") ?: "Naməlum",
+                                                    device = doc.getString("device") ?: "Naməlum",
+                                                    androidVersion = doc.getString("android_version") ?: "Naməlum",
+                                                    sdk = doc.getLong("sdk_int") ?: 0L,
+                                                    appVersion = doc.getString("app_version") ?: "Naməlum",
+                                                    firstSeen = doc.getLong("first_seen") ?: 0L,
+                                                    lastSeen = doc.getTimestamp("last_seen")?.toDate()?.time ?: 0L
+                                                ))
+                                            }
+                                            registeredDevices.sortByDescending { it.lastSeen }
+                                            registeredDevicesStatus = if (registeredDevices.isEmpty()) "Hələ razılıq verən cihaz yoxdur." else ""
+                                        }
+                                        .addOnFailureListener { registeredDevicesStatus = "Cihazlar yüklənmədi: ${it.localizedMessage}" }
+                                }, modifier = Modifier.fillMaxWidth()) { Text("YENİLƏ") }
+                                if (registeredDevicesStatus.isNotBlank()) Text(registeredDevicesStatus, color = Color(0xFFFFD36A), fontSize = 13.sp)
+                                registeredDevices.forEach { item ->
+                                    Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))) {
+                                        Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                                            Text("${item.manufacturer} ${item.model}", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                                            Text("Android: ${item.androidVersion} (API ${item.sdk})", color = Color(0xFFCBD6EB), fontSize = 13.sp)
+                                            Text("Cihaz: ${item.device}", color = Color(0xFFCBD6EB), fontSize = 13.sp)
+                                            Text("Cihaz kodu: ${item.id}", color = Color(0xFFCBD6EB), fontSize = 11.sp)
+                                            Text("Tətbiq versiyası: ${item.appVersion}", color = Color(0xFFCBD6EB), fontSize = 13.sp)
+                                            Text("İlk qeydiyyat: ${if (item.firstSeen > 0) java.text.DateFormat.getDateTimeInstance().format(java.util.Date(item.firstSeen)) else "Naməlum"}", color = Color(0xFF9EACC5), fontSize = 11.sp)
+                                            Text("Son aktivlik: ${if (item.lastSeen > 0) java.text.DateFormat.getDateTimeInstance().format(java.util.Date(item.lastSeen)) else "Naməlum"}", color = Color(0xFF9EACC5), fontSize = 11.sp)
+                                        }
+                                    }
+                                }
+                            }
                             "program" -> {
                                 OutlinedTextField(name, { name = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Proqramın adı") }, colors = fieldColors)
                                 OutlinedTextField(category, { category = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Kateqoriya") }, colors = fieldColors)
@@ -4014,6 +4091,48 @@ fun TexnoTelekomApp(
 }
 }
 }
+    if (showDeviceConsent) {
+        AlertDialog(
+            onDismissRequest = { showDeviceConsent = false; deviceConsentPrefs.edit().putBoolean("consent_decided", true).putBoolean("consent_granted", false).apply() },
+            title = { Text("Cihaz məlumatlarının paylaşılması") },
+            text = {
+                Text("İstəsəniz, TEXNO-TELEKOM cihaz modeli, istehsalçı, Android versiyası, cihaz kodu (Android ID) və tətbiq versiyasını qeydiyyata alıb admin panelində göstərə bilər. Ad, telefon nömrəsi, kontaktlar, IMEI və məkan toplanmır. Bu məlumatları yalnız admin görə bilər. Razılıq verməsəniz, cihazınız qeydiyyata alınmayacaq.")
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDeviceConsent = false
+                    deviceConsentPrefs.edit().putBoolean("consent_decided", true).putBoolean("consent_granted", true).apply()
+                    val auth = FirebaseAuth.getInstance()
+                    fun saveRegistration(uid: String) {
+                        val appVersion = try { context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "Naməlum" } catch (_: Exception) { "Naməlum" }
+                        val firstSeen = deviceConsentPrefs.getLong("first_seen", System.currentTimeMillis()).also { deviceConsentPrefs.edit().putLong("first_seen", it).apply() }
+                        val registration = hashMapOf<String, Any>(
+                            "uid" to uid,
+                            "device_id" to deviceId,
+                            "manufacturer" to (Build.MANUFACTURER ?: "Naməlum"),
+                            "model" to (Build.MODEL ?: "Naməlum"),
+                            "device" to (Build.DEVICE ?: "Naməlum"),
+                            "android_version" to (Build.VERSION.RELEASE ?: "Naməlum"),
+                            "sdk_int" to Build.VERSION.SDK_INT.toLong(),
+                            "app_version" to appVersion,
+                            "first_seen" to firstSeen,
+                            "last_seen" to FieldValue.serverTimestamp()
+                        )
+                        db.collection("registered_devices").document(deviceId).set(registration, SetOptions.merge())
+                    }
+                    val current = auth.currentUser
+                    if (current != null) saveRegistration(current.uid)
+                    else auth.signInAnonymously().addOnSuccessListener { saveRegistration(it.user?.uid ?: return@addOnSuccessListener) }
+                }) { Text("RAZILIĞIM VAR") }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showDeviceConsent = false
+                    deviceConsentPrefs.edit().putBoolean("consent_decided", true).putBoolean("consent_granted", false).apply()
+                }) { Text("RAZILIQ VERMİRƏM") }
+            }
+        )
+    }
     availableUpdate?.let { update ->
         AlertDialog(
             onDismissRequest = { availableUpdate = null },
