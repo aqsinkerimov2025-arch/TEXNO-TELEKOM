@@ -3716,6 +3716,7 @@ fun TexnoTelekomApp(
         }
 }
 }
+}
     availableUpdate?.let { update ->
         AlertDialog(
             onDismissRequest = { availableUpdate = null },
