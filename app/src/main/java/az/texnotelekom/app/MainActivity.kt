@@ -3186,7 +3186,7 @@ fun TexnoTelekomApp(
                         Column(Modifier.weight(1f).padding(start = 14.dp)) {
                             Text(profileNickname.ifBlank { "Profil adı" }, color = Color.White, fontSize = 21.sp, fontWeight = FontWeight.Bold)
                             Spacer(Modifier.height(7.dp))
-                            Text("İstifadəçi", color = Color.White, fontSize = 14.sp,
+                            Text(if (isAuthorizedDevice) "ADMİN" else "İstifadəçi", color = Color.White, fontSize = 14.sp,
                                 modifier = Modifier.background(Color(0xFF0868E8), RoundedCornerShape(24.dp)).padding(horizontal = 14.dp, vertical = 6.dp))
                         }
                         Text("›", color = Color.White, fontSize = 38.sp)
