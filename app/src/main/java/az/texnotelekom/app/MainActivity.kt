@@ -3869,9 +3869,10 @@ fun TexnoTelekomApp(
     availableUpdate?.let { update ->
         AlertDialog(
             onDismissRequest = { availableUpdate = null },
-            title = { Text("TEXNO-TELEKOM") },
+            title = { Text("Tətbiq yeniləməsi mövcuddur") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("TEXNO-TELEKOM", fontWeight = FontWeight.Bold)
                     Text("Yeni Versiya: ${update.versionName}", fontWeight = FontWeight.Bold)
                     Text("Yeni Funksiya", fontWeight = FontWeight.Bold)
                     Text(update.notes)
