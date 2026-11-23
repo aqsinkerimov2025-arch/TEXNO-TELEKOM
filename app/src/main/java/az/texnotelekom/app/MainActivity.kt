@@ -2832,7 +2832,42 @@ fun TexnoTelekomApp(
             large = RoundedCornerShape(28.dp)
         )
     ) {
-        if (showGroupChat) {
+        if (showAbout) {
+            Column(
+                Modifier.fillMaxSize()
+                    .background(liveBg)
+                    .statusBarsPadding()
+                    .navigationBarsPadding()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 20.dp, vertical = 14.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Text("‹", color = Color.White, fontSize = 34.sp,
+                        modifier = Modifier.clickable { showAbout = false }.padding(end = 14.dp))
+                    Text("TƏTBİQ HAQQINDA", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Black)
+                }
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))
+                ) {
+                    Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                        TexnoTelekomLogo(size = 116.dp)
+                        Text("TEXNO TELEKOM HAQQINDA", color = Color(0xFFFFD36A), fontSize = 19.sp, fontWeight = FontWeight.Black)
+                        Text("TEXNO TELEKOM texnologiya və rəqəmsal yenilikləri istifadəçilərə təqdim etmək məqsədilə yaradılmış platformadır.", color = Color.White, fontSize = 15.sp, lineHeight = 23.sp)
+                        Text("Platformamızda istifadəçilər müxtəlif proqramlar, Android tətbiqləri, oyunlar və texnologiya xəbərləri ilə tanış ola bilərlər.", color = Color.White, fontSize = 15.sp, lineHeight = 23.sp)
+                        HorizontalDivider(color = Color(0xFF34445F))
+                        Text("ƏSAS İMKANLARIMIZ", color = Color(0xFFFFD36A), fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                        Text("• Proqramların paylaşılması\n• Android oyunları\n• TEXNO-MƏLUMAT bölməsi\n• Yeni yeniliklər və paylaşımlar\n• İstifadəçilərlə əlaqə", color = Color.White, fontSize = 15.sp, lineHeight = 27.sp)
+                        HorizontalDivider(color = Color(0xFF34445F))
+                        Text("MİSSİYAMIZ", color = Color(0xFFFFD36A), fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                        Text("Texnologiyanı hər kəs üçün daha əlçatan etmək, yenilikləri bir platformada toplamaq və istifadəçilərə rahat xidmət göstərmək.", color = Color.White, fontSize = 15.sp, lineHeight = 23.sp)
+                        Text("TEXNO TELEKOM — TEXNOLOGİYANIN ÜNVANI.", color = Color(0xFFFFD36A), fontSize = 16.sp, fontWeight = FontWeight.Black)
+                    }
+                }
+            }
+        } else if (showGroupChat) {
             GroupChatScreen(
                 backgroundColor = liveBg,
                 onClose = { showGroupChat = false },
