@@ -3233,20 +3233,8 @@ fun TexnoTelekomApp(
                     ProfileItem("⚡", "Yeniliklər", Color(0xFFFFD21C)) { showPhoneInfo = true }
                     ProfileItem("🛡️", "Təhlükəsizlik Məlumatı", Color(0xFF168BFF)) { showAbout = true }
                     ProfileItem("💬", "Təklif Qutusu", Color(0xFF00D5C5)) { showFeedback = true }
-                    ProfileItem("📶", "İnternet Sürət Testi", Color(0xFF168BFF)) { showPhoneInfo = true }
                     ProfileItem("ℹ️", "Tətbiq Haqqında", Color(0xFF247BFF)) { showAbout = true }
                     ProfileItem("⚙️", "Ayarlar", Color(0xFF247BFF)) { showPhoneInfo = true }
-                    Row(
-                        Modifier.fillMaxWidth().padding(bottom = 5.dp)
-                            .background(Color(0xFF111A2D), RoundedCornerShape(22.dp))
-                            .padding(horizontal = 20.dp, vertical = 13.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("🌙", fontSize = 29.sp, modifier = Modifier.width(78.dp))
-                        Text("Qaranlıq Rejim", color = Color(0xFFF1F5FF), fontSize = 18.sp, modifier = Modifier.weight(1f))
-                        Switch(checked = profileDarkMode, onCheckedChange = { profileDarkMode = it })
-                    }
-                    ProfileItem("⏻", "Çıxış", Color(0xFFFF2448)) { showAbout = true }
                     Spacer(Modifier.height(12.dp))
                     Card(
                         modifier = Modifier.fillMaxWidth().height(94.dp),
