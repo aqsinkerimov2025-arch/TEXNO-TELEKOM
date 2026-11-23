@@ -3031,17 +3031,19 @@ fun TexnoTelekomApp(
                         ) {
                             Column(
                                 modifier = Modifier
-                                    .width(66.dp)
+                                    .width(92.dp)
                                     .clip(RoundedCornerShape(12.dp))
                                     .background(Color(0xFFFFD36A)),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 Text(
                                     "NOYABR",
-                                    modifier = Modifier.fillMaxWidth().background(Color(0xFFE0A92F)).padding(vertical = 6.dp),
+                                    modifier = Modifier.fillMaxWidth().background(Color(0xFFE0A92F)).padding(horizontal = 2.dp, vertical = 6.dp),
                                     color = Color(0xFF172033),
-                                    fontSize = 11.sp,
+                                    fontSize = 12.sp,
                                     fontWeight = FontWeight.Black,
+                                    maxLines = 1,
+                                    softWrap = false,
                                     textAlign = androidx.compose.ui.text.style.TextAlign.Center
                                 )
                                 Text(
