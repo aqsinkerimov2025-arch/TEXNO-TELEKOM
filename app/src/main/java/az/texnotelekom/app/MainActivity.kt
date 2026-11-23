@@ -3854,7 +3854,26 @@ fun TexnoTelekomApp(
                 tabs.forEachIndexed { index, tab ->
                     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable {
                         selectedBottomTab = index
-                        if (index == 0) { showPrograms = false; showGames = false }
+                        if (index == 0) {
+                            // Əsas səhifə seçiləndə bütün alt bölmələri bağla.
+                            showPrograms = false
+                            showGames = false
+                            showPhoneInfo = false
+                            showPhoneInfoFeed = false
+                            showFeedback = false
+                            showAbout = false
+                            showSecurity = false
+                            showSettings = false
+                            settingsSelected = null
+                            showGroupChat = false
+                            showGroupManagementAdmin = false
+                            adminOpen = false
+                            adminEntry = null
+                            showGameForm = false
+                            searchOpen = false
+                            query = ""
+                            notificationProgramId = null
+                        }
                         if (index == 3 && !isAuthorizedDevice) showFeedback = true
                     }) {
                         Text(tab.first, fontSize = 25.sp)
