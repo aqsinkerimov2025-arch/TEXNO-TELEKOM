@@ -2209,6 +2209,7 @@ fun TexnoTelekomApp(
     }
     var showGames by remember { mutableStateOf(false) }
     var showPrograms by remember { mutableStateOf(false) }
+    var adminEntry by remember { mutableStateOf<String?>(null) }
     var showAbout by remember { mutableStateOf(false) }
     var showSecurity by remember { mutableStateOf(false) }
     var showSettings by remember { mutableStateOf(false) }
@@ -3479,47 +3480,82 @@ fun TexnoTelekomApp(
                 Column(
                     Modifier.weight(1f).fillMaxWidth().verticalScroll(homeScrollState)
                         .padding(horizontal = 16.dp, vertical = 18.dp),
-                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text("ADMİN PANELİ", color = Color(0xFFFFD36A), fontSize = 24.sp, fontWeight = FontWeight.Black)
-                    Text("TEXNO-TELEKOM idarəetmə bölməsi", color = Color.White, fontSize = 14.sp)
-                    Card(
-                        modifier = Modifier.fillMaxWidth().clickable { showPrograms = true },
-                        shape = RoundedCornerShape(18.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))
-                    ) {
-                        Row(Modifier.fillMaxWidth().padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Text("📱", fontSize = 28.sp)
-                            Text("Proqramları idarə et", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 14.dp))
-                            Spacer(Modifier.weight(1f))
-                            Text("›", color = Color.White, fontSize = 28.sp)
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        if (adminEntry != null) {
+                            Text("‹", color = Color.White, fontSize = 32.sp, modifier = Modifier.clickable { adminEntry = null; clearForm(); clearGameForm(); clearPostForm() }.padding(end = 12.dp))
                         }
+                        Text(if (adminEntry == null) "ADMİN PANELİ" else adminEntry!!.uppercase(), color = Color(0xFFFFD36A), fontSize = 22.sp, fontWeight = FontWeight.Black)
                     }
-                    Card(
-                        modifier = Modifier.fillMaxWidth().clickable { showGames = true },
-                        shape = RoundedCornerShape(18.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))
-                    ) {
-                        Row(Modifier.fillMaxWidth().padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Text("🎮", fontSize = 28.sp)
-                            Text("Oyunları idarə et", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 14.dp))
-                            Spacer(Modifier.weight(1f))
-                            Text("›", color = Color.White, fontSize = 28.sp)
-                        }
-                    }
-                    if (loggedIn) {
-                        Card(
-                            modifier = Modifier.fillMaxWidth().clickable { showGroupChat = true },
-                            shape = RoundedCornerShape(18.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))
-                        ) {
-                            Row(Modifier.fillMaxWidth().padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Text("👥", fontSize = 28.sp)
-                                Text("Qrup rəhbərliyi", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 14.dp))
-                                Spacer(Modifier.weight(1f))
-                                Text("›", color = Color.White, fontSize = 28.sp)
+                    if (adminEntry == null) {
+                        Text("TEXNO-TELEKOM idarəetmə bölməsi", color = Color.White, fontSize = 14.sp)
+                        listOf(
+                            Triple("📱", "Proqram əlavə et", "program"),
+                            Triple("🎮", "Oyun əlavə et", "game"),
+                            Triple("📰", "Texno məlumat paylaş", "info")
+                        ).forEach { item ->
+                            Card(
+                                modifier = Modifier.fillMaxWidth().clickable {
+                                    adminEntry = item.third
+                                    error = ""; message = ""
+                                    if (item.third == "program") clearForm()
+                                    if (item.third == "game") clearGameForm()
+                                    if (item.third == "info") { phoneInfoTitle = ""; phoneInfoBody = ""; phoneInfoImage = null; phoneInfoSticker = null }
+                                },
+                                shape = RoundedCornerShape(18.dp),
+                                colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))
+                            ) {
+                                Row(Modifier.fillMaxWidth().padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    Text(item.first, fontSize = 28.sp)
+                                    Text(item.second, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 14.dp))
+                                    Spacer(Modifier.weight(1f))
+                                    Text("›", color = Color.White, fontSize = 28.sp)
+                                }
                             }
                         }
+                        if (loggedIn) {
+                            Card(modifier = Modifier.fillMaxWidth().clickable { showGroupChat = true }, shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))) {
+                                Text("👥  Qrup rəhbərliyi", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(18.dp))
+                            }
+                        }
+                    } else {
+                        val fieldColors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.White, unfocusedTextColor = Color.White,
+                            focusedBorderColor = Color(0xFFFFD36A), unfocusedBorderColor = Color(0xFF64748B),
+                            focusedLabelColor = Color(0xFFFFD36A), unfocusedLabelColor = Color(0xFFB8C5DC),
+                            cursorColor = Color(0xFFFFD36A)
+                        )
+                        when (adminEntry) {
+                            "program" -> {
+                                OutlinedTextField(name, { name = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Proqramın adı") }, colors = fieldColors)
+                                OutlinedTextField(category, { category = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Kateqoriya") }, colors = fieldColors)
+                                OutlinedTextField(version, { version = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Versiya") }, colors = fieldColors)
+                                OutlinedTextField(description, { description = it }, modifier = Modifier.fillMaxWidth(), minLines = 3, label = { Text("Təsvir") }, colors = fieldColors)
+                                OutlinedTextField(link, { link = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Yükləmə linki") }, colors = fieldColors)
+                                OutlinedTextField(fileSize, { fileSize = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Fayl ölçüsü") }, colors = fieldColors)
+                                OutlinedButton(onClick = { imagePicker.launch("image/*") }, modifier = Modifier.fillMaxWidth()) { Text(if (pickedImage == null) "Proqram şəklini seç" else "Şəkil seçildi") }
+                                OutlinedButton(onClick = { programStickerPicker.launch("*/*") }, modifier = Modifier.fillMaxWidth()) { Text(if (programSticker == null) "Stiker seç (istəyə bağlı)" else "Stiker seçildi") }
+                                Button(onClick = { saveProgram() }, enabled = !busy, modifier = Modifier.fillMaxWidth()) { Text(if (busy) "Yadda saxlanılır..." else "Proqramı əlavə et") }
+                            }
+                            "game" -> {
+                                OutlinedTextField(gameName, { gameName = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Oyunun adı") }, colors = fieldColors)
+                                OutlinedTextField(gameVersion, { gameVersion = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Versiya") }, colors = fieldColors)
+                                OutlinedTextField(gameDescription, { gameDescription = it }, modifier = Modifier.fillMaxWidth(), minLines = 3, label = { Text("Təsvir") }, colors = fieldColors)
+                                OutlinedTextField(gameLink, { gameLink = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Yükləmə linki") }, colors = fieldColors)
+                                OutlinedButton(onClick = { gameImagePicker.launch("image/*") }, modifier = Modifier.fillMaxWidth()) { Text(if (gameImage == null) "Oyun şəklini seç" else "Şəkil seçildi") }
+                                Button(onClick = { saveGame() }, enabled = !busy, modifier = Modifier.fillMaxWidth()) { Text(if (busy) "Yadda saxlanılır..." else "Oyunu əlavə et") }
+                            }
+                            "info" -> {
+                                OutlinedTextField(phoneInfoTitle, { phoneInfoTitle = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Başlıq") }, colors = fieldColors)
+                                OutlinedTextField(phoneInfoBody, { phoneInfoBody = it }, modifier = Modifier.fillMaxWidth(), minLines = 5, label = { Text("Məlumat mətni") }, colors = fieldColors)
+                                OutlinedButton(onClick = { phoneInfoImagePicker.launch("image/*") }, modifier = Modifier.fillMaxWidth()) { Text(if (phoneInfoImage == null) "Şəkil əlavə et" else "Şəkil seçildi") }
+                                OutlinedButton(onClick = { phoneStickerPicker.launch("*/*") }, modifier = Modifier.fillMaxWidth()) { Text(if (phoneInfoSticker == null) "Stiker əlavə et (istəyə bağlı)" else "Stiker seçildi") }
+                                Button(onClick = { savePhoneInfo() }, enabled = !phoneInfoBusy, modifier = Modifier.fillMaxWidth()) { Text(if (phoneInfoBusy) "Paylaşılır..." else "TEXNO-MƏLUMATI paylaş") }
+                            }
+                        }
+                        if (error.isNotBlank()) Text(error, color = Color(0xFFFF7777), fontSize = 13.sp)
+                        if (message.isNotBlank()) Text(message, color = Color(0xFF72D69A), fontSize = 13.sp)
                     }
                 }
             } else if (selectedBottomTab == 3) {
