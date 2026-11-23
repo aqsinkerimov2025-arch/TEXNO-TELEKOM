@@ -2278,11 +2278,30 @@ fun TexnoTelekomApp(
         }.start()
     }
     DisposableEffect(lifecycleOwner) {
+        val updateHandler = Handler(Looper.getMainLooper())
+        val updateCheck = object : Runnable {
+            override fun run() {
+                if (lifecycleOwner.lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED)) {
+                    checkForAppUpdate()
+                    updateHandler.postDelayed(this, 5 * 60 * 1000L)
+                }
+            }
+        }
         val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) checkForAppUpdate()
+            when (event) {
+                Lifecycle.Event.ON_RESUME -> {
+                    updateHandler.removeCallbacks(updateCheck)
+                    updateCheck.run()
+                }
+                Lifecycle.Event.ON_PAUSE -> updateHandler.removeCallbacks(updateCheck)
+                else -> Unit
+            }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+        onDispose {
+            updateHandler.removeCallbacks(updateCheck)
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
     }
     var query by remember { mutableStateOf("") }
     var searchOpen by remember { mutableStateOf(false) }
