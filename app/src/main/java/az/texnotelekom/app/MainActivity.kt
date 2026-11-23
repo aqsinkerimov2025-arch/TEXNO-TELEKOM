@@ -2211,6 +2211,7 @@ fun TexnoTelekomApp(
     var selectedBottomTab by remember { mutableIntStateOf(0) }
     var profileDarkMode by remember { mutableStateOf(true) }
     var showPhoneInfo by remember { mutableStateOf(false) }
+    var showPhoneInfoFeed by remember { mutableStateOf(false) }
     val texnoInfoLogo = remember {
         BitmapFactory.decodeResource(context.resources, R.drawable.texno_telekom_program_logo).asImageBitmap()
     }
@@ -2227,9 +2228,10 @@ fun TexnoTelekomApp(
 
     var notificationProgramId by remember { mutableStateOf<String?>(null) }
     val notificationItemBringIntoView = remember { BringIntoViewRequester() }
-    BackHandler(enabled = showPhoneInfo || showPrograms || showGames || showFeedback || showAbout || showSecurity || showSettings) {
+    BackHandler(enabled = showPhoneInfoFeed || showPhoneInfo || showPrograms || showGames || showFeedback || showAbout || showSecurity || showSettings) {
         when {
             showFeedback -> showFeedback = false
+            showPhoneInfoFeed -> showPhoneInfoFeed = false
             showSettings && settingsSelected != null -> settingsSelected = null
             showSettings -> showSettings = false
             showSecurity -> showSecurity = false
@@ -2250,7 +2252,7 @@ fun TexnoTelekomApp(
     BackHandler(enabled = adminOpen && !showGroupManagementAdmin) { adminOpen = false }
     BackHandler(enabled = showGroupManagementAdmin) { showGroupManagementAdmin = false }
     BackHandler(
-        enabled = !showGroupChat && !showPhoneInfo && !showPrograms && !showGames &&
+        enabled = !showGroupChat && !showPhoneInfoFeed && !showPhoneInfo && !showPrograms && !showGames &&
             !showFeedback && !showAbout && !showSecurity && !showSettings && !adminOpen && !showGroupManagementAdmin
     ) {
         when {
@@ -3450,7 +3452,54 @@ fun TexnoTelekomApp(
             }
         }
         Column(Modifier.fillMaxSize()) {
-            if (showPhoneInfo) {
+            if (showPhoneInfoFeed) {
+                Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(homeScrollState).padding(horizontal = 16.dp, vertical = 16.dp).padding(bottom = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Text("‹", color = Color.White, fontSize = 34.sp, modifier = Modifier.clickable { showPhoneInfoFeed = false }.padding(end = 14.dp))
+                        Text("TEXNO-MƏLUMAT", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Black)
+                    }
+                    if (phoneInfos.isEmpty()) Text("Hələ TEXNO-MƏLUMAT paylaşılmayıb.", color = Color(0xFFCBD6EB), modifier = Modifier.fillMaxWidth().padding(vertical = 28.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                    phoneInfos.forEach { info ->
+                        Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))) {
+                            Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                                Text(info.title, color = Color(0xFFFFD36A), fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                                if (info.imageUrl.isNotBlank()) AsyncImage(model = info.imageUrl, contentDescription = info.title, modifier = Modifier.fillMaxWidth().heightIn(max = 240.dp).clip(RoundedCornerShape(12.dp)), contentScale = ContentScale.Fit)
+                                if (info.body.isNotBlank()) Text(info.body, color = Color.White, fontSize = 15.sp, lineHeight = 22.sp)
+                                if (info.stickerUrl.isNotBlank()) AsyncImage(model = info.stickerUrl, contentDescription = "Stiker", modifier = Modifier.size(120.dp), contentScale = ContentScale.Fit)
+                            }
+                        }
+                    }
+                }
+            } else if (showPrograms || showGames) {
+                val listing = if (showGames) games.filter { it.isActive || loggedIn } else programs.filter { it.isActive || loggedIn }
+                val heading = if (showGames) "OYUNLAR" else "PROQRAMLAR"
+                Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(homeScrollState).padding(horizontal = 16.dp, vertical = 16.dp).padding(bottom = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Text("‹", color = Color.White, fontSize = 34.sp, modifier = Modifier.clickable { showPrograms = false; showGames = false }.padding(end = 14.dp))
+                        Text(heading, color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Black)
+                    }
+                    if (listing.isEmpty()) Text(if (showGames) "Hələ oyun əlavə edilməyib." else "Hələ proqram əlavə edilməyib.", color = Color(0xFFCBD6EB), modifier = Modifier.fillMaxWidth().padding(vertical = 28.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                    listing.forEach { app ->
+                        Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))) {
+                            Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                    ProgramIcon(app.iconUrl, app.name, 64)
+                                    Column(Modifier.weight(1f).padding(start = 12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                        Text(app.name, color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                                        if (app.version.isNotBlank()) Text("Versiya: ${app.version}", color = Color(0xFFFFD36A), fontSize = 13.sp)
+                                        if (app.fileSize.isNotBlank()) Text(app.fileSize, color = Color(0xFF9FB0CC), fontSize = 12.sp)
+                                    }
+                                }
+                                if (app.description.isNotBlank()) Text(app.description, color = Color(0xFFCBD6EB), fontSize = 14.sp, lineHeight = 20.sp)
+                                if (app.downloadUrl.isNotBlank()) Button(onClick = {
+                                    try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(app.downloadUrl))) }
+                                    catch (_: Exception) { error = "Yükləmə linki açıla bilmədi." }
+                                }, modifier = Modifier.fillMaxWidth()) { Text("YÜKLƏ") }
+                            }
+                        }
+                    }
+                }
+            } else if (showPhoneInfo) {
                 Column(
                     Modifier.weight(1f).fillMaxWidth().verticalScroll(homeScrollState)
                         .padding(horizontal = 16.dp, vertical = 16.dp).padding(bottom = 20.dp)
@@ -3505,7 +3554,7 @@ fun TexnoTelekomApp(
                         Card(
                             modifier = Modifier.fillMaxWidth().heightIn(min = 88.dp).clickable {
                                 when (item.third) {
-                                    "phone_info" -> { showPhoneInfo = true; showPrograms = false; showGames = false }
+                                    "phone_info" -> { showPhoneInfoFeed = true; showPhoneInfo = false; showPrograms = false; showGames = false }
                                     "programs" -> { showPrograms = true; showPhoneInfo = false; showGames = false }
                                     "games" -> { showGames = true; showPhoneInfo = false; showPrograms = false }
                                 }
