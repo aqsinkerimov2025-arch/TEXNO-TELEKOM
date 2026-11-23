@@ -4013,6 +4013,8 @@ fun TexnoTelekomApp(
 }
 }
 
+}
+
 
 @Composable
 private fun HomeDesignCard(emoji: String, label: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
