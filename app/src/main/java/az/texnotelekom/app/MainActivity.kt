@@ -158,22 +158,27 @@ private fun triggerInstantPush() {
 }
 
 
-private const val UPDATE_NOTIFICATION_CHANNEL = "texno_app_updates"
+private const val UPDATE_NOTIFICATION_CHANNEL = "texno_app_updates_v2"
 private const val UPDATE_NOTIFICATION_ID = 2505
 
-private fun showAppUpdateNotification(context: Context, versionName: String, notes: String) {
+private fun showAppUpdateNotification(context: Context, versionName: String, notes: String): Boolean {
     if (Build.VERSION.SDK_INT >= 33 &&
         context.checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED
-    ) return
+    ) return false
 
     val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    if (Build.VERSION.SDK_INT >= 24 && !manager.areNotificationsEnabled()) return false
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         manager.createNotificationChannel(
             NotificationChannel(
                 UPDATE_NOTIFICATION_CHANNEL,
                 "Tətbiq yeniləmələri",
-                NotificationManager.IMPORTANCE_DEFAULT
-            ).apply { description = "TEXNO-TELEKOM yeni versiya bildirişləri" }
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "TEXNO-TELEKOM yeni versiya bildirişləri"
+                enableVibration(true)
+                setShowBadge(true)
+            }
         )
     }
     val launchIntent = context.packageManager.getLaunchIntentForPackage(context.packageName)
@@ -199,7 +204,10 @@ private fun showAppUpdateNotification(context: Context, versionName: String, not
         .setStyle(Notification.BigTextStyle().bigText("TEXNO-TELEKOM\nYeni Versiya: $versionName\nYeni Funksiya\n$cleanNotes"))
         .setAutoCancel(true)
         .setContentIntent(pendingIntent)
+    builder.setDefaults(Notification.DEFAULT_ALL)
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) builder.priority = Notification.PRIORITY_HIGH
     manager.notify(UPDATE_NOTIFICATION_ID, builder.build())
+    return true
 }
 
 private const val ADMIN_EMAIL = "aqsin.kerimov.2025@gmail.com"
@@ -2253,11 +2261,12 @@ fun TexnoTelekomApp(
                     val update = ReleaseUpdate(remoteCode, displayVersion, apkUrl, cleanNotes)
                     Handler(Looper.getMainLooper()).post {
                         val prefs = context.getSharedPreferences("texno_update_notifications", Context.MODE_PRIVATE)
-                        val notifiedCode = prefs.getLong("notified_release_code", 0L)
+                        val notifiedCode = prefs.getLong("notified_release_code_v2", 0L)
                         val promptedCode = prefs.getLong("prompted_release_code", 0L)
-                        if (notifiedCode != remoteCode) {
+                        if (notifiedCode != remoteCode &&
                             showAppUpdateNotification(context, displayVersion, cleanNotes)
-                            prefs.edit().putLong("notified_release_code", remoteCode).apply()
+                        ) {
+                            prefs.edit().putLong("notified_release_code_v2", remoteCode).apply()
                         }
                         if (promptedCode != remoteCode) {
                             availableUpdate = update
