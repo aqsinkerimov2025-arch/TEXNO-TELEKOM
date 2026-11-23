@@ -158,7 +158,7 @@ private fun triggerInstantPush() {
 }
 
 
-private const val UPDATE_NOTIFICATION_CHANNEL = "texno_app_updates_v2"
+private const val UPDATE_NOTIFICATION_CHANNEL = "texno_app_updates_v3"
 private const val UPDATE_NOTIFICATION_ID = 2505
 
 private fun showAppUpdateNotification(context: Context, versionName: String, notes: String): Boolean {
@@ -178,6 +178,12 @@ private fun showAppUpdateNotification(context: Context, versionName: String, not
                 description = "TEXNO-TELEKOM yeni versiya bildirişləri"
                 enableVibration(true)
                 setShowBadge(true)
+                setSound(
+                    android.provider.Settings.System.DEFAULT_NOTIFICATION_URI,
+                    android.media.AudioAttributes.Builder()
+                        .setUsage(android.media.AudioAttributes.USAGE_NOTIFICATION)
+                        .build()
+                )
             }
         )
     }
@@ -205,6 +211,9 @@ private fun showAppUpdateNotification(context: Context, versionName: String, not
         .setAutoCancel(true)
         .setContentIntent(pendingIntent)
     builder.setDefaults(Notification.DEFAULT_ALL)
+        .setCategory(Notification.CATEGORY_SYSTEM)
+        .setVisibility(Notification.VISIBILITY_PUBLIC)
+        .setTicker("TEXNO-TELEKOM: Yeniləmə mövcuddur")
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) builder.setPriority(Notification.PRIORITY_HIGH)
     manager.notify(UPDATE_NOTIFICATION_ID, builder.build())
     return true
