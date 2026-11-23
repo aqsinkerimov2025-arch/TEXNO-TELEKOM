@@ -4,6 +4,13 @@ import android.content.Intent
 import android.content.BroadcastReceiver
 import android.content.IntentFilter
 import android.app.DownloadManager
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import android.os.Environment
 import android.media.MediaRecorder
 import java.io.File
@@ -148,6 +155,51 @@ private fun triggerInstantPush() {
             } catch (_: Exception) { }
         }.start()
     }
+}
+
+
+private const val UPDATE_NOTIFICATION_CHANNEL = "texno_app_updates"
+private const val UPDATE_NOTIFICATION_ID = 2505
+
+private fun showAppUpdateNotification(context: Context, versionName: String, notes: String) {
+    if (Build.VERSION.SDK_INT >= 33 &&
+        context.checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED
+    ) return
+
+    val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        manager.createNotificationChannel(
+            NotificationChannel(
+                UPDATE_NOTIFICATION_CHANNEL,
+                "Tətbiq yeniləmələri",
+                NotificationManager.IMPORTANCE_DEFAULT
+            ).apply { description = "TEXNO-TELEKOM yeni versiya bildirişləri" }
+        )
+    }
+    val launchIntent = context.packageManager.getLaunchIntentForPackage(context.packageName)
+    val pendingIntent = launchIntent?.let {
+        PendingIntent.getActivity(
+            context, UPDATE_NOTIFICATION_ID, it,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+    }
+    val cleanNotes = notes.lines()
+        .filterNot { it.trim().equals("Yeni Funksiya", ignoreCase = true) }
+        .joinToString("\n").trim()
+        .ifBlank { "Yeni imkanlar və yeniliklər əlavə edildi." }
+    val builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        Notification.Builder(context, UPDATE_NOTIFICATION_CHANNEL)
+    } else {
+        @Suppress("DEPRECATION")
+        Notification.Builder(context)
+    }
+    builder.setSmallIcon(R.drawable.texno_notification_icon)
+        .setContentTitle("Tətbiq yeniləməsi mövcuddur")
+        .setContentText("TEXNO-TELEKOM • Yeni versiya: $versionName")
+        .setStyle(Notification.BigTextStyle().bigText("TEXNO-TELEKOM\nYeni Versiya: $versionName\nYeni Funksiya\n$cleanNotes"))
+        .setAutoCancel(true)
+        .setContentIntent(pendingIntent)
+    manager.notify(UPDATE_NOTIFICATION_ID, builder.build())
 }
 
 private const val ADMIN_EMAIL = "aqsin.kerimov.2025@gmail.com"
@@ -2169,7 +2221,8 @@ fun TexnoTelekomApp(
     }
 
     var availableUpdate by remember { mutableStateOf<ReleaseUpdate?>(null) }
-    LaunchedEffect(Unit) {
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val checkForAppUpdate: () -> Unit = {
         Thread {
             try {
                 val connection = (URL("https://api.github.com/repos/aqsinkerimov2025-arch/TEXNO-TELEKOM/releases/latest").openConnection() as HttpURLConnection).apply {
@@ -2193,18 +2246,34 @@ fun TexnoTelekomApp(
                 if (remoteCode > currentCode && apkUrl.startsWith("https://")) {
                     val displayVersion = Regex("""\d+\.\d+(?:\.\d+)?""")
                         .find(json.optString("name"))?.value ?: (info.versionName ?: "2.5")
-                    val update = ReleaseUpdate(
-                        remoteCode,
-                        displayVersion,
-                        apkUrl,
-                        json.optString("body").ifBlank { "Yeni Funksiya\nYeni Dizayn əlavə edildi" }
-                    )
+                    val rawNotes = json.optString("body").ifBlank { "Yeni Funksiya\nYeni Dizayn əlavə edildi" }
+                    val cleanNotes = rawNotes.lines()
+                        .filterNot { it.trim().equals("Yeni Funksiya", ignoreCase = true) }
+                        .joinToString("\n").trim()
+                    val update = ReleaseUpdate(remoteCode, displayVersion, apkUrl, cleanNotes)
                     Handler(Looper.getMainLooper()).post {
-                        availableUpdate = update
+                        val prefs = context.getSharedPreferences("texno_update_notifications", Context.MODE_PRIVATE)
+                        val notifiedCode = prefs.getLong("notified_release_code", 0L)
+                        val promptedCode = prefs.getLong("prompted_release_code", 0L)
+                        if (notifiedCode != remoteCode) {
+                            showAppUpdateNotification(context, displayVersion, cleanNotes)
+                            prefs.edit().putLong("notified_release_code", remoteCode).apply()
+                        }
+                        if (promptedCode != remoteCode) {
+                            availableUpdate = update
+                            prefs.edit().putLong("prompted_release_code", remoteCode).apply()
+                        }
                     }
                 }
             } catch (_: Exception) { }
         }.start()
+    }
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) checkForAppUpdate()
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
     var query by remember { mutableStateOf("") }
     var searchOpen by remember { mutableStateOf(false) }
@@ -3894,7 +3963,7 @@ fun TexnoTelekomApp(
                     Text("TEXNO-TELEKOM", fontWeight = FontWeight.Bold)
                     Text("Yeni Versiya: ${update.versionName}", fontWeight = FontWeight.Bold)
                     Text("Yeni Funksiya", fontWeight = FontWeight.Bold)
-                    Text(update.notes)
+                    if (update.notes.isNotBlank()) Text(update.notes)
                     Text("Yeni versiyanı indi yükləmək istəyirsiniz?")
                 }
             },
