@@ -2200,6 +2200,7 @@ fun TexnoTelekomApp(
     var query by remember { mutableStateOf("") }
     var searchOpen by remember { mutableStateOf(false) }
     var selectedBottomTab by remember { mutableIntStateOf(0) }
+    var profileDarkMode by remember { mutableStateOf(true) }
     var showPhoneInfo by remember { mutableStateOf(false) }
     val texnoInfoLogo = remember {
         BitmapFactory.decodeResource(context.resources, R.drawable.texno_telekom_program_logo).asImageBitmap()
@@ -3163,6 +3164,104 @@ fun TexnoTelekomApp(
             }
         }
         Column(Modifier.fillMaxSize()) {
+            if (selectedBottomTab == 4) {
+                Column(
+                    Modifier.weight(1f).fillMaxWidth().verticalScroll(homeScrollState)
+                        .padding(horizontal = 16.dp, vertical = 12.dp).padding(bottom = 20.dp)
+                ) {
+                    Row(
+                        Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 24.dp)
+                            .clickable { showAbout = true },
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(Modifier.size(112.dp), contentAlignment = Alignment.Center) {
+                            TexnoTelekomLogo(size = 108.dp)
+                        }
+                        Column(Modifier.weight(1f).padding(start = 14.dp)) {
+                            Text("AQŞİN KƏRİMOV", color = Color.White, fontSize = 21.sp, fontWeight = FontWeight.Bold)
+                            Spacer(Modifier.height(7.dp))
+                            Text("İstifadəçi", color = Color.White, fontSize = 14.sp,
+                                modifier = Modifier.background(Color(0xFF0868E8), RoundedCornerShape(24.dp)).padding(horizontal = 14.dp, vertical = 6.dp))
+                        }
+                        Text("›", color = Color.White, fontSize = 38.sp)
+                    }
+                    Card(
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 26.dp),
+                        shape = RoundedCornerShape(24.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))
+                    ) {
+                        Row(Modifier.fillMaxWidth().padding(vertical = 18.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text("⬇️", fontSize = 27.sp)
+                                Text("248", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                                Text("Yükləmə", color = Color(0xFFCBD6EB), fontSize = 14.sp)
+                            }
+                            Box(Modifier.width(1.dp).height(78.dp).background(Color(0xFF26334D)))
+                            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text("⭐", fontSize = 27.sp)
+                                Text("36", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                                Text("Sevimli", color = Color(0xFFCBD6EB), fontSize = 14.sp)
+                            }
+                            Box(Modifier.width(1.dp).height(78.dp).background(Color(0xFF26334D)))
+                            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text("🗓️", fontSize = 27.sp)
+                                Text("12", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                                Text("Bildiriş", color = Color(0xFFCBD6EB), fontSize = 14.sp)
+                            }
+                        }
+                    }
+                    @Composable
+                    fun ProfileItem(icon: String, title: String, tint: Color = Color.White, onClick: () -> Unit) {
+                        Row(
+                            Modifier.fillMaxWidth().padding(bottom = 5.dp)
+                                .background(Color(0xFF111A2D), RoundedCornerShape(22.dp))
+                                .clickable(onClick = onClick).padding(horizontal = 20.dp, vertical = 13.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(icon, fontSize = 29.sp, color = tint, modifier = Modifier.width(78.dp))
+                            Text(title, color = Color(0xFFF1F5FF), fontSize = 18.sp, modifier = Modifier.weight(1f))
+                            Text("›", color = Color(0xFFDCE7FF), fontSize = 34.sp)
+                        }
+                    }
+                    ProfileItem("👑", "Kateqoriyalar", Color(0xFFFFD21C)) { selectedBottomTab = 1 }
+                    ProfileItem("⚡", "Yeniliklər", Color(0xFFFFD21C)) { showPhoneInfo = true }
+                    ProfileItem("🛡️", "Təhlükəsizlik Məlumatı", Color(0xFF168BFF)) { showAbout = true }
+                    ProfileItem("💬", "Təklif Qutusu", Color(0xFF00D5C5)) { showFeedback = true }
+                    ProfileItem("📶", "İnternet Sürət Testi", Color(0xFF168BFF)) { showPhoneInfo = true }
+                    ProfileItem("ℹ️", "Tətbiq Haqqında", Color(0xFF247BFF)) { showAbout = true }
+                    ProfileItem("⚙️", "Ayarlar", Color(0xFF247BFF)) { showPhoneInfo = true }
+                    Row(
+                        Modifier.fillMaxWidth().padding(bottom = 5.dp)
+                            .background(Color(0xFF111A2D), RoundedCornerShape(22.dp))
+                            .padding(horizontal = 20.dp, vertical = 13.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("🌙", fontSize = 29.sp, modifier = Modifier.width(78.dp))
+                        Text("Qaranlıq Rejim", color = Color(0xFFF1F5FF), fontSize = 18.sp, modifier = Modifier.weight(1f))
+                        Switch(checked = profileDarkMode, onCheckedChange = { profileDarkMode = it })
+                    }
+                    ProfileItem("⏻", "Çıxış", Color(0xFFFF2448)) { showAbout = true }
+                    Spacer(Modifier.height(12.dp))
+                    Card(
+                        modifier = Modifier.fillMaxWidth().height(94.dp),
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF063B91))
+                    ) {
+                        Box(
+                            Modifier.fillMaxSize().background(Brush.linearGradient(listOf(Color(0xFF061B46), Color(0xFF087DEB), Color(0xFF061B46)))),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("➤", color = Color(0xFF19C5FF), fontSize = 52.sp, modifier = Modifier.padding(end = 18.dp))
+                                Column {
+                                    Text("TEXNO-TELEKOM", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                                    Text("Daha yaxşı bir gələcək üçün!", color = Color(0xFFE1EDFF), fontSize = 12.sp)
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
             Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(homeScrollState).padding(horizontal = 16.dp, vertical = 12.dp).padding(bottom = 28.dp)) {
                 TexnoTelekomLogo(size = 176.dp)
                 Spacer(Modifier.height(18.dp))
@@ -3195,6 +3294,8 @@ fun TexnoTelekomApp(
                 Spacer(Modifier.height(24.dp))
                 if (isAuthorizedDevice) Text("ADMİN", color = Color.White, fontWeight = FontWeight.Bold, modifier = Modifier.align(Alignment.CenterHorizontally).clickable { adminOpen = !adminOpen })
                 if (adminOpen && isAuthorizedDevice) { /* admin panel remains below in its existing section */ }
+            }
+
             }
             Row(Modifier.fillMaxWidth().background(Color(0xFF080D1E)).navigationBarsPadding().padding(vertical = 10.dp), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
                 val tabs = listOf("🏠" to "Əsas səhifə", "📱" to "Kateqoriyalar", "⭐" to "Favorilər", "👑" to "Premium", "👤" to "Profil")
