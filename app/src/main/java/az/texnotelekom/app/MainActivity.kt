@@ -1051,7 +1051,7 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun GroupChatScreen(backgroundColor: Color, onClose: () -> Unit, onOpenBubbleAdmin: () -> Unit) {
+private fun GroupChatScreen(backgroundColor: Color, onClose: () -> Unit, onOpenBubbleAdmin: () -> Unit, onNicknameChanged: (String) -> Unit) {
     val context = LocalContext.current
     val db = remember { FirebaseFirestore.getInstance() }
     val prefs = remember { context.getSharedPreferences("texno_group_chat", Context.MODE_PRIVATE) }
@@ -1597,6 +1597,7 @@ private fun GroupChatScreen(backgroundColor: Color, onClose: () -> Unit, onOpenB
                     if (nickname.trim().length >= 2) {
                         nickname = nickname.trim()
                         prefs.edit().putString("nickname", nickname).apply()
+                        onNicknameChanged(nickname)
                         nameConfirmed = true
                     } else status = "Ad ən azı 2 hərf olmalıdır."
                 }, modifier = Modifier.fillMaxWidth()) { Text("Daxil ol") }
@@ -2060,6 +2061,7 @@ fun TexnoTelekomApp(
     var showGroupChat by remember { mutableStateOf(false) }
     BackHandler(enabled = showGroupChat) { showGroupChat = false }
     var groupNickname by remember { mutableStateOf(context.getSharedPreferences("texno_group_chat", Context.MODE_PRIVATE).getString("nickname", "") ?: "") }
+    var profileNickname by remember { mutableStateOf(groupNickname) }
     var groupNameConfirmed by remember { mutableStateOf(groupNickname.trim().length >= 2) }
     var groupDraft by remember { mutableStateOf("") }
     var replyToMessage by remember { mutableStateOf<GroupChatMessage?>(null) }
@@ -2839,6 +2841,10 @@ fun TexnoTelekomApp(
                         showGroupChat = false
                         showGroupManagementAdmin = true
                     }
+                },
+                onNicknameChanged = { enteredName ->
+                    profileNickname = enteredName
+                    groupNickname = enteredName
                 }
             )
         } else if (showGroupManagementAdmin && loggedIn && isAuthorizedDevice) {
@@ -3178,7 +3184,7 @@ fun TexnoTelekomApp(
                             TexnoTelekomLogo(size = 108.dp)
                         }
                         Column(Modifier.weight(1f).padding(start = 14.dp)) {
-                            Text("AQŞİN KƏRİMOV", color = Color.White, fontSize = 21.sp, fontWeight = FontWeight.Bold)
+                            Text(profileNickname.ifBlank { "Profil adı" }, color = Color.White, fontSize = 21.sp, fontWeight = FontWeight.Bold)
                             Spacer(Modifier.height(7.dp))
                             Text("İstifadəçi", color = Color.White, fontSize = 14.sp,
                                 modifier = Modifier.background(Color(0xFF0868E8), RoundedCornerShape(24.dp)).padding(horizontal = 14.dp, vertical = 6.dp))
