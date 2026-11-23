@@ -75,8 +75,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           VERSION_CODE=$((14 + GITHUB_RUN_NUMBER))
+          APP_VERSION=$(sed -n 's/.*versionName = "\([^"]*\)".*/\1/p' app/build.gradle.kts | head -n 1)
+          APP_VERSION="${APP_VERSION:-2.5}"
           gh release create "app-v${VERSION_CODE}" app/build/outputs/apk/release/TEXNO-TELEKOM.apk \
             --repo "${GITHUB_REPOSITORY}" \
-            --title "TEXNO-TELEKOM v${VERSION_CODE}" \
-            --notes "TEXNO-TELEKOM tətbiqinin yeni versiyası." \
+            --title "TEXNO-TELEKOM ${APP_VERSION}" \
+            --notes "$(printf 'Yeni Funksiya\nYeni Dizayn əlavə edildi')" \
             --latest
