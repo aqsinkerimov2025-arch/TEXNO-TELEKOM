@@ -4013,31 +4013,7 @@ fun TexnoTelekomApp(
 }
 }
 }
-    availableUpdate?.let { update ->
-        AlertDialog(
-            onDismissRequest = { availableUpdate = null },
-            title = { Text("Tətbiq yeniləməsi mövcuddur") },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("TEXNO-TELEKOM", fontWeight = FontWeight.Bold)
-                    Text("Yeni Versiya: ${update.versionName}", fontWeight = FontWeight.Bold)
-                    Text("Yeni Funksiya", fontWeight = FontWeight.Bold)
-                    if (update.notes.isNotBlank()) Text(update.notes)
-                    Text("Yeni versiyanı indi yükləmək istəyirsiniz?")
-                }
-            },
-            confirmButton = {
-                Button(onClick = {
-                    availableUpdate = null
-                    onInstallUpdate(update.apkUrl)
-                }) { Text("İNDİ YENİLƏ") }
-            },
-            dismissButton = {
-                TextButton(onClick = { availableUpdate = null }) { Text("SONRA") }
-            }
-        )
-    }
-}
+
 
 @Composable
 private fun HomeDesignCard(emoji: String, label: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
