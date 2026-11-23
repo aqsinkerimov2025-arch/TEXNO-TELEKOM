@@ -3199,19 +3199,19 @@ fun TexnoTelekomApp(
                         Row(Modifier.fillMaxWidth().padding(vertical = 18.dp), verticalAlignment = Alignment.CenterVertically) {
                             Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text("⬇️", fontSize = 27.sp)
-                                Text("248", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                                Text("0", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
                                 Text("Yükləmə", color = Color(0xFFCBD6EB), fontSize = 14.sp)
                             }
                             Box(Modifier.width(1.dp).height(78.dp).background(Color(0xFF26334D)))
                             Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text("⭐", fontSize = 27.sp)
-                                Text("36", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                                Text("0", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
                                 Text("Sevimli", color = Color(0xFFCBD6EB), fontSize = 14.sp)
                             }
                             Box(Modifier.width(1.dp).height(78.dp).background(Color(0xFF26334D)))
                             Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text("🗓️", fontSize = 27.sp)
-                                Text("12", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                                Text("0", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
                                 Text("Bildiriş", color = Color(0xFFCBD6EB), fontSize = 14.sp)
                             }
                         }
@@ -3229,7 +3229,6 @@ fun TexnoTelekomApp(
                             Text("›", color = Color(0xFFDCE7FF), fontSize = 34.sp)
                         }
                     }
-                    ProfileItem("👑", "Kateqoriyalar", Color(0xFFFFD21C)) { selectedBottomTab = 1 }
                     ProfileItem("⚡", "Yeniliklər", Color(0xFFFFD21C)) { showPhoneInfo = true }
                     ProfileItem("🛡️", "Təhlükəsizlik Məlumatı", Color(0xFF168BFF)) { showAbout = true }
                     ProfileItem("💬", "Təklif Qutusu", Color(0xFF00D5C5)) { showFeedback = true }
