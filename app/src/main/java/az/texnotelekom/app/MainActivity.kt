@@ -2414,7 +2414,9 @@ fun TexnoTelekomApp(
     val phoneInfos = remember { mutableStateListOf<PhoneInfo>() }
     var newPhoneInfoNotice by remember { mutableStateOf(false) }
     var newProgramNotice by remember { mutableStateOf(false) }
-    var appNoticeItems by remember { mutableStateOf(listOf<Triple<String, String, Long>>()) }
+    var appNoticeItems by remember { mutableStateOf(listOf<Pair<String, Triple<String, String, Long>>>()) }
+    var showClearUpdatesConfirm by remember { mutableStateOf(false) }
+    var clearingUpdates by remember { mutableStateOf(false) }
     var latestAdminFeedbackAt by remember { mutableLongStateOf(0L) }
     var showAdminFeedbackNotice by remember { mutableStateOf(false) }
     var postTitle by remember { mutableStateOf("") }
@@ -2487,7 +2489,7 @@ fun TexnoTelekomApp(
                         val title = d.getString("title") ?: "Yeni yenilik"
                         val body = d.getString("body") ?: title
                         val time = d.getTimestamp("created_at")?.toDate()?.time ?: 0L
-                        Triple(title, body, time)
+                        d.id to Triple(title, body, time)
                     }
                 }
             }
@@ -2676,6 +2678,37 @@ fun TexnoTelekomApp(
         db.collection("site_settings").document("content").set(values, SetOptions.merge())
             .addOnSuccessListener { message = "Sayt yazıları yadda saxlanıldı." }
             .addOnFailureListener { error = "Yadda saxlamaq alınmadı: ${it.localizedMessage}" }
+    }
+
+    fun clearAllAppUpdates() {
+        if (!isAuthorizedDevice || !loggedIn || clearingUpdates) return
+        clearingUpdates = true
+        db.collection("app_notifications").get()
+            .addOnSuccessListener { snapshot ->
+                val batches = snapshot.documents.chunked(450).map { documents ->
+                    db.batch().also { batch -> documents.forEach { batch.delete(it.reference) } }
+                }
+                if (batches.isEmpty()) {
+                    clearingUpdates = false
+                    showClearUpdatesConfirm = false
+                    message = "Yeniliklər bölməsi artıq təmizdir."
+                } else {
+                    com.google.android.gms.tasks.Tasks.whenAll(batches.map { it.commit() })
+                        .addOnSuccessListener {
+                            clearingUpdates = false
+                            showClearUpdatesConfirm = false
+                            message = "Köhnə yeniliklər və bildirişlər silindi."
+                        }
+                        .addOnFailureListener {
+                            clearingUpdates = false
+                            error = "Təmizləmək alınmadı: ${it.localizedMessage}"
+                        }
+                }
+            }
+            .addOnFailureListener {
+                clearingUpdates = false
+                error = "Yeniliklər oxunmadı: ${it.localizedMessage}"
+            }
     }
 
     fun clearForm() {
@@ -3512,12 +3545,25 @@ fun TexnoTelekomApp(
                             modifier = Modifier.clickable { showPhoneInfo = false }.padding(end = 14.dp))
                         Text("Yeniliklər", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
                     }
+                    if (loggedIn && isAuthorizedDevice) {
+                        OutlinedButton(
+                            onClick = { if (!clearingUpdates) showClearUpdatesConfirm = true },
+                            enabled = !clearingUpdates,
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 14.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFF7777))
+                        ) {
+                            Icon(Icons.Filled.Delete, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
+                            Text(if (clearingUpdates) "TƏMİZLƏNİR..." else "TƏMİZLƏMƏ BÖLMƏSİ")
+                        }
+                    }
                     if (appNoticeItems.isEmpty()) {
                         Text("Hələlik yenilik yoxdur.", color = Color(0xFFCBD6EB), fontSize = 15.sp,
                             modifier = Modifier.fillMaxWidth().padding(vertical = 28.dp),
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                     } else {
-                        appNoticeItems.forEach { item ->
+                        appNoticeItems.forEach { entry ->
+                            val item = entry.second
                             Card(
                                 modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
                                 shape = RoundedCornerShape(18.dp),
@@ -3536,6 +3582,21 @@ fun TexnoTelekomApp(
                                 }
                             }
                         }
+                    }
+                    if (showClearUpdatesConfirm && loggedIn && isAuthorizedDevice) {
+                        AlertDialog(
+                            onDismissRequest = { if (!clearingUpdates) showClearUpdatesConfirm = false },
+                            title = { Text("Yenilikləri təmizlə") },
+                            text = { Text("Bütün köhnə yeniliklər və tətbiq bildirişləri silinəcək. Bu əməliyyatı geri qaytarmaq mümkün deyil. Davam edək?") },
+                            confirmButton = {
+                                TextButton(onClick = { clearAllAppUpdates() }, enabled = !clearingUpdates) {
+                                    Text(if (clearingUpdates) "SİLİNİR..." else "BƏLİ, TƏMİZLƏ")
+                                }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = { showClearUpdatesConfirm = false }, enabled = !clearingUpdates) { Text("LƏĞV ET") }
+                            }
+                        )
                     }
                 }
             } else if (selectedBottomTab == 1) {
