@@ -2899,9 +2899,12 @@ fun TexnoTelekomApp(
                             when (selectedSetting.second) {
                                 "Hesab məlumatları" -> {
                                     val account = FirebaseAuth.getInstance().currentUser
-                                    Text("İstifadəçi: \${account?.displayName ?: "TEXNO-TELEKOM istifadəçisi"}", color = Color.White, fontSize = 14.sp)
-                                    Text("E-poçt: \${account?.email ?: "Hesaba e-poçt əlavə edilməyib"}", color = Color.White, fontSize = 14.sp)
-                                    Text("Giriş statusu: \${if (account != null) "Daxil olunub" else "Qonaq"}", color = Color.White, fontSize = 14.sp)
+                                    val displayName = account?.displayName ?: "TEXNO-TELEKOM istifadəçisi"
+                                    val email = account?.email ?: "Hesaba e-poçt əlavə edilməyib"
+                                    val loginStatus = if (account != null) "Daxil olunub" else "Qonaq"
+                                    Text("İstifadəçi: $displayName", color = Color.White, fontSize = 14.sp)
+                                    Text("E-poçt: $email", color = Color.White, fontSize = 14.sp)
+                                    Text("Giriş statusu: $loginStatus", color = Color.White, fontSize = 14.sp)
                                 }
                                 "Cihaz məlumatları" -> {
                                     val device = Build.MODEL ?: "Naməlum"
