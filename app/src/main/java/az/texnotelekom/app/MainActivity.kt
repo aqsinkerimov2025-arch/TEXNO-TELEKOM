@@ -3163,7 +3163,7 @@ fun TexnoTelekomApp(
             }
         }
         Column(Modifier.fillMaxSize()) {
-            Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(homeScrollState).padding(horizontal = 16.dp, vertical = 12.dp)) {
+            Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(homeScrollState).padding(horizontal = 16.dp, vertical = 12.dp).padding(bottom = 28.dp)) {
                 TexnoTelekomLogo(size = 176.dp)
                 Spacer(Modifier.height(18.dp))
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -3196,7 +3196,7 @@ fun TexnoTelekomApp(
                 if (isAuthorizedDevice) Text("ADMİN", color = Color.White, fontWeight = FontWeight.Bold, modifier = Modifier.align(Alignment.CenterHorizontally).clickable { adminOpen = !adminOpen })
                 if (adminOpen && isAuthorizedDevice) { /* admin panel remains below in its existing section */ }
             }
-            Row(Modifier.fillMaxWidth().background(Color(0xFF080D1E)).padding(vertical = 10.dp), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.fillMaxWidth().background(Color(0xFF080D1E)).navigationBarsPadding().padding(vertical = 10.dp), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
                 val tabs = listOf("🏠" to "Əsas səhifə", "▦" to "Kateqoriyalar", "⭐" to "Favorilər", "👑" to "Premium", "👤" to "Profil")
                 tabs.forEachIndexed { index, tab ->
                     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { selectedBottomTab = index; if (index == 0) { showPrograms = false; showGames = false } }) {
