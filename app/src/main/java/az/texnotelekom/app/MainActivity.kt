@@ -4196,7 +4196,7 @@ fun TexnoTelekomApp(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            "📢 Yeni telefon məlumatları",
+                            "📢 Bu həftənin paylaşımları",
                             color = Color.White,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
