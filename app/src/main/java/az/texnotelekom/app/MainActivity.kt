@@ -2273,7 +2273,6 @@ fun TexnoTelekomApp(
             updateHandler.removeCallbacks(updateCheck)
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
-        }
     }
     if (showUpdateCheckDialog) {
         AlertDialog(
