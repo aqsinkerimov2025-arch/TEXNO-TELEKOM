@@ -4172,10 +4172,33 @@ fun TexnoTelekomApp(
                             fontWeight = FontWeight.Black
                         )
                     }
+                    val bellTransition = rememberInfiniteTransition(label = "home_notification_bell")
+                    val bellRotation by bellTransition.animateFloat(
+                        initialValue = -12f,
+                        targetValue = 12f,
+                        animationSpec = infiniteRepeatable(
+                            animation = tween(durationMillis = 650, easing = FastOutSlowInEasing),
+                            repeatMode = RepeatMode.Reverse
+                        ),
+                        label = "bell_rotation"
+                    )
                     IconButton(
-                        onClick = { showGroupChat = true },
+                        onClick = {
+                            noticeFilter = "all"
+                            showPhoneInfo = true
+                            showPhoneInfoFeed = false
+                            showPrograms = false
+                            showGames = false
+                            showFeedback = false
+                        },
                         modifier = Modifier.align(Alignment.TopStart)
-                    ) { Text("🔔", fontSize = 25.sp) }
+                    ) {
+                        Text(
+                            "🔔",
+                            fontSize = 25.sp,
+                            modifier = Modifier.graphicsLayer { rotationZ = bellRotation }
+                        )
+                    }
                     Row(
                         Modifier.align(Alignment.TopEnd),
                         verticalAlignment = Alignment.CenterVertically
