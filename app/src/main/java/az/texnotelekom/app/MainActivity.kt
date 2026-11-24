@@ -3872,7 +3872,6 @@ fun TexnoTelekomApp(
                                     modifier = Modifier.weight(1f).padding(start = 12.dp, end = 8.dp),
                                     maxLines = 3,
                                     softWrap = true,
-                                    overflow = TextOverflow.Visible
                                 )
                                 Text("›", color = Color(0xFF168BFF), fontSize = 30.sp)
                             }
