@@ -910,7 +910,7 @@ private const val ADMIN_ICON_BASE64 = "iVBORw0KGgoAAAANSUhEUgAAAEAAAABICAYAAABGO
 private const val ADMIN_UID = "FflCErahavNIb8ZXsvHIyrxZYZH3"
 private val ADMIN_DEVICE_IDS = setOf("a20e9a204172f84f", "2ad6b306ca18b8e0")
 
-private data class ReleaseUpdate(val versionCode: Long, val versionName: String, val apkUrl: String, val notes: String, val publishedAt: Long = 0L)
+private data class ReleaseUpdate(val versionCode: Long, val versionName: String, val apkUrl: String, val notes: String)
 
 data class AppItem(
     val id: String, val name: String, val category: String, val version: String,
@@ -2178,7 +2178,6 @@ fun TexnoTelekomApp(
     }
 
     var availableUpdate by remember { mutableStateOf<ReleaseUpdate?>(null) }
-    var latestReleaseNotice by remember { mutableStateOf<ReleaseUpdate?>(null) }
     var updateCheckInProgress by remember { mutableStateOf(false) }
     var showUpdateCheckDialog by remember { mutableStateOf(false) }
     var updateCheckMessage by remember { mutableStateOf("") }
@@ -2208,12 +2207,9 @@ fun TexnoTelekomApp(
                 val currentName = info.versionName ?: "Naməlum"
                 val displayVersion = Regex("""\d+\.\d+(?:\.\d+)?""")
                     .find(json.optString("name"))?.value ?: currentName
-                val releaseNotes = json.optString("body").ifBlank { "Tətbiq yeniləndi." }.trim()
-                val publishedAt = try { java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.US).parse(json.optString("published_at"))?.time ?: 0L } catch (_: Exception) { 0L }
-                val releaseNotice = ReleaseUpdate(remoteCode, displayVersion, apkUrl, releaseNotes, publishedAt)
-                Handler(Looper.getMainLooper()).post { latestReleaseNotice = releaseNotice }
                 if (remoteCode > currentCode && apkUrl.startsWith("https://")) {
-                    val update = releaseNotice
+                    val rawNotes = json.optString("body").ifBlank { "Yeni versiya və yeniliklər mövcuddur." }
+                    val update = ReleaseUpdate(remoteCode, displayVersion, apkUrl, rawNotes.trim())
                     Handler(Looper.getMainLooper()).post {
                         updateCheckInProgress = false
                         availableUpdate = update
@@ -2311,7 +2307,6 @@ fun TexnoTelekomApp(
     var selectedBottomTab by remember { mutableIntStateOf(0) }
     var profileDarkMode by remember { mutableStateOf(true) }
     var showPhoneInfo by remember { mutableStateOf(false) }
-    var showAppReleaseNotes by remember { mutableStateOf(false) }
     var showPhoneInfoFeed by remember { mutableStateOf(false) }
     var selectedPhoneInfoId by remember { mutableStateOf<String?>(null) }
     val texnoInfoLogo = remember {
@@ -2330,12 +2325,11 @@ fun TexnoTelekomApp(
 
     var notificationProgramId by remember { mutableStateOf<String?>(null) }
     val notificationItemBringIntoView = remember { BringIntoViewRequester() }
-    BackHandler(enabled = showPhoneInfoFeed || showPhoneInfo || showAppReleaseNotes || showPrograms || showGames || showFeedback || showAbout || showSecurity || showSettings) {
+    BackHandler(enabled = showPhoneInfoFeed || showPhoneInfo || showPrograms || showGames || showFeedback || showAbout || showSecurity || showSettings) {
         // Android/system back from any home-card destination returns directly to home.
         showPhoneInfoFeed = false
         selectedPhoneInfoId = null
         showPhoneInfo = false
-        showAppReleaseNotes = false
         showPrograms = false
         showGames = false
         showFeedback = false
@@ -2765,19 +2759,6 @@ fun TexnoTelekomApp(
     var phoneInfoStickerUrlPending by remember { mutableStateOf("") }
     var phoneInfoStickerMimePending by remember { mutableStateOf("") }
 
-    fun publishContentNotice(type: String, title: String, body: String, extra: Map<String, Any> = emptyMap()) {
-        val collection = db.collection("app_notifications")
-        collection.get().addOnSuccessListener { snapshot ->
-            val oldNotices = snapshot.documents.filter { it.getString("type") in setOf("program_added", "program_updated", "game_added", "game_updated", "phone_info_added", "phone_info_updated", "program", "game", "phone_info") }
-            val batch = db.batch()
-            oldNotices.forEach { batch.delete(it.reference) }
-            val notice = hashMapOf<String, Any>("type" to type, "title" to title, "body" to body, "created_at" to FieldValue.serverTimestamp())
-            notice.putAll(extra)
-            batch.set(collection.document(), notice)
-            batch.commit().addOnSuccessListener { triggerInstantPush() }.addOnFailureListener { error = "Bildiriş yadda saxlanmadı: ${it.localizedMessage}" }
-        }.addOnFailureListener { error = "Köhnə bildiriş yoxlanmadı: ${it.localizedMessage}" }
-    }
-
     fun publishPhoneInfo(imageUrl: String) {
         val values = hashMapOf<String, Any>(
             "title" to phoneInfoTitle.trim().ifBlank { "TEXNO-MƏLUMAT" },
@@ -2797,7 +2778,9 @@ fun TexnoTelekomApp(
                 phoneInfoStickerMimePending = ""
                 phoneInfoBusy = false
                 newPhoneInfoNotice = true
-                publishContentNotice("phone_info_added", "Yeni TEXNO-MƏLUMAT paylaşıldı", "Yeni məlumat paylaşıldı. Tətbiqə daxil olub baxın.")
+                db.collection("app_notifications")
+                    .add(hashMapOf("type" to "phone_info", "title" to "Yeni TEXNO-MƏLUMAT paylaşımı", "body" to "Yeni məlumat paylaşıldı. Tətbiqə daxil olub baxın.", "created_at" to FieldValue.serverTimestamp()))
+                    .addOnSuccessListener { triggerInstantPush() }
                 message = "TEXNO-MƏLUMAT bölməsində paylaşıldı."
             }
             .addOnFailureListener {
@@ -2871,9 +2854,7 @@ fun TexnoTelekomApp(
         clearingUpdates = true
         db.collection("app_notifications").get()
             .addOnSuccessListener { snapshot ->
-                val contentTypes = setOf("program_added", "program_updated", "game_added", "game_updated", "phone_info_added", "phone_info_updated", "program", "game", "phone_info")
-                val contentDocuments = snapshot.documents.filter { it.getString("type") in contentTypes }
-                val batches = contentDocuments.chunked(450).map { documents ->
+                val batches = snapshot.documents.chunked(450).map { documents ->
                     db.batch().also { batch -> documents.forEach { batch.delete(it.reference) } }
                 }
                 if (batches.isEmpty()) {
@@ -2885,7 +2866,7 @@ fun TexnoTelekomApp(
                         .addOnSuccessListener {
                             clearingUpdates = false
                             showClearUpdatesConfirm = false
-                            message = "Profil bölməsinin köhnə paylaşım bildirişləri silindi."
+                            message = "Köhnə yeniliklər və bildirişlər silindi."
                         }
                         .addOnFailureListener {
                             clearingUpdates = false
@@ -2969,7 +2950,14 @@ fun TexnoTelekomApp(
         val programDocument = if (id == null) db.collection("programs").document() else db.collection("programs").document(id)
         programDocument.set(values, SetOptions.merge()).addOnSuccessListener {
             newProgramNotice = true
-            publishContentNotice(if (id == null) "program_added" else "program_updated", if (id == null) "Yeni proqram əlavə edildi" else "Proqram yeniləndi", if (id == null) "${name.trim()} əlavə edildi." else "${name.trim()} yeniləndi. Yeni versiya: ${version.trim().ifBlank { "mövcuddur" }}", mapOf("program_id" to programDocument.id, "content_type" to "program"))
+            db.collection("app_notifications").add(hashMapOf(
+                "type" to "program",
+                "title" to if (id == null) "Yeni proqram əlavə edildi" else "Proqram yeniləndi",
+                "body" to if (id == null) "${name.trim()} əlavə edildi." else "${name.trim()} yeniləndi. Yeni versiya: ${version.trim().ifBlank { "mövcuddur" }}",
+                "created_at" to FieldValue.serverTimestamp(),
+                "program_id" to programDocument.id,
+                "content_type" to "program"
+            )).addOnSuccessListener { triggerInstantPush() }
             message = if (id == null) "Proqram əlavə edildi." else "Proqram yeniləndi."
             clearForm(); busy = false
         }.addOnFailureListener {
@@ -2988,7 +2976,14 @@ fun TexnoTelekomApp(
             val gameDocument = if (id == null) db.collection("programs").document() else db.collection("programs").document(id)
             gameDocument.set(values, SetOptions.merge()).addOnSuccessListener {
                 newProgramNotice = true
-                publishContentNotice(if (id == null) "game_added" else "game_updated", if (id == null) "Yeni oyun əlavə edildi" else "Oyun yeniləndi", if (id == null) "${gameName.trim()} oyunu əlavə edildi." else "${gameName.trim()} oyunu yeniləndi. Yeni versiya: ${gameVersion.trim().ifBlank { "mövcuddur" }}", mapOf("program_id" to gameDocument.id, "content_type" to "game"))
+                db.collection("app_notifications").add(hashMapOf(
+                    "type" to "game",
+                    "title" to if (id == null) "Yeni oyun əlavə edildi" else "Oyun yeniləndi",
+                    "body" to if (id == null) "${gameName.trim()} oyunu əlavə edildi." else "${gameName.trim()} oyunu yeniləndi. Yeni versiya: ${gameVersion.trim().ifBlank { "mövcuddur" }}",
+                    "created_at" to FieldValue.serverTimestamp(),
+                    "program_id" to gameDocument.id,
+                    "content_type" to "game"
+                )).addOnSuccessListener { triggerInstantPush() }
                 message = if (id == null) "Oyun əlavə edildi." else "Oyun yeniləndi."
                 clearGameForm(); busy = false
             }.addOnFailureListener { error = "Oyun yadda saxlanmadı: ${it.localizedMessage}"; busy = false }
@@ -3772,25 +3767,6 @@ fun TexnoTelekomApp(
                         }
                     }
                 }
-            } else if (showAppReleaseNotes) {
-                Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(homeScrollState).padding(horizontal = 16.dp, vertical = 16.dp)) {
-                    Row(Modifier.fillMaxWidth().padding(bottom = 20.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Text("‹", color = Color.White, fontSize = 34.sp, modifier = Modifier.clickable { showAppReleaseNotes = false }.padding(end = 14.dp))
-                        Text("Tətbiq yenilikləri", color = Color.White, fontSize = 23.sp, fontWeight = FontWeight.Bold)
-                    }
-                    val release = latestReleaseNotice
-                    if (release == null) {
-                        Text("Hələ tətbiq yeniliyi qeydə alınmayıb.", color = Color(0xFFCBD6EB), modifier = Modifier.fillMaxWidth().padding(vertical = 28.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-                    } else {
-                        Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))) {
-                            Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
-                                Text("TEXNO-TELEKOM • Versiya ${release.versionName}", color = Color(0xFFFFD36A), fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                                Text(release.notes, color = Color.White, fontSize = 15.sp, lineHeight = 22.sp)
-                                if (release.publishedAt > 0L) Text(java.text.SimpleDateFormat("dd.MM.yyyy • HH:mm", java.util.Locale("az")).format(java.util.Date(release.publishedAt)), color = Color(0xFF8FA3C7), fontSize = 12.sp)
-                            }
-                        }
-                    }
-                }
             } else if (showPhoneInfo) {
                 Column(
                     Modifier.weight(1f).fillMaxWidth().verticalScroll(homeScrollState)
@@ -3816,14 +3792,7 @@ fun TexnoTelekomApp(
                             Text(if (clearingUpdates) "TƏMİZLƏNİR..." else "TƏMİZLƏMƏ BÖLMƏSİ")
                         }
                     }
-                    val contentNoticeTypes = setOf("program_added", "program_updated", "game_added", "game_updated", "phone_info_added", "phone_info_updated", "program", "game", "phone_info")
-                    val visibleNotices = appNoticeItems.filter { entry ->
-                        entry.second.second in contentNoticeTypes &&
-                            (noticeFilter == "all" ||
-                                (noticeFilter == "phone_info" && entry.second.second.startsWith("phone_info")) ||
-                                (noticeFilter == "program" && entry.second.second.startsWith("program")) ||
-                                (noticeFilter == "game" && entry.second.second.startsWith("game")))
-                    }
+                    val visibleNotices = appNoticeItems.filter { entry -> noticeFilter == "all" || entry.second.second == noticeFilter }
                     Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         listOf("all" to "Hamısı", "phone_info" to "TEXNO-MƏLUMAT", "program" to "Proqramlar", "game" to "Oyunlar").forEach { option ->
                             FilterChip(selected = noticeFilter == option.first, onClick = { noticeFilter = option.first }, label = { Text(option.second, fontSize = 11.sp) })
@@ -3839,9 +3808,9 @@ fun TexnoTelekomApp(
                             Card(
                                 modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp).clickable {
                                     when (entry.second.second) {
-                                        "phone_info", "phone_info_added", "phone_info_updated" -> { showPhoneInfoFeed = true; showPhoneInfo = false; showPrograms = false; showGames = false }
-                                        "game", "game_added", "game_updated" -> { notificationProgramId = entry.first; showGames = true; showPrograms = false; selectedBottomTab = 1 }
-                                        "program", "program_added", "program_updated" -> { notificationProgramId = entry.first; showPrograms = true; showGames = false; selectedBottomTab = 1 }
+                                        "phone_info" -> { showPhoneInfoFeed = true; showPhoneInfo = false; showPrograms = false; showGames = false }
+                                        "game" -> { notificationProgramId = entry.first; showGames = true; showPrograms = false; selectedBottomTab = 1 }
+                                        "program" -> { notificationProgramId = entry.first; showPrograms = true; showGames = false; selectedBottomTab = 1 }
                                     }
                                 },
                                 shape = RoundedCornerShape(18.dp),
@@ -4106,9 +4075,9 @@ fun TexnoTelekomApp(
                                 Text("Sevimli", color = Color(0xFFCBD6EB), fontSize = 14.sp)
                             }
                             Box(Modifier.width(1.dp).height(78.dp).background(Color(0xFF26334D)))
-                            Column(Modifier.weight(1f).clickable { noticeFilter = "all"; showPhoneInfo = true; showAppReleaseNotes = false }, horizontalAlignment = Alignment.CenterHorizontally) {
+                            Column(Modifier.weight(1f).clickable { noticeFilter = "all"; showPhoneInfo = true }, horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text("🗓️", fontSize = 27.sp)
-                                Text("${appNoticeItems.count { it.second.second in setOf("program_added", "program_updated", "game_added", "game_updated", "phone_info_added", "phone_info_updated") }}", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                                Text("${appNoticeItems.size}", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
                                 Text("Bildiriş", color = Color(0xFFCBD6EB), fontSize = 14.sp)
                             }
                         }
@@ -4215,8 +4184,8 @@ fun TexnoTelekomApp(
                     )
                     IconButton(
                         onClick = {
-                            showAppReleaseNotes = true
-                            showPhoneInfo = false
+                            noticeFilter = "all"
+                            showPhoneInfo = true
                             showPhoneInfoFeed = false
                             showPrograms = false
                             showGames = false
