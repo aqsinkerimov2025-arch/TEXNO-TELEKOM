@@ -2507,6 +2507,7 @@ fun TexnoTelekomApp(
     var whatsappPhone by remember { mutableStateOf("+994558053305") }
     var homeSignature by remember { mutableStateOf("MR_R3HB3R") }
     val programs = remember { mutableStateListOf<AppItem>() }
+    val weeklyHitPrograms = remember { mutableStateListOf<AppItem>() }
     val games = remember { mutableStateListOf<AppItem>() }
     val favoritesPrefs = remember { context.getSharedPreferences("texno_favorites", Context.MODE_PRIVATE) }
     val favoriteIds = remember {
@@ -2673,8 +2674,27 @@ fun TexnoTelekomApp(
             if (e != null) error = "Firebase xətası: ${e.localizedMessage}"
             else if (snap != null) {
                 programs.clear()
+                weeklyHitPrograms.clear()
                 games.clear()
                 posts.clear()
+                val weeklyCutoff = System.currentTimeMillis() - 7L * 24L * 60L * 60L * 1000L
+                snap.documents
+                    .filter { d ->
+                        d.getString("content_type") != "channel_post" &&
+                            d.getString("content_type") != "game" &&
+                            (d.getBoolean("is_active") ?: true) &&
+                            (d.getTimestamp("created_at")?.toDate()?.time ?: 0L) >= weeklyCutoff
+                    }
+                    .sortedByDescending { it.getTimestamp("created_at")?.toDate()?.time ?: 0L }
+                    .forEach { d ->
+                        weeklyHitPrograms.add(AppItem(
+                            d.id, d.getString("name") ?: "", d.getString("category") ?: "",
+                            d.getString("version") ?: "", d.getString("description") ?: "",
+                            d.getString("download_url") ?: "", d.getString("icon_url") ?: "",
+                            d.getString("sticker_url") ?: "", d.getString("sticker_mime") ?: "",
+                            d.getBoolean("is_active") ?: true, d.getString("file_size") ?: "0 MB"
+                        ))
+                    }
                 snap.documents.filter { it.getString("content_type") == "channel_post" }.forEach { d ->
                     posts.add(ChannelPost(d.id, d.getString("title") ?: "", d.getString("version") ?: "",
                         d.getBoolean("is_vip") ?: false, d.getString("description") ?: "",
@@ -4167,6 +4187,72 @@ fun TexnoTelekomApp(
                 }
                 Spacer(Modifier.height(14.dp))
                 HomeDesignCard("👥", "TEXNO DƏSTƏK QRUPU", Modifier.fillMaxWidth()) { showGroupChat = true }
+                if (weeklyHitPrograms.isNotEmpty()) {
+                    Spacer(Modifier.height(8.dp))
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("🔥", fontSize = 24.sp)
+                            Text("  Bu həftənin hitləri", color = Color.White, fontSize = 19.sp, fontWeight = FontWeight.Bold)
+                        }
+                        Text(
+                            "Hamısına bax  →",
+                            color = Color(0xFF20B8FF),
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.clickable {
+                                selectedBottomTab = 1
+                                showPrograms = true
+                                showGames = false
+                                showPhoneInfo = false
+                                showPhoneInfoFeed = false
+                            }
+                        )
+                    }
+                    Row(
+                        Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        weeklyHitPrograms.forEach { app ->
+                            Card(
+                                modifier = Modifier.width(150.dp),
+                                shape = RoundedCornerShape(18.dp),
+                                colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))
+                            ) {
+                                Column(
+                                    Modifier.fillMaxWidth().padding(12.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    ProgramIcon(app.iconUrl, app.name, 62)
+                                    Text(
+                                        app.name,
+                                        color = Color.White,
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        maxLines = 2,
+                                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                    )
+                                    if (app.version.isNotBlank()) Text("v${app.version}", color = Color(0xFFB9C9E5), fontSize = 12.sp)
+                                    if (app.fileSize.isNotBlank()) Text(app.fileSize, color = Color(0xFFB9C9E5), fontSize = 11.sp)
+                                    if (app.downloadUrl.isNotBlank()) {
+                                        Button(
+                                            onClick = {
+                                                try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(app.downloadUrl))) }
+                                                catch (_: Exception) { error = "Yükləmə linki açıla bilmədi." }
+                                            },
+                                            modifier = Modifier.fillMaxWidth(),
+                                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 5.dp)
+                                        ) { Text("Yüklə", fontSize = 13.sp) }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
                 Spacer(Modifier.height(24.dp))
                 if (adminOpen && isAuthorizedDevice) { /* admin panel remains below in its existing section */ }
             }
