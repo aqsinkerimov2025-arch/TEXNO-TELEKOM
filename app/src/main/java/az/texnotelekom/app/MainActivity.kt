@@ -4312,7 +4312,12 @@ private fun HomeDesignCard(emoji: String, label: String, modifier: Modifier = Mo
                         .background(Color(0xFF07152F)),
                     contentAlignment = Alignment.Center
                 ) {
-                    TexnoTelekomLogo(size = 64.dp)
+                    Image(
+                        painter = painterResource(id = R.drawable.texno_melumat_logo),
+                        contentDescription = "TEXNO-MƏLUMAT loqosu",
+                        modifier = Modifier.fillMaxSize().clip(CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
                 }
                 Spacer(Modifier.width(10.dp))
                 Text(label, color = Color.White, fontSize = 10.sp, lineHeight = 12.sp, fontWeight = FontWeight.Medium, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
