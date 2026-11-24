@@ -2389,17 +2389,17 @@ fun TexnoTelekomApp(
     var notificationProgramId by remember { mutableStateOf<String?>(null) }
     val notificationItemBringIntoView = remember { BringIntoViewRequester() }
     BackHandler(enabled = showPhoneInfoFeed || showPhoneInfo || showPrograms || showGames || showFeedback || showAbout || showSecurity || showSettings) {
-        when {
-            showFeedback -> showFeedback = false
-            showPhoneInfoFeed -> showPhoneInfoFeed = false
-            showSettings && settingsSelected != null -> settingsSelected = null
-            showSettings -> showSettings = false
-            showSecurity -> showSecurity = false
-            showAbout -> showAbout = false
-            showGames -> showGames = false
-            showPrograms -> showPrograms = false
-            showPhoneInfo -> showPhoneInfo = false
-        }
+        // Android/system back from any home-card destination returns directly to home.
+        showPhoneInfoFeed = false
+        showPhoneInfo = false
+        showPrograms = false
+        showGames = false
+        showFeedback = false
+        showAbout = false
+        showSecurity = false
+        showSettings = false
+        settingsSelected = null
+        selectedBottomTab = 0
     }
     var phoneInfoTitle by remember { mutableStateOf("") }
     var phoneInfoBody by remember { mutableStateOf("") }
@@ -4131,13 +4131,13 @@ fun TexnoTelekomApp(
                 }
                 Spacer(Modifier.height(22.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                    HomeDesignCard("📰", "TEXNO-MƏLUMAT", Modifier.weight(1f)) { showPhoneInfoFeed = true; showPhoneInfo = false; showPrograms = false; showGames = false }
-                    HomeDesignCard("📱", "TEXNO-TELEKOM\nPROQRAMLAR", Modifier.weight(1f)) { selectedBottomTab = 1; showPrograms = true; showGames = false; showPhoneInfo = false; showPhoneInfoFeed = false }
+                    HomeDesignCard("📰", "TEXNO-MƏLUMAT", Modifier.weight(1f)) { selectedBottomTab = 0; showPhoneInfoFeed = true; showPhoneInfo = false; showPrograms = false; showGames = false; showFeedback = false }
+                    HomeDesignCard("📱", "TEXNO-TELEKOM\nPROQRAMLAR", Modifier.weight(1f)) { selectedBottomTab = 1; showPrograms = true; showGames = false; showPhoneInfo = false; showPhoneInfoFeed = false; showFeedback = false }
                 }
                 Spacer(Modifier.height(14.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                    HomeDesignCard("🎮", "OYUNLAR", Modifier.weight(1f)) { showGames = true; showPrograms = false; showPhoneInfo = false; showPhoneInfoFeed = false }
-                    HomeDesignCard("💬", "ADMİNLƏ-ƏLAQƏ", Modifier.weight(1f)) { selectedBottomTab = 3; showPrograms = false; showGames = false; showPhoneInfo = false; showPhoneInfoFeed = false; adminEntry = null; showFeedback = !isAuthorizedDevice }
+                    HomeDesignCard("🎮", "OYUNLAR", Modifier.weight(1f)) { selectedBottomTab = 2; showGames = true; showPrograms = false; showPhoneInfo = false; showPhoneInfoFeed = false; showFeedback = false }
+                    HomeDesignCard("💬", "ADMİNLƏ-ƏLAQƏ", Modifier.weight(1f)) { selectedBottomTab = 3; showPrograms = false; showGames = false; showPhoneInfo = false; showPhoneInfoFeed = false; adminEntry = null; showFeedback = true }
                 }
                 Spacer(Modifier.height(14.dp))
                 HomeDesignCard("👥", "TEXNO DƏSTƏK QRUPU", Modifier.fillMaxWidth()) { showGroupChat = true }
