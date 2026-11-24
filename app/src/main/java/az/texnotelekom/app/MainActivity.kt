@@ -2520,6 +2520,8 @@ fun TexnoTelekomApp(
     var link by remember { mutableStateOf("") }
     var fileSize by remember { mutableStateOf("0 MB") }
     var editingId by remember { mutableStateOf<String?>(null) }
+    var pendingDeleteProgramId by remember { mutableStateOf<String?>(null) }
+    var pendingDeleteProgramName by remember { mutableStateOf("") }
     var currentIcon by remember { mutableStateOf("") }
     var pickedImage by remember { mutableStateOf<Uri?>(null) }
     var busy by remember { mutableStateOf(false) }
@@ -3682,6 +3684,28 @@ fun TexnoTelekomApp(
                         Text(heading, color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Black)
                     }
                     if (listing.isEmpty()) Text(if (showGames) "Hələ oyun əlavə edilməyib." else "Hələ proqram əlavə edilməyib.", color = Color(0xFFCBD6EB), modifier = Modifier.fillMaxWidth().padding(vertical = 28.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                    if (pendingDeleteProgramId != null && loggedIn && isAuthorizedDevice) {
+                        AlertDialog(
+                            onDismissRequest = { pendingDeleteProgramId = null; pendingDeleteProgramName = "" },
+                            title = { Text("Proqramı sil") },
+                            text = { Text("${pendingDeleteProgramName} proqramını silmək istədiyinizə əminsiniz? Bu əməliyyat geri qaytarılmır.") },
+                            confirmButton = {
+                                TextButton(onClick = {
+                                    val deleteId = pendingDeleteProgramId
+                                    if (deleteId != null) {
+                                        db.collection("programs").document(deleteId).delete()
+                                            .addOnSuccessListener { message = "Proqram silindi." }
+                                            .addOnFailureListener { error = "Proqram silinmədi: ${it.localizedMessage}" }
+                                    }
+                                    pendingDeleteProgramId = null
+                                    pendingDeleteProgramName = ""
+                                }) { Text("BƏLİ, SİL", color = Color(0xFFE05252)) }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = { pendingDeleteProgramId = null; pendingDeleteProgramName = "" }) { Text("LƏĞV ET") }
+                            }
+                        )
+                    }
                     listing.forEach { app ->
                         Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))) {
                             Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -3701,6 +3725,48 @@ fun TexnoTelekomApp(
                                     try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(app.downloadUrl))) }
                                     catch (_: Exception) { error = "Yükləmə linki açıla bilmədi." }
                                 }, modifier = Modifier.fillMaxWidth()) { Text("YÜKLƏ") }
+                                if (loggedIn && isAuthorizedDevice) {
+                                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                        OutlinedButton(
+                                            onClick = {
+                                                name = app.name
+                                                category = app.category
+                                                version = app.version
+                                                description = app.description
+                                                link = app.downloadUrl
+                                                fileSize = app.fileSize.ifBlank { "0 MB" }
+                                                editingId = app.id
+                                                currentIcon = app.iconUrl
+                                                currentProgramStickerUrl = app.stickerUrl
+                                                currentProgramStickerMime = app.stickerMime
+                                                pickedImage = null
+                                                programSticker = null
+                                                error = ""; message = ""
+                                                showPrograms = false
+                                                showGames = false
+                                                selectedBottomTab = 3
+                                                adminEntry = "program"
+                                            },
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            Icon(Icons.Default.Edit, contentDescription = null)
+                                            Spacer(Modifier.width(6.dp))
+                                            Text("REDAKTƏ ET")
+                                        }
+                                        OutlinedButton(
+                                            onClick = {
+                                                pendingDeleteProgramId = app.id
+                                                pendingDeleteProgramName = app.name
+                                            },
+                                            modifier = Modifier.weight(1f),
+                                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFF7777))
+                                        ) {
+                                            Icon(Icons.Default.Delete, contentDescription = null)
+                                            Spacer(Modifier.width(6.dp))
+                                            Text("SİL")
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
