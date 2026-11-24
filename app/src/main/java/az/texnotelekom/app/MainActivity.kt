@@ -4375,7 +4375,13 @@ private fun HomeDesignCard(emoji: String, label: String, modifier: Modifier = Mo
     Card(modifier = modifier.heightIn(min = 150.dp).clickable(onClick = onClick), shape = RoundedCornerShape(28.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF151F3B))) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 16.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
             if (showMelumatLogo) {
-                TexnoTelekomLogo(size = 76.dp)
+                Box(
+                    modifier = Modifier.size(76.dp).clip(CircleShape)
+                        .background(Color(0xFF07152F)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    TexnoTelekomLogo(size = 76.dp)
+                }
             } else if (showLogo) {
                 TexnoTelekomLogo(size = 76.dp)
             } else {
