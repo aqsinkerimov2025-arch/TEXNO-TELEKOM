@@ -3792,7 +3792,14 @@ fun TexnoTelekomApp(
                             Text(if (clearingUpdates) "TƏMİZLƏNİR..." else "TƏMİZLƏMƏ BÖLMƏSİ")
                         }
                     }
-                    val visibleNotices = appNoticeItems.filter { entry -> noticeFilter == "all" || entry.second.second == noticeFilter }
+                    val appReleaseNotes = listOf(
+                        "release_feature" to (Triple("✨ Yeni funksiya əlavə olundu", "Tətbiqə yeni imkanlar əlavə edildi və mövcud funksiyalar təkmilləşdirildi.", 0L) to "other"),
+                        "release_design" to (Triple("🎨 Yeni dizayn dəyişiklikləri edildi", "Tətbiqin görünüşü yeniləndi, bölmələrin dizaynı və istifadə rahatlığı yaxşılaşdırıldı.", 0L) to "other"),
+                        "release_fixes" to (Triple("🛠️ Bilinən xətalar düzəldildi", "İstifadə zamanı aşkarlanan xətalar aradan qaldırıldı və tətbiqin sabitliyi artırıldı.", 0L) to "other"),
+                        "release_performance" to (Triple("⚡ Tətbiqin işi yaxşılaşdırıldı", "Sürət və ümumi işləmə sabitliyi üzrə optimallaşdırmalar aparıldı.", 0L) to "other")
+                    )
+                    val allNoticeEntries = appReleaseNotes + appNoticeItems
+                    val visibleNotices = allNoticeEntries.filter { entry -> noticeFilter == "all" || entry.second.second == noticeFilter }
                     Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         listOf("all" to "Hamısı", "phone_info" to "TEXNO-MƏLUMAT", "program" to "Proqramlar", "game" to "Oyunlar").forEach { option ->
                             FilterChip(selected = noticeFilter == option.first, onClick = { noticeFilter = option.first }, label = { Text(option.second, fontSize = 11.sp) })
@@ -4077,7 +4084,7 @@ fun TexnoTelekomApp(
                             Box(Modifier.width(1.dp).height(78.dp).background(Color(0xFF26334D)))
                             Column(Modifier.weight(1f).clickable { noticeFilter = "all"; showPhoneInfo = true }, horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text("🗓️", fontSize = 27.sp)
-                                Text("${appNoticeItems.size}", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                                Text("${appNoticeItems.size + 4}", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
                                 Text("Bildiriş", color = Color(0xFFCBD6EB), fontSize = 14.sp)
                             }
                         }
