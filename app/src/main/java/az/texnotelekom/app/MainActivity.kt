@@ -3849,30 +3849,31 @@ fun TexnoTelekomApp(
                             colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))
                         ) {
                             Row(
-                                Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 22.dp),
+                                Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 18.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 when (item.third) {
                                     "phone_info" -> Image(
                                         painter = painterResource(id = R.drawable.texno_melumat_logo),
                                         contentDescription = "TEXNO-MƏLUMAT loqosu",
-                                        modifier = Modifier.size(48.dp).clip(CircleShape),
+                                        modifier = Modifier.size(44.dp).clip(CircleShape),
                                         contentScale = ContentScale.Crop
                                     )
-                                    "programs" -> TexnoTelekomLogo(size = 48.dp)
+                                    "programs" -> TexnoTelekomLogo(size = 44.dp)
                                     else -> Text(item.first, fontSize = 30.sp)
                                 }
                                 Text(
                                     item.second,
                                     color = Color.White,
-                                    fontSize = 10.sp,
-                                    lineHeight = 12.sp,
+                                    fontSize = 11.sp,
+                                    lineHeight = 13.sp,
                                     fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.weight(1f).padding(start = 16.dp),
+                                    textAlign = androidx.compose.ui.text.style.TextAlign.Start,
+                                    modifier = Modifier.weight(1f).padding(start = 12.dp, end = 8.dp),
                                     maxLines = 3,
-                                    softWrap = true
+                                    softWrap = true,
+                                    overflow = TextOverflow.Visible
                                 )
-                                Spacer(Modifier.weight(1f))
                                 Text("›", color = Color(0xFF168BFF), fontSize = 30.sp)
                             }
                         }
