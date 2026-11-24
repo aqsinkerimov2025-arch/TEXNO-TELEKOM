@@ -80,5 +80,9 @@ jobs:
           gh release create "app-v${VERSION_CODE}" app/build/outputs/apk/release/TEXNO-TELEKOM.apk \
             --repo "${GITHUB_REPOSITORY}" \
             --title "TEXNO-TELEKOM ${APP_VERSION}" \
-            --notes "$(printf 'Yeni Funksiya\nYeni Dizayn əlavə edildi')" \
+            RELEASE_NOTES="$(git log -1 --pretty=%B)"
+          if [ -z "${RELEASE_NOTES//[[:space:]]/}" ]; then
+            RELEASE_NOTES="TEXNO-TELEKOM tətbiqi yeniləndi."
+          fi
+          --notes "$RELEASE_NOTES" \
             --latest
