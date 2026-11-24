@@ -3820,7 +3820,7 @@ fun TexnoTelekomApp(
                     Text("İstədiyiniz bölməni seçin", color = Color(0xFFCBD6EB), fontSize = 14.sp)
                     listOf(
                         Triple("📰", "TEXNO-MƏLUMAT", "phone_info"),
-                        Triple("📱", "PROQRAMLAR", "programs"),
+                        Triple("📱", "TEXNO-TELEKOM proqramlar", "programs"),
                         Triple("🎮", "OYUNLAR", "games")
                     ).forEach { item ->
                         Card(
@@ -3838,7 +3838,16 @@ fun TexnoTelekomApp(
                                 Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 22.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text(item.first, fontSize = 30.sp)
+                                when (item.third) {
+                                    "phone_info" -> Image(
+                                        painter = painterResource(id = R.drawable.texno_melumat_logo),
+                                        contentDescription = "TEXNO-MƏLUMAT loqosu",
+                                        modifier = Modifier.size(48.dp).clip(CircleShape),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                    "programs" -> TexnoTelekomLogo(size = 48.dp)
+                                    else -> Text(item.first, fontSize = 30.sp)
+                                }
                                 Text(item.second, color = Color.White, fontSize = 17.sp,
                                     fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 16.dp))
                                 Spacer(Modifier.weight(1f))
@@ -4126,8 +4135,8 @@ fun TexnoTelekomApp(
                 if (searchOpen) OutlinedTextField(query, { query = it }, modifier = Modifier.fillMaxWidth(), placeholder = { Text("Axtar...") }, singleLine = true)
                 Spacer(Modifier.height(22.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                    HomeDesignCard("📰", "TEXNO-MƏLUMAT", Modifier.weight(1f), showMelumatLogo = true) { selectedBottomTab = 0; showPhoneInfoFeed = true; showPhoneInfo = false; showPrograms = false; showGames = false; showFeedback = false }
-                    HomeDesignCard("📱", "TEXNO-TELEKOM proqramlar", Modifier.weight(1f), showLogo = true) { selectedBottomTab = 1; showPrograms = true; showGames = false; showPhoneInfo = false; showPhoneInfoFeed = false; showFeedback = false }
+                    HomeDesignCard("📰", "TEXNO-MƏLUMAT", Modifier.weight(1f)) { selectedBottomTab = 0; showPhoneInfoFeed = true; showPhoneInfo = false; showPrograms = false; showGames = false; showFeedback = false }
+                    HomeDesignCard("📱", "PROQRAMLAR", Modifier.weight(1f)) { selectedBottomTab = 1; showPrograms = true; showGames = false; showPhoneInfo = false; showPhoneInfoFeed = false; showFeedback = false }
                 }
                 Spacer(Modifier.height(14.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
