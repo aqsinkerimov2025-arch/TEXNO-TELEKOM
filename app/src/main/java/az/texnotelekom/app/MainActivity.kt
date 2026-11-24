@@ -4099,14 +4099,29 @@ fun TexnoTelekomApp(
                         }
                     }
                 }
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    TexnoTelekomLogo(size = 76.dp)
-                    Column(Modifier.weight(1f).padding(start = 12.dp)) {
-                        Text("TEXNO\nTELEKOM", color = Color.White, fontSize = 27.sp, fontWeight = FontWeight.Black, lineHeight = 30.sp)
-                        Text("Texnologiya hər kəs üçün!", color = Color(0xFFCDD5E5), fontSize = 15.sp)
+                Box(Modifier.fillMaxWidth().heightIn(min = 112.dp)) {
+                    Column(
+                        Modifier.align(Alignment.Center),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(5.dp)
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.texno_melumat_logo),
+                            contentDescription = "TEXNO-MƏLUMAT loqosu",
+                            modifier = Modifier.size(76.dp).clip(CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                        Text(
+                            "TEXNO-MƏLUMAT",
+                            color = Color.White,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Black
+                        )
                     }
-                    IconButton(onClick = { showGroupChat = true }) { Text("🔔", fontSize = 26.sp) }
-                    IconButton(onClick = { searchOpen = !searchOpen }) { Icon(Icons.Default.Search, contentDescription = "Axtarış", tint = Color.White) }
+                    Row(Modifier.align(Alignment.TopEnd)) {
+                        IconButton(onClick = { showGroupChat = true }) { Text("🔔", fontSize = 26.sp) }
+                        IconButton(onClick = { searchOpen = !searchOpen }) { Icon(Icons.Default.Search, contentDescription = "Axtarış", tint = Color.White) }
+                    }
                 }
                 if (searchOpen) OutlinedTextField(query, { query = it }, modifier = Modifier.fillMaxWidth(), placeholder = { Text("Axtar...") }, singleLine = true)
                 Spacer(Modifier.height(22.dp))
