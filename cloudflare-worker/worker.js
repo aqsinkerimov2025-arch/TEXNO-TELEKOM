@@ -105,9 +105,8 @@ async function syncLatestAppRelease(env) {
   } catch (error) {
     if (!String(error).includes("404")) throw error;
   }
-  const title = String(release.name || "TEXNO-TELEKOM yeniləndi").slice(0, 160);
-  const notes = String(release.body || "").trim();
-  const body = (notes || ("Yeni versiya yayımlandı: " + tag)) .slice(0, 3000);
+  const title = "TEXNO-TELEKOM tətbiqi yeniləndi";
+  const body = "Tətbiqin yeni versiyası (" + tag + ") yayımlandı. Yeniliklər və təkmilləşdirmələr tətbiqə əlavə edildi. Ən son versiyadan istifadə etmək üçün tətbiqi yeniləyin.";
   await firestoreRequest(documentPath, token, {
     method: "PATCH",
     body: JSON.stringify({ fields: {
