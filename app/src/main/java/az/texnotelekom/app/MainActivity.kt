@@ -4128,7 +4128,7 @@ fun TexnoTelekomApp(
                 Spacer(Modifier.height(22.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                     HomeDesignCard("📰", "TEXNO-MƏLUMAT", Modifier.weight(1f)) { selectedBottomTab = 0; showPhoneInfoFeed = true; showPhoneInfo = false; showPrograms = false; showGames = false; showFeedback = false }
-                    HomeDesignCard("📱", "TEXNO-TELEKOM\nPROQRAMLAR", Modifier.weight(1f)) { selectedBottomTab = 1; showPrograms = true; showGames = false; showPhoneInfo = false; showPhoneInfoFeed = false; showFeedback = false }
+                    HomeDesignCard("📱", "TEXNO-TELEKOM\nPROQRAMLAR", Modifier.weight(1f), showLogo = true) { selectedBottomTab = 1; showPrograms = true; showGames = false; showPhoneInfo = false; showPhoneInfoFeed = false; showFeedback = false }
                 }
                 Spacer(Modifier.height(14.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
@@ -4188,10 +4188,14 @@ fun TexnoTelekomApp(
 
 
 @Composable
-private fun HomeDesignCard(emoji: String, label: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+private fun HomeDesignCard(emoji: String, label: String, modifier: Modifier = Modifier, showLogo: Boolean = false, onClick: () -> Unit) {
     Card(modifier = modifier.heightIn(min = 150.dp).clickable(onClick = onClick), shape = RoundedCornerShape(28.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF151F3B))) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 16.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(emoji, fontSize = 48.sp)
+            if (showLogo) {
+                TexnoTelekomLogo(size = 76.dp)
+            } else {
+                Text(emoji, fontSize = 48.sp)
+            }
             Text(label, color = Color.White, fontSize = 10.sp, lineHeight = 12.sp, fontWeight = FontWeight.Medium, textAlign = androidx.compose.ui.text.style.TextAlign.Center, modifier = Modifier.fillMaxWidth())
         }
     }
