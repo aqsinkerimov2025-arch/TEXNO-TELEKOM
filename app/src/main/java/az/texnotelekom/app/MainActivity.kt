@@ -1097,7 +1097,8 @@ private fun GroupChatScreen(backgroundColor: Color, onClose: () -> Unit, onOpenB
     val messages = remember { mutableStateListOf<GroupChatMessage>() }
     val messageListState = rememberLazyListState()
     var messagesLoaded by remember { mutableStateOf(false) }
-    var initialMessagesPositioned by remember { mutableStateOf(false) }    var groupMembers by remember { mutableStateOf<List<Triple<String, String, Boolean>>>(emptyList()) }
+    var initialMessagesPositioned by remember { mutableStateOf(false) }
+    var groupMembers by remember { mutableStateOf<List<Triple<String, String, Boolean>>>(emptyList()) }
     var showMembersDialog by remember { mutableStateOf(false) }
     val auth = FirebaseAuth.getInstance()
     val isOwner = auth.currentUser?.uid == ADMIN_UID
@@ -2196,7 +2197,8 @@ fun TexnoTelekomApp(
                 val tag = json.optString("tag_name")
                 val remoteCode = tag.removePrefix("app-v").toLongOrNull() ?: 0L
                 val assets = json.optJSONArray("assets")
-                var apkUrl = ""                if (assets != null) for (i in 0 until assets.length()) {
+                var apkUrl = ""
+                if (assets != null) for (i in 0 until assets.length()) {
                     val asset = assets.getJSONObject(i)
                     if (asset.optString("name") == "TEXNO-TELEKOM.apk") apkUrl = asset.optString("browser_download_url")
                 }
