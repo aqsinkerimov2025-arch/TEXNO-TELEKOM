@@ -3820,7 +3820,7 @@ fun TexnoTelekomApp(
                     Text("İstədiyiniz bölməni seçin", color = Color(0xFFCBD6EB), fontSize = 14.sp)
                     listOf(
                         Triple("📰", "TEXNO-MƏLUMAT", "phone_info"),
-                        Triple("📱", "TEXNO-TELEKOM proqramlar", "programs"),
+                        Triple("📱", "TEXNO-TELEKOM PROQRAMLAR", "programs"),
                         Triple("🎮", "OYUNLAR", "games")
                     ).forEach { item ->
                         Card(
@@ -3848,8 +3848,16 @@ fun TexnoTelekomApp(
                                     "programs" -> TexnoTelekomLogo(size = 48.dp)
                                     else -> Text(item.first, fontSize = 30.sp)
                                 }
-                                Text(item.second, color = Color.White, fontSize = 17.sp,
-                                    fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 16.dp))
+                                Text(
+                                    item.second,
+                                    color = Color.White,
+                                    fontSize = if (item.third == "programs") 15.sp else 17.sp,
+                                    lineHeight = 18.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.weight(1f).padding(start = 16.dp),
+                                    maxLines = 2,
+                                    softWrap = true
+                                )
                                 Spacer(Modifier.weight(1f))
                                 Text("›", color = Color(0xFF168BFF), fontSize = 30.sp)
                             }
