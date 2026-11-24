@@ -923,7 +923,7 @@ data class ChannelPost(
     val description: String, val features: String, val downloadUrl: String,
     val fileSize: String, val androidRequirement: String, val channelUrl: String
 )
-data class PhoneInfo(val id: String, val title: String, val body: String, val imageUrl: String, val stickerUrl: String, val stickerMime: String)
+data class PhoneInfo(val id: String, val title: String, val body: String, val imageUrl: String, val stickerUrl: String, val stickerMime: String, val createdAt: Long = 0L)
 data class ChannelMessage(val id: String, val title: String, val body: String, val imageUrl: String, val createdAt: Long)
 data class GroupChatMessage(val id: String, val uid: String, val nickname: String, val text: String, val imageUrl: String, val audioUrl: String, val videoUrl: String = "", val createdAt: Long, val replyToId: String = "", val replyToNickname: String = "", val replyToText: String = "")
 
@@ -2308,6 +2308,7 @@ fun TexnoTelekomApp(
     var profileDarkMode by remember { mutableStateOf(true) }
     var showPhoneInfo by remember { mutableStateOf(false) }
     var showPhoneInfoFeed by remember { mutableStateOf(false) }
+    var selectedPhoneInfoId by remember { mutableStateOf<String?>(null) }
     val texnoInfoLogo = remember {
         BitmapFactory.decodeResource(context.resources, R.drawable.texno_telekom_program_logo).asImageBitmap()
     }
@@ -2327,6 +2328,7 @@ fun TexnoTelekomApp(
     BackHandler(enabled = showPhoneInfoFeed || showPhoneInfo || showPrograms || showGames || showFeedback || showAbout || showSecurity || showSettings) {
         // Android/system back from any home-card destination returns directly to home.
         showPhoneInfoFeed = false
+        selectedPhoneInfoId = null
         showPhoneInfo = false
         showPrograms = false
         showGames = false
@@ -2660,7 +2662,8 @@ fun TexnoTelekomApp(
                                 d.getString("title") ?: d.getString("name") ?: "",
                                 d.getString("body") ?: d.getString("description") ?: d.getString("content") ?: "",
                                 d.getString("image_url") ?: d.getString("imageUrl") ?: d.getString("photo_url") ?: "",
-                                d.getString("sticker_url") ?: "", d.getString("sticker_mime") ?: ""
+                                d.getString("sticker_url") ?: "", d.getString("sticker_mime") ?: "",
+                                d.getTimestamp("created_at")?.toDate()?.time ?: 0L
                             )
                         )
                     }
@@ -3657,7 +3660,7 @@ fun TexnoTelekomApp(
                         Text("TEXNO-MƏLUMAT", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Black)
                     }
                     if (phoneInfos.isEmpty()) Text("Hələ TEXNO-MƏLUMAT paylaşılmayıb.", color = Color(0xFFCBD6EB), modifier = Modifier.fillMaxWidth().padding(vertical = 28.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-                    phoneInfos.forEach { info ->
+                    phoneInfos.filter { selectedPhoneInfoId == null || it.id == selectedPhoneInfoId }.forEach { info ->
                         Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))) {
                             Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
                                 Text(info.title, color = Color(0xFFFFD36A), fontSize = 18.sp, fontWeight = FontWeight.Bold)
@@ -4183,6 +4186,70 @@ fun TexnoTelekomApp(
                         )
                         IconButton(onClick = { searchOpen = !searchOpen }) {
                             Icon(Icons.Default.Search, contentDescription = "Axtarış", tint = Color.White)
+                        }
+                    }
+                }
+                if (phoneInfos.isNotEmpty()) {
+                    Column(
+                        Modifier.fillMaxWidth().padding(top = 2.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        phoneInfos.forEach { info ->
+                            val isNew = info.createdAt > 0L &&
+                                System.currentTimeMillis() - info.createdAt <= 7L * 24L * 60L * 60L * 1000L
+                            Card(
+                                modifier = Modifier.fillMaxWidth().clickable {
+                                    selectedPhoneInfoId = info.id
+                                    showPhoneInfoFeed = true
+                                    showPhoneInfo = false
+                                    showPrograms = false
+                                    showGames = false
+                                },
+                                shape = RoundedCornerShape(14.dp),
+                                colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))
+                            ) {
+                                Row(
+                                    Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Image(
+                                        painter = painterResource(id = R.drawable.texno_melumat_logo),
+                                        contentDescription = "TEXNO-MƏLUMAT loqosu",
+                                        modifier = Modifier.size(38.dp).clip(CircleShape),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                    Column(
+                                        Modifier.weight(1f).padding(start = 10.dp),
+                                        verticalArrangement = Arrangement.spacedBy(3.dp)
+                                    ) {
+                                        Text(
+                                            info.title.ifBlank { "Telefon haqqında məlumat" },
+                                            color = Color.White,
+                                            fontSize = 15.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            maxLines = 1,
+                                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                                        )
+                                        if (isNew) {
+                                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                                Image(
+                                                    painter = painterResource(id = R.drawable.texno_melumat_logo),
+                                                    contentDescription = null,
+                                                    modifier = Modifier.size(13.dp).clip(CircleShape),
+                                                    contentScale = ContentScale.Crop
+                                                )
+                                                Text(
+                                                    " YENİ PAYLAŞILDI",
+                                                    color = Color(0xFF20B8FF),
+                                                    fontSize = 10.sp,
+                                                    fontWeight = FontWeight.ExtraBold
+                                                )
+                                            }
+                                        }
+                                    }
+                                    Text("›", color = Color(0xFF20B8FF), fontSize = 26.sp)
+                                }
+                            }
                         }
                     }
                 }
