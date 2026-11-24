@@ -2307,6 +2307,10 @@ fun TexnoTelekomApp(
     var selectedBottomTab by remember { mutableIntStateOf(0) }
     var profileDarkMode by remember { mutableStateOf(true) }
     var showPhoneInfo by remember { mutableStateOf(false) }
+    var showAppUpdates by remember { mutableStateOf(false) }
+    var appUpdateTitle by remember { mutableStateOf("") }
+    var appUpdateBody by remember { mutableStateOf("") }
+    var appUpdateType by remember { mutableStateOf("app_feature") }
     var showPhoneInfoFeed by remember { mutableStateOf(false) }
     var selectedPhoneInfoId by remember { mutableStateOf<String?>(null) }
     val texnoInfoLogo = remember {
@@ -2325,11 +2329,12 @@ fun TexnoTelekomApp(
 
     var notificationProgramId by remember { mutableStateOf<String?>(null) }
     val notificationItemBringIntoView = remember { BringIntoViewRequester() }
-    BackHandler(enabled = showPhoneInfoFeed || showPhoneInfo || showPrograms || showGames || showFeedback || showAbout || showSecurity || showSettings) {
+    BackHandler(enabled = showPhoneInfoFeed || showPhoneInfo || showAppUpdates || showPrograms || showGames || showFeedback || showAbout || showSecurity || showSettings) {
         // Android/system back from any home-card destination returns directly to home.
         showPhoneInfoFeed = false
         selectedPhoneInfoId = null
         showPhoneInfo = false
+        showAppUpdates = false
         showPrograms = false
         showGames = false
         showFeedback = false
@@ -3769,6 +3774,45 @@ fun TexnoTelekomApp(
                         }
                     }
                 }
+            } else if (showAppUpdates) {
+                Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(homeScrollState).padding(horizontal = 16.dp, vertical = 16.dp)) {
+                    Row(Modifier.fillMaxWidth().padding(bottom = 18.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text("‹", color = Color.White, fontSize = 34.sp, modifier = Modifier.clickable { showAppUpdates = false }.padding(end = 14.dp))
+                        Text("Tətbiq yenilikləri", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                    }
+                    val appTypes = setOf("app_design", "app_feature", "app_bugfix", "app_version")
+                    val appItems = appNoticeItems.filter { it.second.second in appTypes }
+                    if (loggedIn && isAuthorizedDevice) {
+                        Text("Admin: yeni tətbiq yeniliyi paylaş", color = Color(0xFFFFD36A), fontWeight = FontWeight.Bold)
+                        OutlinedTextField(value = appUpdateTitle, onValueChange = { appUpdateTitle = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Başlıq") })
+                        OutlinedTextField(value = appUpdateBody, onValueChange = { appUpdateBody = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Açıqlama") }, minLines = 2)
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            listOf("app_design" to "Dizayn", "app_feature" to "Funksiya", "app_bugfix" to "Düzəliş", "app_version" to "Versiya").forEach { option ->
+                                FilterChip(selected = appUpdateType == option.first, onClick = { appUpdateType = option.first }, label = { Text(option.second, fontSize = 10.sp) })
+                            }
+                        }
+                        Button(onClick = {
+                            if (appUpdateTitle.isNotBlank() && appUpdateBody.isNotBlank()) {
+                                db.collection("app_notifications").add(hashMapOf("type" to appUpdateType, "title" to appUpdateTitle.trim(), "body" to appUpdateBody.trim(), "created_at" to FieldValue.serverTimestamp()))
+                                    .addOnSuccessListener { triggerInstantPush(); appUpdateTitle = ""; appUpdateBody = ""; message = "Tətbiq yeniliyi paylaşıldı." }
+                                    .addOnFailureListener { error = "Yenilik paylaşılmadı: ${it.localizedMessage}" }
+                            } else error = "Başlıq və açıqlama yazın."
+                        }, modifier = Modifier.fillMaxWidth()) { Text("YENİLİYİ PAYLAŞ") }
+                        Spacer(Modifier.height(12.dp))
+                    }
+                    if (appItems.isEmpty()) Text("Hələ tətbiq yeniliyi paylaşılmayıb.", color = Color(0xFFCBD6EB), modifier = Modifier.fillMaxWidth().padding(vertical = 28.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                    appItems.forEach { entry ->
+                        val item = entry.second.first
+                        Card(Modifier.fillMaxWidth().padding(bottom = 10.dp), shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))) {
+                            Column(Modifier.fillMaxWidth().padding(15.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                                Text(when(entry.second.second) { "app_design" -> "DİZAYN YENİLİYİ"; "app_feature" -> "YENİ FUNKSİYA"; "app_bugfix" -> "XƏTA DÜZƏLİŞİ"; else -> "VERSİYA YENİLİYİ" }, color = Color(0xFFFFD36A), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                Text(item.first, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                                Text(item.second, color = Color(0xFFE2E8F0), fontSize = 14.sp, lineHeight = 21.sp)
+                                if (item.third > 0L) Text(java.text.SimpleDateFormat("dd.MM.yyyy • HH:mm", java.util.Locale("az")).format(java.util.Date(item.third)), color = Color(0xFF8FA3C7), fontSize = 11.sp)
+                            }
+                        }
+                    }
+                }
             } else if (showPhoneInfo) {
                 Column(
                     Modifier.weight(1f).fillMaxWidth().verticalScroll(homeScrollState)
@@ -4193,8 +4237,9 @@ fun TexnoTelekomApp(
                     )
                     IconButton(
                         onClick = {
-                            noticeFilter = "all"
-                            showPhoneInfo = true
+                            showAppUpdates = true
+                            showPhoneInfo = false
+                            showPhoneInfoFeed = false
                             showPhoneInfoFeed = false
                             showPrograms = false
                             showGames = false
