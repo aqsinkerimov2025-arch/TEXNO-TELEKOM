@@ -4241,16 +4241,16 @@ fun TexnoTelekomApp(
                     ) {
                         weeklyHitPrograms.forEach { app ->
                             Card(
-                                modifier = Modifier.width(88.dp),
-                                shape = RoundedCornerShape(12.dp),
+                                modifier = Modifier.width(104.dp).height(112.dp),
+                                shape = RoundedCornerShape(11.dp),
                                 colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))
                             ) {
                                 Column(
-                                    Modifier.fillMaxWidth().padding(horizontal = 5.dp, vertical = 6.dp),
+                                    Modifier.fillMaxWidth().padding(horizontal = 5.dp, vertical = 4.dp),
                                     horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.spacedBy(5.dp)
+                                    verticalArrangement = Arrangement.spacedBy(3.dp)
                                 ) {
-                                    ProgramIcon(app.iconUrl, app.name, 40)
+                                    ProgramIcon(app.iconUrl, app.name, 32)
                                     Text(
                                         app.name,
                                         color = Color.White,
@@ -4262,10 +4262,10 @@ fun TexnoTelekomApp(
                                         textAlign = androidx.compose.ui.text.style.TextAlign.Center
                                     )
                                     if (app.version.isNotBlank()) {
-                                        Text("v${app.version}", color = Color(0xFFBFD8FF), fontSize = 9.sp, maxLines = 1, softWrap = false)
+                                        Text("v${app.version}", color = Color(0xFFBFD8FF), fontSize = 8.sp, maxLines = 1, softWrap = false)
                                     }
                                     if (app.fileSize.isNotBlank()) {
-                                        Text(app.fileSize, color = Color(0xFFBFD8FF), fontSize = 10.sp, maxLines = 1, softWrap = false)
+                                        Text(app.fileSize, color = Color(0xFFBFD8FF), fontSize = 9.sp, maxLines = 1, softWrap = false)
                                     }
                                     if (app.downloadUrl.isNotBlank()) {
                                         Button(
@@ -4273,9 +4273,9 @@ fun TexnoTelekomApp(
                                                 try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(app.downloadUrl))) }
                                                 catch (_: Exception) { error = "Yükləmə linki açıla bilmədi." }
                                             },
-                                            modifier = Modifier.fillMaxWidth().height(26.dp),
-                                            contentPadding = PaddingValues(horizontal = 3.dp, vertical = 0.dp)
-                                        ) { Text("Yüklə", fontSize = 10.sp, maxLines = 1) }
+                                            modifier = Modifier.fillMaxWidth().height(22.dp),
+                                            contentPadding = PaddingValues(horizontal = 2.dp, vertical = 0.dp)
+                                        ) { Text("Yüklə", fontSize = 9.sp, maxLines = 1) }
                                     }
                                 }
                             }
