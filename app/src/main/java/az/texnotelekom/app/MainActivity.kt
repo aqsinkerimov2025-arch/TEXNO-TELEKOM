@@ -158,66 +158,6 @@ private fun triggerInstantPush() {
 }
 
 
-private const val UPDATE_NOTIFICATION_CHANNEL = "texno_app_updates_v3"
-private const val UPDATE_NOTIFICATION_ID = 2505
-
-private fun showAppUpdateNotification(context: Context, versionName: String, notes: String): Boolean {
-    if (Build.VERSION.SDK_INT >= 33 &&
-        context.checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED
-    ) return false
-
-    val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-    if (Build.VERSION.SDK_INT >= 24 && !manager.areNotificationsEnabled()) return false
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        manager.createNotificationChannel(
-            NotificationChannel(
-                UPDATE_NOTIFICATION_CHANNEL,
-                "Tətbiq yeniləmələri",
-                NotificationManager.IMPORTANCE_HIGH
-            ).apply {
-                description = "TEXNO-TELEKOM yeni versiya bildirişləri"
-                enableVibration(true)
-                setShowBadge(true)
-                setSound(
-                    android.provider.Settings.System.DEFAULT_NOTIFICATION_URI,
-                    android.media.AudioAttributes.Builder()
-                        .setUsage(android.media.AudioAttributes.USAGE_NOTIFICATION)
-                        .build()
-                )
-            }
-        )
-    }
-    val launchIntent = context.packageManager.getLaunchIntentForPackage(context.packageName)
-    val pendingIntent = launchIntent?.let {
-        PendingIntent.getActivity(
-            context, UPDATE_NOTIFICATION_ID, it,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-    }
-    val cleanNotes = notes.lines()
-        .filterNot { it.trim().equals("Yeni Funksiya", ignoreCase = true) }
-        .joinToString("\n").trim()
-        .ifBlank { "Yeni imkanlar və yeniliklər əlavə edildi." }
-    val builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        Notification.Builder(context, UPDATE_NOTIFICATION_CHANNEL)
-    } else {
-        @Suppress("DEPRECATION")
-        Notification.Builder(context)
-    }
-    builder.setSmallIcon(R.drawable.texno_notification_icon)
-        .setContentTitle("Tətbiq yeniləməsi mövcuddur")
-        .setContentText("TEXNO-TELEKOM • Yeni versiya: $versionName")
-        .setStyle(Notification.BigTextStyle().bigText("TEXNO-TELEKOM\nYeni Versiya: $versionName\nYeni Funksiya\n$cleanNotes"))
-        .setAutoCancel(true)
-        .setContentIntent(pendingIntent)
-    builder.setDefaults(Notification.DEFAULT_ALL)
-        .setCategory(Notification.CATEGORY_SYSTEM)
-        .setVisibility(Notification.VISIBILITY_PUBLIC)
-        .setTicker("TEXNO-TELEKOM: Yeniləmə mövcuddur")
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) builder.setPriority(Notification.PRIORITY_HIGH)
-    manager.notify(UPDATE_NOTIFICATION_ID, builder.build())
-    return true
-}
 
 private const val ADMIN_EMAIL = "aqsin.kerimov.2025@gmail.com"
 private const val CLOUDINARY_CLOUD = "at4nuvsd"
@@ -2278,15 +2218,7 @@ fun TexnoTelekomApp(
                             updateCheckMessage = ""
                             showUpdateCheckDialog = true
                         }
-                        val prefs = context.getSharedPreferences("texno_update_notifications", Context.MODE_PRIVATE)
-                        val notifiedCode = prefs.getLong("notified_release_code_v2", 0L)
-                        val promptedCode = prefs.getLong("prompted_release_code", 0L)
-                        if (notifiedCode != remoteCode && showAppUpdateNotification(context, displayVersion, rawNotes)) {
-                            prefs.edit().putLong("notified_release_code_v2", remoteCode).apply()
-                        }
-                        if (promptedCode != remoteCode) {
-                            prefs.edit().putLong("prompted_release_code", remoteCode).apply()
-                        }
+                        // Yeniləmə yalnız tətbiqin daxilində göstərilir; telefon bildirişi göndərilmir.
                     }
                 } else if (remoteCode > 0L && remoteCode <= currentCode) {
                     Handler(Looper.getMainLooper()).post {
