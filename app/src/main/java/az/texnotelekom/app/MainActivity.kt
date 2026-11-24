@@ -2265,7 +2265,7 @@ fun TexnoTelekomApp(
                 val info = context.packageManager.getPackageInfo(context.packageName, 0)
                 val currentCode = if (Build.VERSION.SDK_INT >= 28) info.longVersionCode else @Suppress("DEPRECATION") info.versionCode.toLong()
                 val currentName = info.versionName ?: "Naməlum"
-                val displayVersion = Regex("""\\d+\\.\\d+(?:\\.\\d+)?""")
+                val displayVersion = Regex("""\d+\.\d+(?:\.\d+)?""")
                     .find(json.optString("name"))?.value ?: currentName
                 if (remoteCode > currentCode && apkUrl.startsWith("https://")) {
                     val rawNotes = json.optString("body").ifBlank { "Yeni versiya və yeniliklər mövcuddur." }
