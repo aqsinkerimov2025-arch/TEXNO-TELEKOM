@@ -3965,7 +3965,7 @@ fun TexnoTelekomApp(
                                 OutlinedTextField(fileSize, { fileSize = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Fayl ölçüsü") }, colors = fieldColors)
                                 OutlinedButton(onClick = { imagePicker.launch("image/*") }, modifier = Modifier.fillMaxWidth()) { Text(if (pickedImage == null) "Proqram şəklini seç" else "Şəkil seçildi") }
                                 OutlinedButton(onClick = { programStickerPicker.launch("*/*") }, modifier = Modifier.fillMaxWidth()) { Text(if (programSticker == null) "Stiker seç (istəyə bağlı)" else "Stiker seçildi") }
-                                Button(onClick = { saveProgram() }, enabled = !busy, modifier = Modifier.fillMaxWidth()) { Text(if (busy) "Yadda saxlanılır..." else "Proqramı əlavə et") }
+                                Button(onClick = { saveProgram() }, enabled = !busy, modifier = Modifier.fillMaxWidth()) { Text(if (busy) "Yadda saxlanılır..." else if (editingId != null) "Dəyişiklikləri yadda saxla" else "Proqramı əlavə et") }
                             }
                             "game" -> {
                                 OutlinedTextField(gameName, { gameName = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Oyunun adı") }, colors = fieldColors)
