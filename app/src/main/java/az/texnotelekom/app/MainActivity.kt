@@ -4373,21 +4373,23 @@ private fun DeviceBlockAdminPanel(db: FirebaseFirestore) {
 @Composable
 private fun HomeDesignCard(emoji: String, label: String, modifier: Modifier = Modifier, showLogo: Boolean = false, showMelumatLogo: Boolean = false, onClick: () -> Unit) {
     Card(modifier = modifier.heightIn(min = 150.dp).clickable(onClick = onClick), shape = RoundedCornerShape(28.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF151F3B))) {
-        Column(Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 16.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            if (showMelumatLogo) {
+        if (showMelumatLogo) {
+            Row(Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
                 Box(
-                    modifier = Modifier.size(76.dp).clip(CircleShape)
+                    modifier = Modifier.size(64.dp).clip(CircleShape)
                         .background(Color(0xFF07152F)),
                     contentAlignment = Alignment.Center
                 ) {
-                    TexnoTelekomLogo(size = 76.dp)
+                    TexnoTelekomLogo(size = 64.dp)
                 }
-            } else if (showLogo) {
-                TexnoTelekomLogo(size = 76.dp)
-            } else {
-                Text(emoji, fontSize = 48.sp)
+                Spacer(Modifier.width(10.dp))
+                Text(label, color = Color.White, fontSize = 10.sp, lineHeight = 12.sp, fontWeight = FontWeight.Medium, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
             }
-            Text(label, color = Color.White, fontSize = 10.sp, lineHeight = 12.sp, fontWeight = FontWeight.Medium, textAlign = androidx.compose.ui.text.style.TextAlign.Center, modifier = Modifier.fillMaxWidth())
+        } else {
+            Column(Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 16.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                if (showLogo) TexnoTelekomLogo(size = 76.dp) else Text(emoji, fontSize = 48.sp)
+                Text(label, color = Color.White, fontSize = 10.sp, lineHeight = 12.sp, fontWeight = FontWeight.Medium, textAlign = androidx.compose.ui.text.style.TextAlign.Center, modifier = Modifier.fillMaxWidth())
+            }
         }
     }
 }
