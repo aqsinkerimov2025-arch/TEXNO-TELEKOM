@@ -4176,7 +4176,7 @@ fun TexnoTelekomApp(
                 if (searchOpen) OutlinedTextField(query, { query = it }, modifier = Modifier.fillMaxWidth(), placeholder = { Text("Axtar...") }, singleLine = true)
                 Spacer(Modifier.height(22.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                    HomeDesignCard("📰", "TEXNO-MƏLUMAT", Modifier.weight(1f)) { selectedBottomTab = 0; showPhoneInfoFeed = true; showPhoneInfo = false; showPrograms = false; showGames = false; showFeedback = false }
+                    HomeDesignCard("📰", "TEXNO-MƏLUMAT", Modifier.weight(1f), showMelumatLogo = true) { selectedBottomTab = 0; showPhoneInfoFeed = true; showPhoneInfo = false; showPrograms = false; showGames = false; showFeedback = false }
                     HomeDesignCard("📱", "TEXNO-TELEKOM\nPROQRAMLAR", Modifier.weight(1f), showLogo = true) { selectedBottomTab = 1; showPrograms = true; showGames = false; showPhoneInfo = false; showPhoneInfoFeed = false; showFeedback = false }
                 }
                 Spacer(Modifier.height(14.dp))
@@ -4371,10 +4371,12 @@ private fun DeviceBlockAdminPanel(db: FirebaseFirestore) {
 }
 
 @Composable
-private fun HomeDesignCard(emoji: String, label: String, modifier: Modifier = Modifier, showLogo: Boolean = false, onClick: () -> Unit) {
+private fun HomeDesignCard(emoji: String, label: String, modifier: Modifier = Modifier, showLogo: Boolean = false, showMelumatLogo: Boolean = false, onClick: () -> Unit) {
     Card(modifier = modifier.heightIn(min = 150.dp).clickable(onClick = onClick), shape = RoundedCornerShape(28.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF151F3B))) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 16.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            if (showLogo) {
+            if (showMelumatLogo) {
+                Image(painter = painterResource(R.drawable.texno_melumat_logo), contentDescription = "TEXNO-MƏLUMAT loqosu", modifier = Modifier.size(76.dp), contentScale = ContentScale.Fit)
+            } else if (showLogo) {
                 TexnoTelekomLogo(size = 76.dp)
             } else {
                 Text(emoji, fontSize = 48.sp)
