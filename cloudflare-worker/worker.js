@@ -204,7 +204,9 @@ export default {
       const payload = await request.json();
       if (typeof payload.idToken !== "string") return new Response("Unauthorized", { status: 401 });
       await verifyFirebaseIdToken(payload.idToken);
-      const releaseSync = await syncLatestAppRelease(env);\n      const result = await runPush(env);\n      result.releaseSync = releaseSync;
+      const releaseSync = await syncLatestAppRelease(env);
+      const result = await runPush(env);
+      result.releaseSync = releaseSync;
       return Response.json({ ok: true, ...result });
     } catch (error) {
       return Response.json({ ok: false, error: String(error) }, { status: 500 });
