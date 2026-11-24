@@ -2559,7 +2559,8 @@ fun TexnoTelekomApp(
     val phoneInfos = remember { mutableStateListOf<PhoneInfo>() }
     var newPhoneInfoNotice by remember { mutableStateOf(false) }
     var newProgramNotice by remember { mutableStateOf(false) }
-    var appNoticeItems by remember { mutableStateOf(listOf<Pair<String, Triple<String, String, Long>>>()) }
+    var appNoticeItems by remember { mutableStateOf(listOf<Pair<String, Triple<String, String, Long, String>>>()) }
+    var noticeFilter by remember { mutableStateOf("all") }
     var showClearUpdatesConfirm by remember { mutableStateOf(false) }
     var clearingUpdates by remember { mutableStateOf(false) }
     var latestAdminFeedbackAt by remember { mutableLongStateOf(0L) }
@@ -2634,7 +2635,7 @@ fun TexnoTelekomApp(
                         val title = d.getString("title") ?: "Yeni yenilik"
                         val body = d.getString("body") ?: title
                         val time = d.getTimestamp("created_at")?.toDate()?.time ?: 0L
-                        d.id to Triple(title, body, time)
+                        d.id to Triple(title, body, time, d.getString("type") ?: d.getString("content_type") ?: "other")
                     }
                 }
             }
@@ -3768,12 +3769,18 @@ fun TexnoTelekomApp(
                             Text(if (clearingUpdates) "TƏMİZLƏNİR..." else "TƏMİZLƏMƏ BÖLMƏSİ")
                         }
                     }
-                    if (appNoticeItems.isEmpty()) {
-                        Text("Hələlik yenilik yoxdur.", color = Color(0xFFCBD6EB), fontSize = 15.sp,
+                    val visibleNotices = appNoticeItems.filter { entry -> noticeFilter == "all" || entry.second.fourth == noticeFilter }
+                    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        listOf("all" to "Hamısı", "phone_info" to "TEXNO-MƏLUMAT", "program" to "Proqramlar", "game" to "Oyunlar").forEach { option ->
+                            FilterChip(selected = noticeFilter == option.first, onClick = { noticeFilter = option.first }, label = { Text(option.second, fontSize = 11.sp) })
+                        }
+                    }
+                    if (visibleNotices.isEmpty()) {
+                        Text("Bu bölmədə hələ paylaşım yoxdur.", color = Color(0xFFCBD6EB), fontSize = 15.sp,
                             modifier = Modifier.fillMaxWidth().padding(vertical = 28.dp),
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                     } else {
-                        appNoticeItems.forEach { entry ->
+                        visibleNotices.forEach { entry ->
                             val item = entry.second
                             Card(
                                 modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
@@ -3781,6 +3788,7 @@ fun TexnoTelekomApp(
                                 colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))
                             ) {
                                 Column(Modifier.fillMaxWidth().padding(16.dp)) {
+                                    Text(item.first, color = Color(0xFFFFD36A), fontSize = 13.sp, fontWeight = FontWeight.Bold)
                                     Text(item.second, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                                     if (item.third > 0L) {
                                         Text(
@@ -4026,21 +4034,21 @@ fun TexnoTelekomApp(
                         colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))
                     ) {
                         Row(Modifier.fillMaxWidth().padding(vertical = 18.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                            Column(Modifier.weight(1f).clickable { selectedBottomTab = 1; showPrograms = true; showGames = false }, horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text("⬇️", fontSize = 27.sp)
                                 Text("0", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
                                 Text("Yükləmə", color = Color(0xFFCBD6EB), fontSize = 14.sp)
                             }
                             Box(Modifier.width(1.dp).height(78.dp).background(Color(0xFF26334D)))
-                            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                            Column(Modifier.weight(1f).clickable { selectedBottomTab = 2 }, horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text("⭐", fontSize = 27.sp)
-                                Text("0", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                                Text("${favoriteIds.size}", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
                                 Text("Sevimli", color = Color(0xFFCBD6EB), fontSize = 14.sp)
                             }
                             Box(Modifier.width(1.dp).height(78.dp).background(Color(0xFF26334D)))
-                            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                            Column(Modifier.weight(1f).clickable { noticeFilter = "all"; showPhoneInfo = true }, horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text("🗓️", fontSize = 27.sp)
-                                Text("0", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                                Text("${appNoticeItems.size}", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
                                 Text("Bildiriş", color = Color(0xFFCBD6EB), fontSize = 14.sp)
                             }
                         }
