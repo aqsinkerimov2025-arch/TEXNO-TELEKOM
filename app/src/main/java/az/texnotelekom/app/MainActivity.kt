@@ -4143,8 +4143,8 @@ fun TexnoTelekomApp(
                 if (searchOpen) OutlinedTextField(query, { query = it }, modifier = Modifier.fillMaxWidth(), placeholder = { Text("Axtar...") }, singleLine = true)
                 Spacer(Modifier.height(22.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                    HomeDesignCard("📰", "TEXNO-MƏLUMAT", Modifier.weight(1f)) { selectedBottomTab = 0; showPhoneInfoFeed = true; showPhoneInfo = false; showPrograms = false; showGames = false; showFeedback = false }
-                    HomeDesignCard("📱", "TEXNO-TELEKOM PROQRAMLAR", Modifier.weight(1f)) { selectedBottomTab = 1; showPrograms = true; showGames = false; showPhoneInfo = false; showPhoneInfoFeed = false; showFeedback = false }
+                    HomeDesignCard("📰", "TEXNO-MƏLUMAT", Modifier.weight(1f), showMelumatLogo = true) { selectedBottomTab = 0; showPhoneInfoFeed = true; showPhoneInfo = false; showPrograms = false; showGames = false; showFeedback = false }
+                    HomeDesignCard("📱", "TEXNO-TELEKOM PROQRAMLAR", Modifier.weight(1f), showLogo = true) { selectedBottomTab = 1; showPrograms = true; showGames = false; showPhoneInfo = false; showPhoneInfoFeed = false; showFeedback = false }
                 }
                 Spacer(Modifier.height(14.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
@@ -4361,21 +4361,20 @@ private fun HomeDesignCard(emoji: String, label: String, modifier: Modifier = Mo
                 Text(label, color = Color.White, fontSize = 10.sp, lineHeight = 12.sp, fontWeight = FontWeight.Medium, textAlign = androidx.compose.ui.text.style.TextAlign.Center, modifier = Modifier.fillMaxWidth())
             }
         } else if (showLogo) {
-            Row(
+            Column(
                 Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 16.dp),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 TexnoTelekomLogo(size = 64.dp)
-                Spacer(Modifier.width(8.dp))
                 Text(
                     label,
                     color = Color.White,
                     fontSize = 10.sp,
                     lineHeight = 12.sp,
                     fontWeight = FontWeight.Medium,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Start,
-                    modifier = Modifier.weight(1f)
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
         } else {
