@@ -4029,6 +4029,11 @@ fun TexnoTelekomApp(
                 tabs.forEachIndexed { index, tab ->
                     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable {
                         selectedBottomTab = index
+                        // Alt menyudan başqa bölməyə keçəndə kateqoriya daxilindəki ekranları bağla.
+                        showPrograms = false
+                        showGames = false
+                        showPhoneInfoFeed = false
+                        showPhoneInfo = false
                         if (index == 0) {
                             // Əsas səhifə seçiləndə bütün alt bölmələri bağla.
                             showPrograms = false
