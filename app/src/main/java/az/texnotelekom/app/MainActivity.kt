@@ -2854,7 +2854,9 @@ fun TexnoTelekomApp(
         clearingUpdates = true
         db.collection("app_notifications").get()
             .addOnSuccessListener { snapshot ->
-                val batches = snapshot.documents.chunked(450).map { documents ->
+                val contentTypes = setOf("program", "game", "phone_info", "program_added", "program_updated", "game_added", "game_updated", "phone_info_added", "phone_info_updated")
+                val contentDocuments = snapshot.documents.filter { (it.getString("type") ?: it.getString("content_type")) in contentTypes }
+                val batches = contentDocuments.chunked(450).map { documents ->
                     db.batch().also { batch -> documents.forEach { batch.delete(it.reference) } }
                 }
                 if (batches.isEmpty()) {
@@ -2866,7 +2868,7 @@ fun TexnoTelekomApp(
                         .addOnSuccessListener {
                             clearingUpdates = false
                             showClearUpdatesConfirm = false
-                            message = "Köhnə yeniliklər və bildirişlər silindi."
+                            message = "Profil bölməsinin köhnə paylaşım bildirişləri silindi."
                         }
                         .addOnFailureListener {
                             clearingUpdates = false
@@ -3792,7 +3794,14 @@ fun TexnoTelekomApp(
                             Text(if (clearingUpdates) "TƏMİZLƏNİR..." else "TƏMİZLƏMƏ BÖLMƏSİ")
                         }
                     }
-                    val visibleNotices = appNoticeItems.filter { entry -> noticeFilter == "all" || entry.second.second == noticeFilter }
+                    val contentNoticeTypes = setOf("program", "game", "phone_info", "program_added", "program_updated", "game_added", "game_updated", "phone_info_added", "phone_info_updated")
+                    val visibleNotices = appNoticeItems.filter { entry ->
+                        val type = entry.second.second
+                        type in contentNoticeTypes && (noticeFilter == "all" ||
+                            (noticeFilter == "phone_info" && type.startsWith("phone_info")) ||
+                            (noticeFilter == "program" && type.startsWith("program")) ||
+                            (noticeFilter == "game" && type.startsWith("game")))
+                    }
                     Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         listOf("all" to "Hamısı", "phone_info" to "TEXNO-MƏLUMAT", "program" to "Proqramlar", "game" to "Oyunlar").forEach { option ->
                             FilterChip(selected = noticeFilter == option.first, onClick = { noticeFilter = option.first }, label = { Text(option.second, fontSize = 11.sp) })
