@@ -4191,18 +4191,29 @@ fun TexnoTelekomApp(
                     Spacer(Modifier.height(8.dp))
                     Row(
                         Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("🔥", fontSize = 24.sp)
-                            Text("  Bu həftənin hitləri", color = Color.White, fontSize = 19.sp, fontWeight = FontWeight.Bold)
+                        Row(
+                            Modifier.weight(1f),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("🔥", fontSize = 21.sp)
+                            Text(
+                                "Bu həftənin hitləri",
+                                color = Color.White,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 1,
+                                softWrap = false
+                            )
                         }
                         Text(
                             "Hamısına bax  →",
                             color = Color(0xFF20B8FF),
-                            fontSize = 13.sp,
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.SemiBold,
+                            maxLines = 1,
+                            softWrap = false,
                             modifier = Modifier.clickable {
                                 selectedBottomTab = 1
                                 showPrograms = true
@@ -4214,39 +4225,39 @@ fun TexnoTelekomApp(
                     }
                     Row(
                         Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        horizontalArrangement = Arrangement.spacedBy(9.dp)
                     ) {
                         weeklyHitPrograms.forEach { app ->
                             Card(
-                                modifier = Modifier.width(150.dp),
-                                shape = RoundedCornerShape(18.dp),
+                                modifier = Modifier.width(104.dp),
+                                shape = RoundedCornerShape(14.dp),
                                 colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))
                             ) {
                                 Column(
-                                    Modifier.fillMaxWidth().padding(12.dp),
+                                    Modifier.fillMaxWidth().padding(horizontal = 7.dp, vertical = 9.dp),
                                     horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                                    verticalArrangement = Arrangement.spacedBy(5.dp)
                                 ) {
-                                    ProgramIcon(app.iconUrl, app.name, 62)
+                                    ProgramIcon(app.iconUrl, app.name, 46)
                                     Text(
                                         app.name,
                                         color = Color.White,
-                                        fontSize = 14.sp,
+                                        fontSize = 11.sp,
                                         fontWeight = FontWeight.Bold,
-                                        maxLines = 2,
+                                        maxLines = 1,
+                                        softWrap = false,
+                                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                                         textAlign = androidx.compose.ui.text.style.TextAlign.Center
                                     )
-                                    if (app.version.isNotBlank()) Text("v${app.version}", color = Color(0xFFB9C9E5), fontSize = 12.sp)
-                                    if (app.fileSize.isNotBlank()) Text(app.fileSize, color = Color(0xFFB9C9E5), fontSize = 11.sp)
                                     if (app.downloadUrl.isNotBlank()) {
                                         Button(
                                             onClick = {
                                                 try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(app.downloadUrl))) }
                                                 catch (_: Exception) { error = "Yükləmə linki açıla bilmədi." }
                                             },
-                                            modifier = Modifier.fillMaxWidth(),
-                                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 5.dp)
-                                        ) { Text("Yüklə", fontSize = 13.sp) }
+                                            modifier = Modifier.fillMaxWidth().height(30.dp),
+                                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp)
+                                        ) { Text("Yüklə", fontSize = 11.sp, maxLines = 1) }
                                     }
                                 }
                             }
