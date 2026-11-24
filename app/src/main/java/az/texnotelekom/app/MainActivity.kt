@@ -3012,6 +3012,7 @@ fun TexnoTelekomApp(
                 Triple("🔔", "Bildirişlər", "Tətbiq yenilikləri və vacib elanlar barədə bildirişlərin idarəsini izah edir."),
                 Triple("🎨", "Görünüş", "Tətbiqin rəngləri və ekran görünüşü haqqında məlumat verir."),
                 Triple("📱", "Cihaz məlumatları", "Telefon modeli, Android versiyası və tətbiq versiyasını göstərir."),
+                Triple("🔄", "Tətbiq yenilə", "TEXNO-TELEKOM-un ən son versiyasını yoxlayın və yükləyin."),
             )
             val selectedSetting = settingItems.firstOrNull { it.second == settingsSelected }
             Column(
@@ -3124,7 +3125,19 @@ fun TexnoTelekomApp(
                                     Text("Tətbiq versiyası: $appVersion", color = Color.White, fontSize = 14.sp)
                                 }
                                 "Bildirişlər" -> Text("Bildiriş icazəsini telefonunuzun Ayarlar → Tətbiqlər → TEXNO-TELEKOM → Bildirişlər bölməsindən idarə edə bilərsiniz.", color = Color.White, fontSize = 14.sp, lineHeight = 22.sp)
-                                "Görünüş" -> Text("TEXNO-TELEKOM hazırda tünd rəngli interfeysdən istifadə edir. Bu görünüş rahat oxunuş üçün hazırlanıb.", color = Color.White, fontSize = 14.sp, lineHeight = 22.sp)
+                                "Görünüş" -> Text("TEXNO-TELEKOM hazırda tünd rəngli interfeysdən istifadə edir. Bu görünüş rahat oxunuş üçün hazırlanıb.", color = Color.White, fontSize = 14.sp, lineHeight = 22.sp),
+                                "Tətbiq yenilə" -> {
+                                    Text("Tətbiqin ən son APK versiyasını yoxlayıb telefonunuza yükləyə bilərsiniz.", color = Color.White, fontSize = 14.sp, lineHeight = 22.sp)
+                                    Button(
+                                        onClick = {
+                                            onInstallUpdate("https://github.com/aqsinkerimov2025-arch/TEXNO-TELEKOM/releases/latest/download/TEXNO-TELEKOM.apk")
+                                        },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF168BFF))
+                                    ) {
+                                        Text("YENİLƏMƏNİ YÜKLƏ", color = Color.White, fontWeight = FontWeight.Bold)
+                                    }
+                                }
                             }
                         }
                     }
