@@ -2479,6 +2479,16 @@ fun TexnoTelekomApp(
     var homeSignature by remember { mutableStateOf("MR_R3HB3R") }
     val programs = remember { mutableStateListOf<AppItem>() }
     val games = remember { mutableStateListOf<AppItem>() }
+    val favoritesPrefs = remember { context.getSharedPreferences("texno_favorites", Context.MODE_PRIVATE) }
+    val favoriteIds = remember {
+        mutableStateListOf<String>().apply {
+            addAll(favoritesPrefs.getStringSet("favorite_ids", emptySet()) ?: emptySet())
+        }
+    }
+    fun toggleFavorite(appId: String) {
+        if (favoriteIds.contains(appId)) favoriteIds.remove(appId) else favoriteIds.add(appId)
+        favoritesPrefs.edit().putStringSet("favorite_ids", favoriteIds.toSet()).apply()
+    }
     LaunchedEffect(notificationTarget, programs.size, games.size) {
         val target = notificationTarget ?: return@LaunchedEffect
         if (target.second == "phone_info") {
@@ -3641,6 +3651,9 @@ fun TexnoTelekomApp(
                                         if (app.version.isNotBlank()) Text("Versiya: ${app.version}", color = Color(0xFFFFD36A), fontSize = 13.sp)
                                         if (app.fileSize.isNotBlank()) Text(app.fileSize, color = Color(0xFF9FB0CC), fontSize = 12.sp)
                                     }
+                                    IconButton(onClick = { toggleFavorite(app.id) }) {
+                                        Text(if (favoriteIds.contains(app.id)) "⭐" else "☆", color = Color(0xFFFFD36A), fontSize = 25.sp)
+                                    }
                                 }
                                 if (app.description.isNotBlank()) Text(app.description, color = Color(0xFFCBD6EB), fontSize = 14.sp, lineHeight = 20.sp)
                                 if (app.downloadUrl.isNotBlank()) Button(onClick = {
@@ -3751,6 +3764,38 @@ fun TexnoTelekomApp(
                                     fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 16.dp))
                                 Spacer(Modifier.weight(1f))
                                 Text("›", color = Color(0xFF168BFF), fontSize = 30.sp)
+                            }
+                        }
+                    }
+                }
+            } else if (selectedBottomTab == 2) {
+                val favoritePrograms = programs.filter { favoriteIds.contains(it.id) && (it.isActive || loggedIn) }
+                val favoriteGames = games.filter { favoriteIds.contains(it.id) && (it.isActive || loggedIn) }
+                Column(
+                    Modifier.weight(1f).fillMaxWidth().verticalScroll(homeScrollState)
+                        .padding(horizontal = 16.dp, vertical = 20.dp).padding(bottom = 20.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text("⭐ FAVORİLƏR", color = Color.White, fontSize = 23.sp, fontWeight = FontWeight.Black)
+                    if (favoritePrograms.isEmpty() && favoriteGames.isEmpty()) {
+                        Text("Hələ sevimlilərə proqram əlavə edilməyib. Proqramlar bölməsindəki ☆ düyməsinə vuraraq yadda saxlayın.", color = Color(0xFFCBD6EB), modifier = Modifier.fillMaxWidth().padding(vertical = 28.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                    }
+                    (favoritePrograms + favoriteGames).forEach { app ->
+                        Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))) {
+                            Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                    ProgramIcon(app.iconUrl, app.name, 64)
+                                    Column(Modifier.weight(1f).padding(start = 12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                        Text(app.name, color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                                        if (app.version.isNotBlank()) Text("Versiya: ${app.version}", color = Color(0xFFFFD36A), fontSize = 13.sp)
+                                    }
+                                    IconButton(onClick = { toggleFavorite(app.id) }) { Text("⭐", color = Color(0xFFFFD36A), fontSize = 25.sp) }
+                                }
+                                if (app.description.isNotBlank()) Text(app.description, color = Color(0xFFCBD6EB), fontSize = 14.sp)
+                                if (app.downloadUrl.isNotBlank()) Button(onClick = {
+                                    try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(app.downloadUrl))) }
+                                    catch (_: Exception) { error = "Yükləmə linki açıla bilmədi." }
+                                }, modifier = Modifier.fillMaxWidth()) { Text("YÜKLƏ") }
                             }
                         }
                     }
