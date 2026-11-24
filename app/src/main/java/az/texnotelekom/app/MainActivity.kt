@@ -3783,7 +3783,13 @@ fun TexnoTelekomApp(
                         visibleNotices.forEach { entry ->
                             val item = entry.second
                             Card(
-                                modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                                modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp).clickable {
+                                    when (item.fourth) {
+                                        "phone_info" -> { showPhoneInfo = true; showPrograms = false; showGames = false }
+                                        "game" -> { notificationProgramId = entry.first; showGames = true; showPrograms = false; selectedBottomTab = 1 }
+                                        "program" -> { notificationProgramId = entry.first; showPrograms = true; showGames = false; selectedBottomTab = 1 }
+                                    }
+                                },
                                 shape = RoundedCornerShape(18.dp),
                                 colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))
                             ) {
