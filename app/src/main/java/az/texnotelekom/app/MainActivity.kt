@@ -4126,10 +4126,6 @@ fun TexnoTelekomApp(
                 }
                 if (searchOpen) OutlinedTextField(query, { query = it }, modifier = Modifier.fillMaxWidth(), placeholder = { Text("Axtar...") }, singleLine = true)
                 Spacer(Modifier.height(22.dp))
-                Card(shape = RoundedCornerShape(30.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF1248B9)), modifier = Modifier.fillMaxWidth()) {
-                    Text("TEXNO-TELEKOM-da!", color = Color.White, fontSize = 25.sp, fontWeight = FontWeight.Black, modifier = Modifier.padding(20.dp))
-                }
-                Spacer(Modifier.height(22.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                     HomeDesignCard("📰", "TEXNO-MƏLUMAT", Modifier.weight(1f)) { selectedBottomTab = 0; showPhoneInfoFeed = true; showPhoneInfo = false; showPrograms = false; showGames = false; showFeedback = false }
                     HomeDesignCard("📱", "TEXNO-TELEKOM\nPROQRAMLAR", Modifier.weight(1f)) { selectedBottomTab = 1; showPrograms = true; showGames = false; showPhoneInfo = false; showPhoneInfoFeed = false; showFeedback = false }
@@ -4142,7 +4138,6 @@ fun TexnoTelekomApp(
                 Spacer(Modifier.height(14.dp))
                 HomeDesignCard("👥", "TEXNO DƏSTƏK QRUPU", Modifier.fillMaxWidth()) { showGroupChat = true }
                 Spacer(Modifier.height(24.dp))
-                if (isAuthorizedDevice) Text("ADMİN", color = Color.White, fontWeight = FontWeight.Bold, modifier = Modifier.align(Alignment.CenterHorizontally).clickable { adminOpen = !adminOpen })
                 if (adminOpen && isAuthorizedDevice) { /* admin panel remains below in its existing section */ }
             }
 
