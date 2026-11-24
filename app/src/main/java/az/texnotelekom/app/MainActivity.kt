@@ -2426,7 +2426,44 @@ fun TexnoTelekomApp(
     var showDeviceInfo by remember { mutableStateOf(false) }
     var revealDeviceCodeButton by remember { mutableStateOf(false) }
     val deviceId = remember { Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID) ?: "Tapılmadı" }
+    val deviceHash = remember(deviceId) {
+        java.security.MessageDigest.getInstance("SHA-256")
+            .digest(deviceId.toByteArray(Charsets.UTF_8))
+            .joinToString("") { "%02x".format(it) }
+    }
+    var deviceBlocked by remember { mutableStateOf(false) }
+    var deviceBlockReason by remember { mutableStateOf("") }
     val isAuthorizedDevice = deviceId in ADMIN_DEVICE_IDS
+
+    LaunchedEffect(deviceHash, groupAuthReady, isAuthorizedDevice) {
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        if (groupAuthReady && currentUser != null && !isAuthorizedDevice) {
+            db.collection("device_registry").document(deviceHash).set(
+                mapOf(
+                    "device_hash" to deviceHash,
+                    "uid" to currentUser.uid,
+                    "last_seen" to FieldValue.serverTimestamp()
+                ),
+                SetOptions.merge()
+            )
+            db.collection("blocked_devices").document(deviceHash).get()
+                .addOnSuccessListener { snapshot ->
+                    if (snapshot.exists()) {
+                        val until = snapshot.getTimestamp("blocked_until")
+                        val active = until == null || until.toDate().time > System.currentTimeMillis()
+                        deviceBlocked = active
+                        deviceBlockReason = if (active) snapshot.getString("reason").orEmpty() else ""
+                    } else {
+                        deviceBlocked = false
+                        deviceBlockReason = ""
+                    }
+                }
+                .addOnFailureListener {
+                    // Network/rules errors do not silently lock out a device.
+                    deviceBlocked = false
+                }
+        }
+    }
     val savedAdminUser = remember { FirebaseAuth.getInstance().currentUser }
     var loggedIn by remember { mutableStateOf(isAuthorizedDevice && savedAdminUser?.uid == ADMIN_UID && savedAdminUser.email == ADMIN_EMAIL) }
 
@@ -3948,6 +3985,15 @@ fun TexnoTelekomApp(
                             Card(modifier = Modifier.fillMaxWidth().clickable { showGroupChat = true }, shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))) {
                                 Text("👥  Qrup rəhbərliyi", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(18.dp))
                             }
+                            if (loggedIn) {
+                                Card(
+                                    modifier = Modifier.fillMaxWidth().clickable { adminEntry = "device_blocking" },
+                                    shape = RoundedCornerShape(18.dp),
+                                    colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))
+                                ) {
+                                    Text("📵  Telefon bloklaması", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(18.dp))
+                                }
+                            }
                     } else {
                         val fieldColors = OutlinedTextFieldDefaults.colors(
                             focusedTextColor = Color.White, unfocusedTextColor = Color.White,
@@ -3956,6 +4002,9 @@ fun TexnoTelekomApp(
                             cursorColor = Color(0xFFFFD36A)
                         )
                         when (adminEntry) {
+                            "device_blocking" -> {
+                                DeviceBlockAdminPanel(db)
+                            }
                             "program" -> {
                                 OutlinedTextField(name, { name = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Proqramın adı") }, colors = fieldColors)
                                 OutlinedTextField(category, { category = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Kateqoriya") }, colors = fieldColors)
@@ -4142,6 +4191,20 @@ fun TexnoTelekomApp(
             }
 
             }
+            if (deviceBlocked) {
+                AlertDialog(
+                    onDismissRequest = { },
+                    title = { Text("Cihaz bloklanıb") },
+                    text = {
+                        Text(
+                            "Bu telefonun TEXNO-TELEKOM tətbiqinə girişi məhdudlaşdırılıb.\n\nSəbəb: " +
+                                deviceBlockReason.ifBlank { "Tətbiq qaydalarının pozulması" } +
+                                "\n\nƏgər bunun səhv olduğunu düşünürsünüzsə, adminlə əlaqə saxlayın."
+                        )
+                    },
+                    confirmButton = { }
+                )
+            }
             Row(Modifier.fillMaxWidth().background(Color(0xFF080D1E)).navigationBarsPadding().padding(vertical = 10.dp), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
                 val tabs = listOf("🏠" to "Əsas səhifə", "📱" to "Kateqoriyalar", "⭐" to "Favorilər", (if (isAuthorizedDevice) "🛠️" to "Admin Paneli" else "💬" to "Adminlə əlaqə"), "👤" to "Profil")
                 tabs.forEachIndexed { index, tab ->
@@ -4186,6 +4249,126 @@ fun TexnoTelekomApp(
 
 }
 
+
+private data class DeviceBlockRow(
+    val hash: String,
+    val blocked: Boolean,
+    val reason: String
+)
+
+@Composable
+private fun DeviceBlockAdminPanel(db: FirebaseFirestore) {
+    val context = LocalContext.current
+    val devices = remember { mutableStateListOf<DeviceBlockRow>() }
+    var loading by remember { mutableStateOf(true) }
+    var reason by remember { mutableStateOf("") }
+    var durationDays by remember { mutableIntStateOf(0) }
+    var message by remember { mutableStateOf("") }
+
+    fun refreshDevices() {
+        loading = true
+        db.collection("device_registry").get()
+            .addOnSuccessListener { result ->
+                devices.clear()
+                result.documents.forEach { doc ->
+                    val hash = doc.getString("device_hash") ?: doc.id
+                    db.collection("blocked_devices").document(hash).get()
+                        .addOnSuccessListener { block ->
+                            val until = block.getTimestamp("blocked_until")
+                            val active = block.exists() && (until == null || until.toDate().time > System.currentTimeMillis())
+                            val row = DeviceBlockRow(hash, active, if (active) block.getString("reason").orEmpty() else "")
+                            val oldIndex = devices.indexOfFirst { it.hash == hash }
+                            if (oldIndex >= 0) devices[oldIndex] = row else devices.add(row)
+                            loading = false
+                        }
+                        .addOnFailureListener { loading = false }
+                }
+                if (result.isEmpty) loading = false
+            }
+            .addOnFailureListener {
+                loading = false
+                message = "Telefon siyahısını yükləmək mümkün olmadı: ${it.localizedMessage}"
+            }
+    }
+
+    LaunchedEffect(Unit) { refreshDevices() }
+
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text("Qeydiyyatdan keçmiş telefonlar", color = Color.White, fontSize = 15.sp)
+        OutlinedTextField(
+            value = reason,
+            onValueChange = { reason = it },
+            modifier = Modifier.fillMaxWidth(),
+            label = { Text("Bloklama səbəbi") },
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = Color.White, unfocusedTextColor = Color.White,
+                focusedBorderColor = Color(0xFFFFD36A), unfocusedBorderColor = Color(0xFF64748B),
+                focusedLabelColor = Color(0xFFFFD36A), unfocusedLabelColor = Color(0xFFB8C5DC)
+            )
+        )
+        Text("Bloklama müddəti", color = Color(0xFFFFD36A), fontWeight = FontWeight.Bold)
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            listOf(0 to "Daimi", 1 to "1 gün", 7 to "7 gün", 30 to "30 gün").forEach { option ->
+                OutlinedButton(
+                    onClick = { durationDays = option.first },
+                    modifier = Modifier.weight(1f),
+                    contentPadding = PaddingValues(horizontal = 2.dp, vertical = 8.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = if (durationDays == option.first) Color(0xFFFFD36A) else Color.White
+                    )
+                ) { Text(option.second, fontSize = 11.sp) }
+            }
+        }
+        if (loading) {
+            CircularProgressIndicator(color = Color(0xFFFFD36A))
+        } else if (devices.isEmpty()) {
+            Text("Hələ heç bir telefon qeydə alınmayıb. İstifadəçilər tətbiqi açdıqca burada görünəcəklər.", color = Color(0xFFCBD6EB))
+        } else {
+            devices.sortedBy { it.hash }.forEach { item ->
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D)),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text("Telefon • ${item.hash.takeLast(8).uppercase()}", color = Color.White, fontWeight = FontWeight.Bold)
+                        Text(if (item.blocked) "Bloklanıb: ${item.reason}" else "Aktiv", color = if (item.blocked) Color(0xFFFF7777) else Color(0xFF72D69A))
+                        if (item.blocked) {
+                            OutlinedButton(
+                                onClick = {
+                                    db.collection("blocked_devices").document(item.hash).delete()
+                                        .addOnSuccessListener { message = "Telefon blokdan çıxarıldı."; refreshDevices() }
+                                        .addOnFailureListener { message = "Blokdan çıxarmaq olmadı: ${it.localizedMessage}" }
+                                },
+                                modifier = Modifier.fillMaxWidth()
+                            ) { Text("BLOKDAN ÇIXAR") }
+                        } else {
+                            Button(
+                                onClick = {
+                                    val cleanReason = reason.trim().ifBlank { "Tətbiq qaydalarının pozulması" }
+                                    val blockedUntil: Any? = if (durationDays == 0) null
+                                        else com.google.firebase.Timestamp(java.util.Date(System.currentTimeMillis() + durationDays * 24L * 60L * 60L * 1000L))
+                                    db.collection("blocked_devices").document(item.hash).set(
+                                        mapOf(
+                                            "device_hash" to item.hash,
+                                            "reason" to cleanReason,
+                                            "created_at" to FieldValue.serverTimestamp(),
+                                            "blocked_until" to blockedUntil
+                                        )
+                                    ).addOnSuccessListener { message = "Telefon bloklandı."; refreshDevices() }
+                                        .addOnFailureListener { message = "Telefon bloklanmadı: ${it.localizedMessage}" }
+                                },
+                                modifier = Modifier.fillMaxWidth()
+                            ) { Text("TELEFONU BLOKLA") }
+                        }
+                    }
+                }
+            }
+        }
+        OutlinedButton(onClick = { refreshDevices() }, modifier = Modifier.fillMaxWidth()) { Text("SİYAHINI YENİLƏ") }
+        if (message.isNotBlank()) Text(message, color = Color(0xFFFFD36A))
+    }
+}
 
 @Composable
 private fun HomeDesignCard(emoji: String, label: String, modifier: Modifier = Modifier, showLogo: Boolean = false, onClick: () -> Unit) {
