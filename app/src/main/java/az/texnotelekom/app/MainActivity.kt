@@ -3125,7 +3125,7 @@ fun TexnoTelekomApp(
                                     Text("Tətbiq versiyası: $appVersion", color = Color.White, fontSize = 14.sp)
                                 }
                                 "Bildirişlər" -> Text("Bildiriş icazəsini telefonunuzun Ayarlar → Tətbiqlər → TEXNO-TELEKOM → Bildirişlər bölməsindən idarə edə bilərsiniz.", color = Color.White, fontSize = 14.sp, lineHeight = 22.sp)
-                                "Görünüş" -> Text("TEXNO-TELEKOM hazırda tünd rəngli interfeysdən istifadə edir. Bu görünüş rahat oxunuş üçün hazırlanıb.", color = Color.White, fontSize = 14.sp, lineHeight = 22.sp),
+                                "Görünüş" -> Text("TEXNO-TELEKOM hazırda tünd rəngli interfeysdən istifadə edir. Bu görünüş rahat oxunuş üçün hazırlanıb.", color = Color.White, fontSize = 14.sp, lineHeight = 22.sp)
                                 "Tətbiq yenilə" -> {
                                     Text("Tətbiqin ən son APK versiyasını yoxlayıb telefonunuza yükləyə bilərsiniz.", color = Color.White, fontSize = 14.sp, lineHeight = 22.sp)
                                     Button(
