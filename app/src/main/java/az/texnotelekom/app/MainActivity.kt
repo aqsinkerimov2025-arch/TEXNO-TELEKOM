@@ -4227,7 +4227,24 @@ fun TexnoTelekomApp(
                                     horizontalAlignment = Alignment.CenterHorizontally,
                                     verticalArrangement = Arrangement.spacedBy(4.dp)
                                 ) {
-                                    Text("🔔", fontSize = 30.sp)
+                                    Box(
+                                        modifier = Modifier
+                                            .padding(top = 3.dp)
+                                            .background(
+                                                Color(0xFF123B61),
+                                                RoundedCornerShape(7.dp)
+                                            )
+                                            .padding(horizontal = 9.dp, vertical = 5.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            "NEW",
+                                            color = Color(0xFF35C6FF),
+                                            fontSize = 19.sp,
+                                            fontWeight = FontWeight.Black,
+                                            letterSpacing = 1.sp
+                                        )
+                                    }
                                     Text(
                                         info.title.ifBlank { "Telefon məlumatı" },
                                         color = Color.White,
