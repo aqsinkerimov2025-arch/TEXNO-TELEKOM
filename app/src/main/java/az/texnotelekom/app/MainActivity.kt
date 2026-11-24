@@ -4115,8 +4115,6 @@ fun TexnoTelekomApp(
                         }
                     }
                 }
-                TexnoTelekomLogo(size = 176.dp)
-                Spacer(Modifier.height(18.dp))
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     TexnoTelekomLogo(size = 76.dp)
                     Column(Modifier.weight(1f).padding(start = 12.dp)) {
