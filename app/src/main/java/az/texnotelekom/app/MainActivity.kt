@@ -2871,7 +2871,9 @@ fun TexnoTelekomApp(
         clearingUpdates = true
         db.collection("app_notifications").get()
             .addOnSuccessListener { snapshot ->
-                val batches = snapshot.documents.chunked(450).map { documents ->
+                val contentTypes = setOf("program_added", "program_updated", "game_added", "game_updated", "phone_info_added", "phone_info_updated", "program", "game", "phone_info")
+                val contentDocuments = snapshot.documents.filter { it.getString("type") in contentTypes }
+                val batches = contentDocuments.chunked(450).map { documents ->
                     db.batch().also { batch -> documents.forEach { batch.delete(it.reference) } }
                 }
                 if (batches.isEmpty()) {
@@ -2883,7 +2885,7 @@ fun TexnoTelekomApp(
                         .addOnSuccessListener {
                             clearingUpdates = false
                             showClearUpdatesConfirm = false
-                            message = "Köhnə yeniliklər və bildirişlər silindi."
+                            message = "Profil bölməsinin köhnə paylaşım bildirişləri silindi."
                         }
                         .addOnFailureListener {
                             clearingUpdates = false
