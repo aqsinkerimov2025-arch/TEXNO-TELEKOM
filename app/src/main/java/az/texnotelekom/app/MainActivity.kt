@@ -4169,9 +4169,21 @@ fun TexnoTelekomApp(
                             fontWeight = FontWeight.Black
                         )
                     }
-                    Row(Modifier.align(Alignment.TopEnd)) {
-                        IconButton(onClick = { showGroupChat = true }) { Text("🔔", fontSize = 26.sp) }
-                        IconButton(onClick = { searchOpen = !searchOpen }) { Icon(Icons.Default.Search, contentDescription = "Axtarış", tint = Color.White) }
+                    IconButton(
+                        onClick = { showGroupChat = true },
+                        modifier = Modifier.align(Alignment.TopStart)
+                    ) { Text("🔔", fontSize = 25.sp) }
+                    Row(
+                        Modifier.align(Alignment.TopEnd),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        SupportBadgeLogo(
+                            size = 30.dp,
+                            modifier = Modifier.clickable { showGroupChat = true }
+                        )
+                        IconButton(onClick = { searchOpen = !searchOpen }) {
+                            Icon(Icons.Default.Search, contentDescription = "Axtarış", tint = Color.White)
+                        }
                     }
                 }
                 if (searchOpen) OutlinedTextField(query, { query = it }, modifier = Modifier.fillMaxWidth(), placeholder = { Text("Axtar...") }, singleLine = true)
