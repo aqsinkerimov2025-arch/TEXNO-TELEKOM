@@ -99,26 +99,28 @@ async function syncLatestAppRelease(env) {
   if (!tag) return { synced: false, reason: "missing_tag" };
   const documentId = tag.replace(/[^A-Za-z0-9_-]/g, "_");
   const documentPath = "app_notifications/auto_release_" + documentId;
+  const title = "TEXNO-TELEKOM tətbiqi yeniləndi";
+  const body = "Tətbiqin yeni versiyası (" + tag + ") yayımlandı. Yeniliklər və təkmilləşdirmələr tətbiqə əlavə edildi. Ən son versiyadan istifadə etmək üçün tətbiqi yeniləyin.";
+  let alreadyExists = false;
   try {
     await firestoreRequest(documentPath, token);
-    return { synced: false, reason: "already_exists", tag };
+    alreadyExists = true;
   } catch (error) {
     if (!String(error).includes("404")) throw error;
   }
-  const title = "TEXNO-TELEKOM tətbiqi yeniləndi";
-  const body = "Tətbiqin yeni versiyası (" + tag + ") yayımlandı. Yeniliklər və təkmilləşdirmələr tətbiqə əlavə edildi. Ən son versiyadan istifadə etmək üçün tətbiqi yeniləyin.";
+  const fields = {
+    title: { stringValue: title },
+    body: { stringValue: body },
+    type: { stringValue: "app_version" },
+    version: { stringValue: tag },
+    release_tag: { stringValue: tag }
+  };
+  if (!alreadyExists) fields.created_at = { timestampValue: new Date().toISOString() };
   await firestoreRequest(documentPath, token, {
     method: "PATCH",
-    body: JSON.stringify({ fields: {
-      title: { stringValue: title },
-      body: { stringValue: body },
-      type: { stringValue: "app_version" },
-      version: { stringValue: tag },
-      release_tag: { stringValue: tag },
-      created_at: { timestampValue: new Date().toISOString() }
-    }})
+    body: JSON.stringify({ fields })
   });
-  return { synced: true, tag };
+  return { synced: !alreadyExists, localized: true, tag };
 }
 
 async function runPush(env) {
