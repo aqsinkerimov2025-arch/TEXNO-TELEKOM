@@ -77,12 +77,12 @@ jobs:
           VERSION_CODE=$((14 + GITHUB_RUN_NUMBER))
           APP_VERSION=$(sed -n 's/.*versionName = "\([^"]*\)".*/\1/p' app/build.gradle.kts | head -n 1)
           APP_VERSION="${APP_VERSION:-2.5}"
-          gh release create "app-v${VERSION_CODE}" app/build/outputs/apk/release/TEXNO-TELEKOM.apk \
-            --repo "${GITHUB_REPOSITORY}" \
-            --title "TEXNO-TELEKOM ${APP_VERSION}" \
-            RELEASE_NOTES="$(git log -1 --pretty=%B)"
+          RELEASE_NOTES="$(git log -1 --pretty=%B)"
           if [ -z "${RELEASE_NOTES//[[:space:]]/}" ]; then
             RELEASE_NOTES="TEXNO-TELEKOM tətbiqi yeniləndi."
           fi
-          --notes "$RELEASE_NOTES" \
+          gh release create "app-v${VERSION_CODE}" app/build/outputs/apk/release/TEXNO-TELEKOM.apk \
+            --repo "${GITHUB_REPOSITORY}" \
+            --title "TEXNO-TELEKOM ${APP_VERSION}" \
+            --notes "$RELEASE_NOTES" \
             --latest
