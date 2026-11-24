@@ -3785,7 +3785,7 @@ fun TexnoTelekomApp(
                             Card(
                                 modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp).clickable {
                                     when (entry.second.second) {
-                                        "phone_info" -> { showPhoneInfo = true; showPrograms = false; showGames = false }
+                                        "phone_info" -> { showPhoneInfoFeed = true; showPhoneInfo = false; showPrograms = false; showGames = false }
                                         "game" -> { notificationProgramId = entry.first; showGames = true; showPrograms = false; selectedBottomTab = 1 }
                                         "program" -> { notificationProgramId = entry.first; showPrograms = true; showGames = false; selectedBottomTab = 1 }
                                     }
