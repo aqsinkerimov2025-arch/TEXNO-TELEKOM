@@ -4229,8 +4229,8 @@ fun TexnoTelekomApp(
                     ) {
                         weeklyHitPrograms.forEach { app ->
                             Card(
-                                modifier = Modifier.width(104.dp),
-                                shape = RoundedCornerShape(14.dp),
+                                modifier = Modifier.width(108.dp),
+                                shape = RoundedCornerShape(16.dp),
                                 colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))
                             ) {
                                 Column(
@@ -4238,7 +4238,7 @@ fun TexnoTelekomApp(
                                     horizontalAlignment = Alignment.CenterHorizontally,
                                     verticalArrangement = Arrangement.spacedBy(5.dp)
                                 ) {
-                                    ProgramIcon(app.iconUrl, app.name, 46)
+                                    ProgramIcon(app.iconUrl, app.name, 50)
                                     Text(
                                         app.name,
                                         color = Color.White,
@@ -4249,6 +4249,12 @@ fun TexnoTelekomApp(
                                         overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                                         textAlign = androidx.compose.ui.text.style.TextAlign.Center
                                     )
+                                    if (app.version.isNotBlank()) {
+                                        Text("v${app.version}", color = Color(0xFFBFD8FF), fontSize = 10.sp, maxLines = 1, softWrap = false)
+                                    }
+                                    if (app.fileSize.isNotBlank()) {
+                                        Text(app.fileSize, color = Color(0xFFBFD8FF), fontSize = 10.sp, maxLines = 1, softWrap = false)
+                                    }
                                     if (app.downloadUrl.isNotBlank()) {
                                         Button(
                                             onClick = {
