@@ -84,6 +84,44 @@ async function verifyFirebaseIdToken(idToken) {
   return claims;
 }
 
+
+async function syncLatestAppRelease(env) {
+  if (!env.FIREBASE_SERVICE_ACCOUNT) throw new Error("Missing FIREBASE_SERVICE_ACCOUNT secret");
+  const serviceAccount = JSON.parse(env.FIREBASE_SERVICE_ACCOUNT);
+  const token = await googleAccessToken(serviceAccount);
+  const response = await fetch("https://api.github.com/repos/aqsinkerimov2025-arch/TEXNO-TELEKOM/releases/latest", {
+    headers: { "accept": "application/vnd.github+json", "user-agent": "TEXNO-TELEKOM-release-sync" }
+  });
+  if (response.status === 404) return { synced: false, reason: "no_release" };
+  const release = await response.json();
+  if (!response.ok) throw new Error("GitHub release lookup failed: " + JSON.stringify(release));
+  const tag = String(release.tag_name || "").slice(0, 120);
+  if (!tag) return { synced: false, reason: "missing_tag" };
+  const documentId = tag.replace(/[^A-Za-z0-9_-]/g, "_");
+  const documentPath = "app_notifications/auto_release_" + documentId;
+  try {
+    await firestoreRequest(documentPath, token);
+    return { synced: false, reason: "already_exists", tag };
+  } catch (error) {
+    if (!String(error).includes("404")) throw error;
+  }
+  const title = String(release.name || "TEXNO-TELEKOM yeniləndi").slice(0, 160);
+  const notes = String(release.body || "").trim();
+  const body = (notes || ("Yeni versiya yayımlandı: " + tag)) .slice(0, 3000);
+  await firestoreRequest(documentPath, token, {
+    method: "PATCH",
+    body: JSON.stringify({ fields: {
+      title: { stringValue: title },
+      body: { stringValue: body },
+      type: { stringValue: "app_version" },
+      version: { stringValue: tag },
+      release_tag: { stringValue: tag },
+      created_at: { timestampValue: new Date().toISOString() }
+    }})
+  });
+  return { synced: true, tag };
+}
+
 async function runPush(env) {
   if (!env.FIREBASE_SERVICE_ACCOUNT) throw new Error("Missing FIREBASE_SERVICE_ACCOUNT secret");
   const serviceAccount = JSON.parse(env.FIREBASE_SERVICE_ACCOUNT);
@@ -166,7 +204,7 @@ export default {
       const payload = await request.json();
       if (typeof payload.idToken !== "string") return new Response("Unauthorized", { status: 401 });
       await verifyFirebaseIdToken(payload.idToken);
-      const result = await runPush(env);
+      const releaseSync = await syncLatestAppRelease(env);\n      const result = await runPush(env);\n      result.releaseSync = releaseSync;
       return Response.json({ ok: true, ...result });
     } catch (error) {
       return Response.json({ ok: false, error: String(error) }, { status: 500 });
