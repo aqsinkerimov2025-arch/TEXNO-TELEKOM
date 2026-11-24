@@ -4197,8 +4197,6 @@ fun TexnoTelekomApp(
                     HomeDesignCard("🎮", "OYUNLAR", Modifier.weight(1f)) { selectedBottomTab = 2; showGames = true; showPrograms = false; showPhoneInfo = false; showPhoneInfoFeed = false; showFeedback = false }
                     HomeDesignCard("💬", "ADMİNLƏ-ƏLAQƏ", Modifier.weight(1f)) { selectedBottomTab = 3; showPrograms = false; showGames = false; showPhoneInfo = false; showPhoneInfoFeed = false; adminEntry = null; showFeedback = true }
                 }
-                Spacer(Modifier.height(14.dp))
-                HomeDesignCard("👥", "TEXNO DƏSTƏK QRUPU", Modifier.fillMaxWidth()) { showGroupChat = true }
                 if (weeklyHitPrograms.isNotEmpty()) {
                     Spacer(Modifier.height(8.dp))
                     Row(
