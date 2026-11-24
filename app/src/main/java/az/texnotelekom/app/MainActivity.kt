@@ -3782,24 +3782,6 @@ fun TexnoTelekomApp(
                     }
                     val appTypes = setOf("app_design", "app_feature", "app_bugfix", "app_version")
                     val appItems = appNoticeItems.filter { it.second.second in appTypes }
-                    if (loggedIn && isAuthorizedDevice) {
-                        Text("Admin: yeni tətbiq yeniliyi paylaş", color = Color(0xFFFFD36A), fontWeight = FontWeight.Bold)
-                        OutlinedTextField(value = appUpdateTitle, onValueChange = { appUpdateTitle = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Başlıq") })
-                        OutlinedTextField(value = appUpdateBody, onValueChange = { appUpdateBody = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Açıqlama") }, minLines = 2)
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            listOf("app_design" to "Dizayn", "app_feature" to "Funksiya", "app_bugfix" to "Düzəliş", "app_version" to "Versiya").forEach { option ->
-                                FilterChip(selected = appUpdateType == option.first, onClick = { appUpdateType = option.first }, label = { Text(option.second, fontSize = 10.sp) })
-                            }
-                        }
-                        Button(onClick = {
-                            if (appUpdateTitle.isNotBlank() && appUpdateBody.isNotBlank()) {
-                                db.collection("app_notifications").add(hashMapOf("type" to appUpdateType, "title" to appUpdateTitle.trim(), "body" to appUpdateBody.trim(), "created_at" to FieldValue.serverTimestamp()))
-                                    .addOnSuccessListener { triggerInstantPush(); appUpdateTitle = ""; appUpdateBody = ""; message = "Tətbiq yeniliyi paylaşıldı." }
-                                    .addOnFailureListener { error = "Yenilik paylaşılmadı: ${it.localizedMessage}" }
-                            } else error = "Başlıq və açıqlama yazın."
-                        }, modifier = Modifier.fillMaxWidth()) { Text("YENİLİYİ PAYLAŞ") }
-                        Spacer(Modifier.height(12.dp))
-                    }
                     if (appItems.isEmpty()) Text("Hələ tətbiq yeniliyi paylaşılmayıb.", color = Color(0xFFCBD6EB), modifier = Modifier.fillMaxWidth().padding(vertical = 28.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                     appItems.forEach { entry ->
                         val item = entry.second.first
