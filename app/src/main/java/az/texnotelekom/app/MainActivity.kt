@@ -4211,6 +4211,23 @@ fun TexnoTelekomApp(
                         phoneInfos.forEach { info ->
                             val isNew = info.createdAt > 0L &&
                                 System.currentTimeMillis() - info.createdAt <= 7L * 24L * 60L * 60L * 1000L
+                            val newBadgeTransition = rememberInfiniteTransition()
+                            val newBadgeScale by newBadgeTransition.animateFloat(
+                                initialValue = 0.92f,
+                                targetValue = 1.08f,
+                                animationSpec = infiniteRepeatable(
+                                    animation = tween(700, easing = FastOutSlowInEasing),
+                                    repeatMode = RepeatMode.Reverse
+                                )
+                            )
+                            val newBadgeAlpha by newBadgeTransition.animateFloat(
+                                initialValue = 0.68f,
+                                targetValue = 1f,
+                                animationSpec = infiniteRepeatable(
+                                    animation = tween(700, easing = FastOutSlowInEasing),
+                                    repeatMode = RepeatMode.Reverse
+                                )
+                            )
                             Card(
                                 modifier = Modifier.width(104.dp).height(112.dp).clickable {
                                     selectedPhoneInfoId = info.id
@@ -4230,6 +4247,11 @@ fun TexnoTelekomApp(
                                     Box(
                                         modifier = Modifier
                                             .padding(top = 3.dp)
+                                            .graphicsLayer {
+                                                scaleX = if (isNew) newBadgeScale else 1f
+                                                scaleY = if (isNew) newBadgeScale else 1f
+                                                alpha = if (isNew) newBadgeAlpha else 0.72f
+                                            }
                                             .background(
                                                 Color(0xFF123B61),
                                                 RoundedCornerShape(7.dp)
