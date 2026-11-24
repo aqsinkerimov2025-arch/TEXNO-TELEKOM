@@ -4190,64 +4190,62 @@ fun TexnoTelekomApp(
                     }
                 }
                 if (phoneInfos.isNotEmpty()) {
-                    Column(
-                        Modifier.fillMaxWidth().padding(top = 2.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    Spacer(Modifier.height(8.dp))
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            "📢 Yeni telefon məlumatları",
+                            color = Color.White,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            softWrap = false
+                        )
+                    }
+                    Row(
+                        Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(7.dp)
                     ) {
                         phoneInfos.forEach { info ->
                             val isNew = info.createdAt > 0L &&
                                 System.currentTimeMillis() - info.createdAt <= 7L * 24L * 60L * 60L * 1000L
                             Card(
-                                modifier = Modifier.fillMaxWidth().clickable {
+                                modifier = Modifier.width(104.dp).height(112.dp).clickable {
                                     selectedPhoneInfoId = info.id
                                     showPhoneInfoFeed = true
                                     showPhoneInfo = false
                                     showPrograms = false
                                     showGames = false
                                 },
-                                shape = RoundedCornerShape(14.dp),
+                                shape = RoundedCornerShape(11.dp),
                                 colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))
                             ) {
-                                Row(
-                                    Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
-                                    verticalAlignment = Alignment.CenterVertically
+                                Column(
+                                    Modifier.fillMaxWidth().padding(horizontal = 5.dp, vertical = 5.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.spacedBy(4.dp)
                                 ) {
-                                    Image(
-                                        painter = painterResource(id = R.drawable.texno_melumat_logo),
-                                        contentDescription = "TEXNO-MƏLUMAT loqosu",
-                                        modifier = Modifier.size(38.dp).clip(CircleShape),
-                                        contentScale = ContentScale.Crop
+                                    Text("🔔", fontSize = 30.sp)
+                                    Text(
+                                        info.title.ifBlank { "Telefon məlumatı" },
+                                        color = Color.White,
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        maxLines = 2,
+                                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
                                     )
-                                    Column(
-                                        Modifier.weight(1f).padding(start = 10.dp),
-                                        verticalArrangement = Arrangement.spacedBy(3.dp)
-                                    ) {
+                                    if (isNew) {
                                         Text(
-                                            info.title.ifBlank { "Telefon haqqında məlumat" },
-                                            color = Color.White,
-                                            fontSize = 15.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            maxLines = 1,
-                                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                                            "YENİ",
+                                            color = Color(0xFF20B8FF),
+                                            fontSize = 9.sp,
+                                            fontWeight = FontWeight.ExtraBold,
+                                            maxLines = 1
                                         )
-                                        if (isNew) {
-                                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                                Image(
-                                                    painter = painterResource(id = R.drawable.texno_melumat_logo),
-                                                    contentDescription = null,
-                                                    modifier = Modifier.size(13.dp).clip(CircleShape),
-                                                    contentScale = ContentScale.Crop
-                                                )
-                                                Text(
-                                                    " YENİ PAYLAŞILDI",
-                                                    color = Color(0xFF20B8FF),
-                                                    fontSize = 10.sp,
-                                                    fontWeight = FontWeight.ExtraBold
-                                                )
-                                            }
-                                        }
                                     }
-                                    Text("›", color = Color(0xFF20B8FF), fontSize = 26.sp)
                                 }
                             }
                         }
