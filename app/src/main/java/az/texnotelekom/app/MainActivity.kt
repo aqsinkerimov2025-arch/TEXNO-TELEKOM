@@ -4133,13 +4133,13 @@ fun TexnoTelekomApp(
                 }
                 Spacer(Modifier.height(22.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                    HomeDesignCard("🚀", "Yeni APK-lar\nVə Oyunlar", Modifier.weight(1f)) { showPrograms = true; showGames = true }
-                    HomeDesignCard("👑", "Top\nKateqoriyalar", Modifier.weight(1f)) { selectedBottomTab = 1 }
+                    HomeDesignCard("📰", "TEXNO-MƏLUMAT", Modifier.weight(1f)) { showPhoneInfoFeed = true; showPhoneInfo = false; showPrograms = false; showGames = false }
+                    HomeDesignCard("📱", "TEXNO-TELEKOM\nPROQRAMLAR", Modifier.weight(1f)) { selectedBottomTab = 1; showPrograms = true; showGames = false; showPhoneInfo = false; showPhoneInfoFeed = false }
                 }
                 Spacer(Modifier.height(14.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                    HomeDesignCard("⭐", "Sevimlilərim", Modifier.weight(1f)) { selectedBottomTab = 2 }
-                    HomeDesignCard("⬇️", "Yükləmə\nTarixçəsi", Modifier.weight(1f)) { selectedBottomTab = 4 }
+                    HomeDesignCard("🎮", "OYUNLAR", Modifier.weight(1f)) { showGames = true; showPrograms = false; showPhoneInfo = false; showPhoneInfoFeed = false }
+                    HomeDesignCard("💬", "ADMİNLƏ-ƏLAQƏ", Modifier.weight(1f)) { selectedBottomTab = 3; showPrograms = false; showGames = false; showPhoneInfo = false; showPhoneInfoFeed = false; adminEntry = null; showFeedback = !isAuthorizedDevice }
                 }
                 Spacer(Modifier.height(14.dp))
                 HomeDesignCard("👥", "TEXNO DƏSTƏK QRUPU", Modifier.fillMaxWidth()) { showGroupChat = true }
