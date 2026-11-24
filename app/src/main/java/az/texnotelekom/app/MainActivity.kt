@@ -2559,7 +2559,7 @@ fun TexnoTelekomApp(
     val phoneInfos = remember { mutableStateListOf<PhoneInfo>() }
     var newPhoneInfoNotice by remember { mutableStateOf(false) }
     var newProgramNotice by remember { mutableStateOf(false) }
-    var appNoticeItems by remember { mutableStateOf(listOf<Pair<String, Triple<String, String, Long, String>>>()) }
+    var appNoticeItems by remember { mutableStateOf(listOf<Pair<String, Pair<Triple<String, String, Long>, String>>>()) }
     var noticeFilter by remember { mutableStateOf("all") }
     var showClearUpdatesConfirm by remember { mutableStateOf(false) }
     var clearingUpdates by remember { mutableStateOf(false) }
@@ -2635,7 +2635,7 @@ fun TexnoTelekomApp(
                         val title = d.getString("title") ?: "Yeni yenilik"
                         val body = d.getString("body") ?: title
                         val time = d.getTimestamp("created_at")?.toDate()?.time ?: 0L
-                        d.id to Triple(title, body, time, d.getString("type") ?: d.getString("content_type") ?: "other")
+                        d.id to (Triple(title, body, time) to (d.getString("type") ?: d.getString("content_type") ?: "other"))
                     }
                 }
             }
@@ -3769,7 +3769,7 @@ fun TexnoTelekomApp(
                             Text(if (clearingUpdates) "TƏMİZLƏNİR..." else "TƏMİZLƏMƏ BÖLMƏSİ")
                         }
                     }
-                    val visibleNotices = appNoticeItems.filter { entry -> noticeFilter == "all" || entry.second.fourth == noticeFilter }
+                    val visibleNotices = appNoticeItems.filter { entry -> noticeFilter == "all" || entry.second.second == noticeFilter }
                     Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         listOf("all" to "Hamısı", "phone_info" to "TEXNO-MƏLUMAT", "program" to "Proqramlar", "game" to "Oyunlar").forEach { option ->
                             FilterChip(selected = noticeFilter == option.first, onClick = { noticeFilter = option.first }, label = { Text(option.second, fontSize = 11.sp) })
@@ -3781,10 +3781,10 @@ fun TexnoTelekomApp(
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                     } else {
                         visibleNotices.forEach { entry ->
-                            val item = entry.second
+                            val item = entry.second.first
                             Card(
                                 modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp).clickable {
-                                    when (item.fourth) {
+                                    when (entry.second.second) {
                                         "phone_info" -> { showPhoneInfo = true; showPrograms = false; showGames = false }
                                         "game" -> { notificationProgramId = entry.first; showGames = true; showPrograms = false; selectedBottomTab = 1 }
                                         "program" -> { notificationProgramId = entry.first; showPrograms = true; showGames = false; selectedBottomTab = 1 }
