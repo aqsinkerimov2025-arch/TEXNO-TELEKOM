@@ -2238,8 +2238,12 @@ fun TexnoTelekomApp(
     }
 
     var availableUpdate by remember { mutableStateOf<ReleaseUpdate?>(null) }
+    var updateCheckInProgress by remember { mutableStateOf(false) }
+    var showUpdateCheckDialog by remember { mutableStateOf(false) }
+    var updateCheckMessage by remember { mutableStateOf("") }
+    var updateCheckResult by remember { mutableStateOf<ReleaseUpdate?>(null) }
     val lifecycleOwner = LocalLifecycleOwner.current
-    val checkForAppUpdate: () -> Unit = {
+    val checkForAppUpdate: (Boolean) -> Unit = { manualCheck ->
         Thread {
             try {
                 val connection = (URL("https://api.github.com/repos/aqsinkerimov2025-arch/TEXNO-TELEKOM/releases/latest").openConnection() as HttpURLConnection).apply {
@@ -2260,30 +2264,52 @@ fun TexnoTelekomApp(
                 }
                 val info = context.packageManager.getPackageInfo(context.packageName, 0)
                 val currentCode = if (Build.VERSION.SDK_INT >= 28) info.longVersionCode else @Suppress("DEPRECATION") info.versionCode.toLong()
+                val currentName = info.versionName ?: "Naməlum"
+                val displayVersion = Regex("""\\d+\\.\\d+(?:\\.\\d+)?""")
+                    .find(json.optString("name"))?.value ?: currentName
                 if (remoteCode > currentCode && apkUrl.startsWith("https://")) {
-                    val displayVersion = Regex("""\d+\.\d+(?:\.\d+)?""")
-                        .find(json.optString("name"))?.value ?: (info.versionName ?: "2.5")
-                    val rawNotes = json.optString("body").ifBlank { "Yeni Funksiya\nYeni Dizayn əlavə edildi" }
-                    val cleanNotes = rawNotes.lines()
-                        .filterNot { it.trim().equals("Yeni Funksiya", ignoreCase = true) }
-                        .joinToString("\n").trim()
-                    val update = ReleaseUpdate(remoteCode, displayVersion, apkUrl, cleanNotes)
+                    val rawNotes = json.optString("body").ifBlank { "Yeni versiya və yeniliklər mövcuddur." }
+                    val update = ReleaseUpdate(remoteCode, displayVersion, apkUrl, rawNotes.trim())
                     Handler(Looper.getMainLooper()).post {
+                        updateCheckInProgress = false
+                        availableUpdate = update
+                        if (manualCheck) {
+                            updateCheckResult = update
+                            updateCheckMessage = ""
+                            showUpdateCheckDialog = true
+                        }
                         val prefs = context.getSharedPreferences("texno_update_notifications", Context.MODE_PRIVATE)
                         val notifiedCode = prefs.getLong("notified_release_code_v2", 0L)
                         val promptedCode = prefs.getLong("prompted_release_code", 0L)
-                        if (notifiedCode != remoteCode &&
-                            showAppUpdateNotification(context, displayVersion, cleanNotes)
-                        ) {
+                        if (notifiedCode != remoteCode && showAppUpdateNotification(context, displayVersion, rawNotes)) {
                             prefs.edit().putLong("notified_release_code_v2", remoteCode).apply()
                         }
                         if (promptedCode != remoteCode) {
-                            availableUpdate = update
                             prefs.edit().putLong("prompted_release_code", remoteCode).apply()
                         }
                     }
+                } else if (remoteCode > 0L && remoteCode <= currentCode) {
+                    Handler(Looper.getMainLooper()).post {
+                        updateCheckInProgress = false
+                        if (manualCheck) {
+                            updateCheckResult = null
+                            updateCheckMessage = "Tətbiqin versiyası son versiyadır. (Versiya: $currentName)"
+                            showUpdateCheckDialog = true
+                        }
+                    }
+                } else {
+                    throw Exception("Son versiyanın APK faylı tapılmadı.")
                 }
-            } catch (_: Exception) { }
+            } catch (e: Exception) {
+                Handler(Looper.getMainLooper()).post {
+                    updateCheckInProgress = false
+                    if (manualCheck) {
+                        updateCheckResult = null
+                        updateCheckMessage = "Yeniləməni yoxlamaq mümkün olmadı. İnternet bağlantınızı yoxlayıb yenidən cəhd edin."
+                        showUpdateCheckDialog = true
+                    }
+                }
+            }
         }.start()
     }
     DisposableEffect(lifecycleOwner) {
@@ -2291,7 +2317,7 @@ fun TexnoTelekomApp(
         val updateCheck = object : Runnable {
             override fun run() {
                 if (lifecycleOwner.lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED)) {
-                    checkForAppUpdate()
+                    checkForAppUpdate(false)
                     updateHandler.postDelayed(this, 5 * 60 * 1000L)
                 }
             }
@@ -2311,6 +2337,34 @@ fun TexnoTelekomApp(
             updateHandler.removeCallbacks(updateCheck)
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
+    }
+    if (showUpdateCheckDialog) {
+        AlertDialog(
+            onDismissRequest = { showUpdateCheckDialog = false },
+            title = { Text(if (updateCheckResult != null) "Yeniləmə mövcuddur" else "Yeniləmə yoxlanışı") },
+            text = {
+                Text(
+                    updateCheckResult?.let { "TEXNO-TELEKOM üçün yeni versiya: ${it.versionName}\n\nYeniləməni indi yükləyə bilərsiniz." }
+                        ?: updateCheckMessage
+                )
+            },
+            confirmButton = {
+                if (updateCheckResult != null) {
+                    TextButton(onClick = {
+                        val update = updateCheckResult
+                        showUpdateCheckDialog = false
+                        if (update != null) onInstallUpdate(update.apkUrl)
+                    }) { Text("YENİLƏMƏNİ YÜKLƏ") }
+                } else {
+                    TextButton(onClick = { showUpdateCheckDialog = false }) { Text("BAĞLA") }
+                }
+            },
+            dismissButton = {
+                if (updateCheckResult != null) {
+                    TextButton(onClick = { showUpdateCheckDialog = false }) { Text("SONRA") }
+                }
+            }
+        )
     }
     var query by remember { mutableStateOf("") }
     var searchOpen by remember { mutableStateOf(false) }
@@ -3941,8 +3995,13 @@ fun TexnoTelekomApp(
                     ProfileItem("🛡️", "Təhlükəsizlik Məlumatı", Color(0xFF168BFF)) { showSecurity = true }
                     ProfileItem("💬", "Təklif Qutusu", Color(0xFF00D5C5)) { showFeedback = true }
                     ProfileItem("ℹ️", "Tətbiq Haqqında", Color(0xFF247BFF)) { showAbout = true }
-                    ProfileItem("🔄", "Tətbiq yenilə", Color(0xFF20C997)) {
-                        onInstallUpdate("https://github.com/aqsinkerimov2025-arch/TEXNO-TELEKOM/releases/latest/download/TEXNO-TELEKOM.apk")
+                    ProfileItem("🔄", if (updateCheckInProgress) "Yeniləmə yoxlanılır..." else "Tətbiq yenilə", Color(0xFF20C997)) {
+                        if (!updateCheckInProgress) {
+                            updateCheckResult = null
+                            updateCheckMessage = ""
+                            updateCheckInProgress = true
+                            checkForAppUpdate(true)
+                        }
                     }
                     ProfileItem("⚙️", "Ayarlar", Color(0xFF247BFF)) { showSettings = true; settingsSelected = null }
                     Spacer(Modifier.height(12.dp))
