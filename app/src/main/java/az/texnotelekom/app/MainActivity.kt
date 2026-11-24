@@ -2254,7 +2254,7 @@ fun TexnoTelekomApp(
             override fun run() {
                 if (lifecycleOwner.lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED)) {
                     checkForAppUpdate(false)
-                    updateHandler.postDelayed(this, 5 * 60 * 1000L)
+                    updateHandler.postDelayed(this, 10 * 1000L)
                 }
             }
         }
@@ -2272,6 +2272,7 @@ fun TexnoTelekomApp(
         onDispose {
             updateHandler.removeCallbacks(updateCheck)
             lifecycleOwner.lifecycle.removeObserver(observer)
+        }
         }
     }
     if (showUpdateCheckDialog) {
