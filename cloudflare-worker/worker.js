@@ -211,6 +211,9 @@ export default {
     }
   },
   async scheduled(_event, env, ctx) {
-    ctx.waitUntil(runPush(env));
+    ctx.waitUntil((async () => {
+      await syncLatestAppRelease(env);
+      await runPush(env);
+    })());
   }
 };
