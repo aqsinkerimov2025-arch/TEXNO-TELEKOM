@@ -4278,7 +4278,7 @@ fun TexnoTelekomApp(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         SupportBadgeLogo(
-                            size = 40.dp,
+                            size = 45.dp,
                             modifier = Modifier.clickable { showGroupChat = true }
                         )
                         IconButton(onClick = { searchOpen = !searchOpen }) {
