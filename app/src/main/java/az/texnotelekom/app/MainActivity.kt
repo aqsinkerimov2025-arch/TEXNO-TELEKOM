@@ -3199,12 +3199,29 @@ fun TexnoTelekomApp(
             large = RoundedCornerShape(28.dp)
         )
     ) {
-        if (showSettings) {
+        if (biometricLocked) {
+            Column(
+                Modifier.fillMaxSize().background(liveBg).statusBarsPadding().navigationBarsPadding().padding(28.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                TexnoTelekomLogo(size = 104.dp)
+                Spacer(Modifier.height(22.dp))
+                Text("TEXNO-TELEKOM kilidlənib", color = Color.White, fontSize = 21.sp, fontWeight = FontWeight.Black)
+                Text("Davam etmək üçün biometrik təsdiq verin.", color = Color(0xFFCBD6EB), fontSize = 14.sp)
+                if (biometricMessage.isNotBlank()) Text(biometricMessage, color = Color(0xFFFFD36A), fontSize = 13.sp)
+                Button(
+                    onClick = { biometricPrompt?.authenticate(biometricPromptInfo) },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD36A))
+                ) { Text("YENİDƏN CƏHD ET", color = Color(0xFF101827), fontWeight = FontWeight.Bold) }
+            }
+        } else if (showSettings) {
             val settingItems = listOf(
                 Triple("👤", "Hesab məlumatları", "Hesab adını, e-poçt ünvanını və giriş məlumatlarını göstərir."),
                 Triple("🔔", "Bildirişlər", "Tətbiq yenilikləri və vacib elanlar barədə bildirişlərin idarəsini izah edir."),
                 Triple("🎨", "Görünüş", "Tətbiqin rəngləri və ekran görünüşü haqqında məlumat verir."),
                 Triple("📱", "Cihaz məlumatları", "Telefon modeli, Android versiyası və tətbiq versiyasını göstərir."),
+                Triple("🔐", "Biometrik giriş", "Tətbiqə barmaq izi və ya üz tanıma ilə təhlükəsiz daxil olun."),
             )
             val selectedSetting = settingItems.firstOrNull { it.second == settingsSelected }
             Column(
@@ -3318,6 +3335,41 @@ fun TexnoTelekomApp(
                                 }
                                 "Bildirişlər" -> Text("Bildiriş icazəsini telefonunuzun Ayarlar → Tətbiqlər → TEXNO-TELEKOM → Bildirişlər bölməsindən idarə edə bilərsiniz.", color = Color.White, fontSize = 14.sp, lineHeight = 22.sp)
                                 "Görünüş" -> Text("TEXNO-TELEKOM hazırda tünd rəngli interfeysdən istifadə edir. Bu görünüş rahat oxunuş üçün hazırlanıb.", color = Color.White, fontSize = 14.sp, lineHeight = 22.sp)
+                                "Biometrik giriş" -> {
+                                    Text("Aktiv etdikdə tətbiq hər açıldıqda telefonun barmaq izi və ya üz tanıma sistemi ilə təsdiq istəyəcək. Biometrik məlumatlar tətbiqə ötürülmür və burada saxlanılmır.", color = Color.White, fontSize = 14.sp, lineHeight = 22.sp)
+                                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                                            Text("Barmaq izi və üz tanıma", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                                            Text(if (biometricEnabled) "Aktivdir" else "Deaktivdir", color = Color(0xFFB8C5DC), fontSize = 12.sp)
+                                        }
+                                        Switch(
+                                            checked = biometricEnabled,
+                                            onCheckedChange = { enable ->
+                                                if (!enable) {
+                                                    biometricPrefs.edit().putBoolean("biometric_enabled", false).apply()
+                                                    biometricEnabled = false
+                                                    biometricLocked = false
+                                                    biometricMessage = "Biometrik giriş söndürüldü."
+                                                } else {
+                                                    val availability = BiometricManager.from(context).canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_WEAK)
+                                                    if (availability == BiometricManager.BIOMETRIC_SUCCESS && biometricPrompt != null) {
+                                                        biometricEnablePending = true
+                                                        biometricPrompt.authenticate(biometricPromptInfo)
+                                                    } else {
+                                                        biometricMessage = when (availability) {
+                                                            BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> "Əvvəlcə telefon ayarlarından barmaq izi və ya üz tanıma əlavə edin."
+                                                            BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE -> "Bu telefonda biometrik sensor yoxdur."
+                                                            else -> "Biometrik giriş bu cihazda hazırda əlçatan deyil."
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        )
+                                    }
+                                    if (biometricMessage.isNotBlank()) {
+                                        Text(biometricMessage, color = Color(0xFFFFD36A), fontSize = 12.sp, lineHeight = 18.sp)
+                                    }
+                                }
                             }
                         }
                     }
