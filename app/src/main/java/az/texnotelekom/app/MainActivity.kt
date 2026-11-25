@@ -4547,40 +4547,70 @@ fun TexnoTelekomApp(
                     confirmButton = { }
                 )
             }
-            Row(Modifier.fillMaxWidth().background(Color(0xFF080D1E)).navigationBarsPadding().padding(vertical = 10.dp), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color(0xFF080D1E), RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp))
+                    .border(1.dp, Color(0xFF263B60), RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp))
+                    .navigationBarsPadding()
+                    .padding(horizontal = 4.dp, vertical = 5.dp),
+                horizontalArrangement = Arrangement.spacedBy(0.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 val tabs = listOf("🏠" to "Əsas səhifə", "📱" to "Kateqoriyalar", "⭐" to "Favorilər", (if (isAuthorizedDevice) "🛠️" to "Admin Paneli" else "💬" to "Adminlə əlaqə"), "👤" to "Profil")
                 tabs.forEachIndexed { index, tab ->
-                    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable {
-                        selectedBottomTab = index
-                        // Alt menyudan başqa bölməyə keçəndə kateqoriya daxilindəki ekranları bağla.
-                        showPrograms = false
-                        showGames = false
-                        showPhoneInfoFeed = false
-                        showPhoneInfo = false
-                        if (index == 0) {
-                            // Əsas səhifə seçiləndə bütün alt bölmələri bağla.
-                            showPrograms = false
-                            showGames = false
-                            showPhoneInfo = false
-                            showPhoneInfoFeed = false
-                            showFeedback = false
-                            showAbout = false
-                            showSecurity = false
-                            showSettings = false
-                            settingsSelected = null
-                            showGroupChat = false
-                            showGroupManagementAdmin = false
-                            adminOpen = false
-                            adminEntry = null
-                            showGameForm = false
-                            searchOpen = false
-                            query = ""
-                            notificationProgramId = null
-                        }
-                        if (index == 3 && !isAuthorizedDevice) showFeedback = true
-                    }) {
-                        Text(tab.first, fontSize = 25.sp)
-                        Text(tab.second, color = if (selectedBottomTab == index) Color(0xFF168BFF) else Color(0xFF8993A9), fontSize = 11.sp)
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(12.dp))
+                            .clickable {
+                                selectedBottomTab = index
+                                // Alt menyudan başqa bölməyə keçəndə kateqoriya daxilindəki ekranları bağla.
+                                showPrograms = false
+                                showGames = false
+                                showPhoneInfoFeed = false
+                                showPhoneInfo = false
+                                if (index == 0) {
+                                    // Əsas səhifə seçiləndə bütün alt bölmələri bağla.
+                                    showPrograms = false
+                                    showGames = false
+                                    showPhoneInfo = false
+                                    showPhoneInfoFeed = false
+                                    showFeedback = false
+                                    showAbout = false
+                                    showSecurity = false
+                                    showSettings = false
+                                    settingsSelected = null
+                                    showGroupChat = false
+                                    showGroupManagementAdmin = false
+                                    adminOpen = false
+                                    adminEntry = null
+                                    showGameForm = false
+                                    searchOpen = false
+                                    query = ""
+                                    notificationProgramId = null
+                                }
+                                if (index == 3 && !isAuthorizedDevice) showFeedback = true
+                            }
+                            .padding(horizontal = 1.dp, vertical = 5.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(2.dp)
+                    ) {
+                        Text(
+                            tab.first,
+                            fontSize = 22.sp,
+                            maxLines = 1
+                        )
+                        Text(
+                            tab.second,
+                            color = if (selectedBottomTab == index) Color(0xFF168BFF) else Color(0xFF8993A9),
+                            fontSize = 8.sp,
+                            maxLines = 1,
+                            softWrap = false,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        )
                     }
                 }
             }
