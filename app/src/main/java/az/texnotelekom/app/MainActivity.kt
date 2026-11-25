@@ -4435,6 +4435,17 @@ fun TexnoTelekomApp(
                     }
                 }
                 if (searchOpen) OutlinedTextField(query, { query = it }, modifier = Modifier.fillMaxWidth(), placeholder = { Text("Axtar...") }, singleLine = true)
+                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(22.dp))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                    HomeDesignCard("📰", "TEXNO-MƏLUMAT", Modifier.weight(1f), showMelumatLogo = true) { selectedBottomTab = 0; showPhoneInfoFeed = true; showPhoneInfo = false; showPrograms = false; showGames = false; showFeedback = false }
+                    HomeDesignCard("📱", "TEXNO-TELEKOM PROQRAMLAR", Modifier.weight(1f), showLogo = true) { selectedBottomTab = 1; showPrograms = true; showGames = false; showPhoneInfo = false; showPhoneInfoFeed = false; showFeedback = false }
+                }
+                Spacer(Modifier.height(14.dp))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                    HomeDesignCard("🎮", "OYUNLAR", Modifier.weight(1f)) { selectedBottomTab = 2; showGames = true; showPrograms = false; showPhoneInfo = false; showPhoneInfoFeed = false; showFeedback = false }
+                    HomeDesignCard("💬", "ADMİNLƏ-ƏLAQƏ", Modifier.weight(1f)) { selectedBottomTab = 3; showPrograms = false; showGames = false; showPhoneInfo = false; showPhoneInfoFeed = false; adminEntry = null; showFeedback = true }
+                }
                 if (weeklyHitPrograms.isNotEmpty()) {
                     Spacer(Modifier.height(8.dp))
                     Row(
@@ -4477,7 +4488,7 @@ fun TexnoTelekomApp(
                     ) {
                         weeklyHitPrograms.forEach { app ->
                             Card(
-                                modifier = Modifier.width(108.dp).height(146.dp),
+                                modifier = Modifier.width(116.dp).height(146.dp),
                                 shape = RoundedCornerShape(11.dp),
                                 colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))
                             ) {
@@ -4519,17 +4530,7 @@ fun TexnoTelekomApp(
                     }
                 }
 
-                Spacer(Modifier.height(12.dp))
-                Spacer(Modifier.height(22.dp))
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                    HomeDesignCard("📰", "TEXNO-MƏLUMAT", Modifier.weight(1f), showMelumatLogo = true) { selectedBottomTab = 0; showPhoneInfoFeed = true; showPhoneInfo = false; showPrograms = false; showGames = false; showFeedback = false }
-                    HomeDesignCard("📱", "TEXNO-TELEKOM PROQRAMLAR", Modifier.weight(1f), showLogo = true) { selectedBottomTab = 1; showPrograms = true; showGames = false; showPhoneInfo = false; showPhoneInfoFeed = false; showFeedback = false }
-                }
-                Spacer(Modifier.height(14.dp))
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                    HomeDesignCard("🎮", "OYUNLAR", Modifier.weight(1f)) { selectedBottomTab = 2; showGames = true; showPrograms = false; showPhoneInfo = false; showPhoneInfoFeed = false; showFeedback = false }
-                    HomeDesignCard("💬", "ADMİNLƏ-ƏLAQƏ", Modifier.weight(1f)) { selectedBottomTab = 3; showPrograms = false; showGames = false; showPhoneInfo = false; showPhoneInfoFeed = false; adminEntry = null; showFeedback = true }
-                }
+
                 Spacer(Modifier.height(24.dp))
                 if (adminOpen && isAuthorizedDevice) { /* admin panel remains below in its existing section */ }
             }
