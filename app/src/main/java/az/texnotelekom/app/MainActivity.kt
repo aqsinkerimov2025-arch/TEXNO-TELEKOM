@@ -2168,6 +2168,7 @@ fun TexnoTelekomApp(
     var designPanelHex by remember { mutableStateOf("#111A2C") }
     var designAccentHex by remember { mutableStateOf("#168BFF") }
     var designGoldCards by remember { mutableStateOf(true) }
+    var profileDarkMode by remember { mutableStateOf(context.getSharedPreferences("texno_telekom", Context.MODE_PRIVATE).getBoolean("profile_dark_mode", true)) }
     val liveBg = if (profileDarkMode) remoteColor(designBgHex, bg) else Color(0xFFF3F6FC)
     val livePanel = if (profileDarkMode) remoteColor(designPanelHex, panel) else Color(0xFFFFFFFF)
     val liveAccent = remoteColor(designAccentHex, accent)
@@ -2318,6 +2319,7 @@ fun TexnoTelekomApp(
             }
         } catch (_: Exception) { }
     }
+    var error by remember { mutableStateOf("") }
     fun openAppDownload(app: AppItem) {
         try {
             context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(app.downloadUrl)))
@@ -2333,7 +2335,6 @@ fun TexnoTelekomApp(
     }
     var searchOpen by remember { mutableStateOf(false) }
     var selectedBottomTab by remember { mutableIntStateOf(0) }
-    var profileDarkMode by remember { mutableStateOf(appPreferences.getBoolean("profile_dark_mode", true)) }
     var showPhoneInfo by remember { mutableStateOf(false) }
     var showAppUpdates by remember { mutableStateOf(false) }
     var appUpdateTitle by remember { mutableStateOf("") }
@@ -2487,7 +2488,6 @@ fun TexnoTelekomApp(
     var email by remember { mutableStateOf(ADMIN_EMAIL) }
     var password by remember { mutableStateOf("") }
 
-    var error by remember { mutableStateOf("") }
     fun sendFeedbackText() {
         val textValue = feedbackDraft.trim()
         if (textValue.isBlank() || feedbackBusy) return
@@ -4059,7 +4059,6 @@ fun TexnoTelekomApp(
                                 if (app.description.isNotBlank()) Text(app.description, color = Color(0xFFCBD6EB), fontSize = 14.sp)
                                 if (app.downloadUrl.isNotBlank()) Button(onClick = {
                                     openAppDownload(app)
-                                    catch (_: Exception) { error = "Yükləmə linki açıla bilmədi." }
                                 }, modifier = Modifier.fillMaxWidth()) { Text("YÜKLƏ") }
                             }
                         }
