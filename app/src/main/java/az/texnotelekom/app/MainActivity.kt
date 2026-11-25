@@ -912,8 +912,6 @@ private val ADMIN_DEVICE_IDS = setOf("a20e9a204172f84f", "2ad6b306ca18b8e0")
 
 private data class ReleaseUpdate(val versionCode: Long, val versionName: String, val apkUrl: String, val notes: String)
 
-private data class DownloadHistoryEntry(val id: String, val name: String, val category: String, val url: String, val downloadedAt: Long)
-
 data class AppItem(
     val id: String, val name: String, val category: String, val version: String,
     val description: String, val downloadUrl: String, val iconUrl: String,
@@ -2168,9 +2166,8 @@ fun TexnoTelekomApp(
     var designPanelHex by remember { mutableStateOf("#111A2C") }
     var designAccentHex by remember { mutableStateOf("#168BFF") }
     var designGoldCards by remember { mutableStateOf(true) }
-    var profileDarkMode by remember { mutableStateOf(context.getSharedPreferences("texno_telekom", Context.MODE_PRIVATE).getBoolean("profile_dark_mode", true)) }
-    val liveBg = if (profileDarkMode) remoteColor(designBgHex, bg) else Color(0xFFF3F6FC)
-    val livePanel = if (profileDarkMode) remoteColor(designPanelHex, panel) else Color(0xFFFFFFFF)
+    val liveBg = remoteColor(designBgHex, bg)
+    val livePanel = remoteColor(designPanelHex, panel)
     val liveAccent = remoteColor(designAccentHex, accent)
 
     LaunchedEffect(Unit) {
@@ -2306,35 +2303,9 @@ fun TexnoTelekomApp(
         )
     }
     var query by remember { mutableStateOf("") }
-    var showDownloadHistory by remember { mutableStateOf(false) }
-    val downloadHistory = remember { mutableStateListOf<DownloadHistoryEntry>() }
-    val appPreferences = remember { context.getSharedPreferences("texno_telekom", Context.MODE_PRIVATE) }
-    LaunchedEffect(Unit) {
-        val saved = appPreferences.getString("download_history", "[]") ?: "[]"
-        try {
-            val array = org.json.JSONArray(saved)
-            for (i in 0 until array.length()) {
-                val item = array.optJSONObject(i) ?: continue
-                downloadHistory.add(DownloadHistoryEntry(item.optString("id"), item.optString("name"), item.optString("category"), item.optString("url"), item.optLong("time")))
-            }
-        } catch (_: Exception) { }
-    }
-    var error by remember { mutableStateOf("") }
-    fun openAppDownload(app: AppItem) {
-        try {
-            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(app.downloadUrl)))
-            downloadHistory.removeAll { it.id == app.id }
-            downloadHistory.add(0, DownloadHistoryEntry(app.id, app.name, app.category, app.downloadUrl, System.currentTimeMillis()))
-            while (downloadHistory.size > 100) downloadHistory.removeAt(downloadHistory.lastIndex)
-            val array = org.json.JSONArray()
-            downloadHistory.forEach { entry ->
-                array.put(org.json.JSONObject().put("id", entry.id).put("name", entry.name).put("category", entry.category).put("url", entry.url).put("time", entry.downloadedAt))
-            }
-            appPreferences.edit().putString("download_history", array.toString()).apply()
-        } catch (_: Exception) { error = "Yükləmə linki açıla bilmədi." }
-    }
     var searchOpen by remember { mutableStateOf(false) }
     var selectedBottomTab by remember { mutableIntStateOf(0) }
+    var profileDarkMode by remember { mutableStateOf(true) }
     var showPhoneInfo by remember { mutableStateOf(false) }
     var showAppUpdates by remember { mutableStateOf(false) }
     var appUpdateTitle by remember { mutableStateOf("") }
@@ -2358,7 +2329,7 @@ fun TexnoTelekomApp(
 
     var notificationProgramId by remember { mutableStateOf<String?>(null) }
     val notificationItemBringIntoView = remember { BringIntoViewRequester() }
-    BackHandler(enabled = showDownloadHistory || showPhoneInfoFeed || showPhoneInfo || showAppUpdates || showPrograms || showGames || showFeedback || showAbout || showSecurity || showSettings) {
+    BackHandler(enabled = showPhoneInfoFeed || showPhoneInfo || showAppUpdates || showPrograms || showGames || showFeedback || showAbout || showSecurity || showSettings) {
         // Android/system back from any home-card destination returns directly to home.
         showPhoneInfoFeed = false
         selectedPhoneInfoId = null
@@ -2370,7 +2341,6 @@ fun TexnoTelekomApp(
         showAbout = false
         showSecurity = false
         showSettings = false
-        showDownloadHistory = false
         settingsSelected = null
         selectedBottomTab = 0
     }
@@ -2488,6 +2458,7 @@ fun TexnoTelekomApp(
     var email by remember { mutableStateOf(ADMIN_EMAIL) }
     var password by remember { mutableStateOf("") }
 
+    var error by remember { mutableStateOf("") }
     fun sendFeedbackText() {
         val textValue = feedbackDraft.trim()
         if (textValue.isBlank() || feedbackBusy) return
@@ -3089,14 +3060,17 @@ fun TexnoTelekomApp(
 
 
     MaterialTheme(
-        colorScheme = if (profileDarkMode) darkColorScheme(
-            background = liveBg, surface = livePanel, surfaceVariant = Color(0xFF17233A),
-            primary = Color(0xFF168BFF), secondary = Color(0xFF62B7FF), tertiary = Color(0xFF168BFF),
-            onPrimary = Color.White, onSecondary = Color.White, onBackground = Color.White, onSurface = Color.White
-        ) else lightColorScheme(
-            background = liveBg, surface = livePanel, surfaceVariant = Color(0xFFE7EDF6),
-            primary = Color(0xFF0868C9), secondary = Color(0xFF2877C7), tertiary = Color(0xFF0868C9),
-            onPrimary = Color.White, onSecondary = Color.White, onBackground = Color(0xFF172033), onSurface = Color(0xFF172033)
+        colorScheme = darkColorScheme(
+            background = liveBg,
+            surface = livePanel,
+            surfaceVariant = Color(0xFF17233A),
+            primary = Color(0xFF168BFF),
+            secondary = Color(0xFF62B7FF),
+            tertiary = Color(0xFF168BFF),
+            onPrimary = Color.White,
+            onSecondary = Color(0xFFFFFFFF),
+            onBackground = Color.White,
+            onSurface = Color.White
         ),
         shapes = Shapes(
             small = RoundedCornerShape(14.dp),
@@ -3104,31 +3078,7 @@ fun TexnoTelekomApp(
             large = RoundedCornerShape(28.dp)
         )
     ) {
-        if (showDownloadHistory) {
-            Column(Modifier.fillMaxSize().background(liveBg).statusBarsPadding().navigationBarsPadding().verticalScroll(rememberScrollState()).padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Text("‹", color = if (profileDarkMode) Color.White else Color(0xFF172033), fontSize = 34.sp, modifier = Modifier.clickable { showDownloadHistory = false }.padding(end = 14.dp))
-                    Text("YÜKLƏMƏ TARİXÇƏSİ", color = if (profileDarkMode) Color.White else Color(0xFF172033), fontSize = 19.sp, fontWeight = FontWeight.Black)
-                }
-                if (downloadHistory.isEmpty()) {
-                    Text("Hələ heç bir proqram yükləmə linki açılmayıb.", color = if (profileDarkMode) Color(0xFFCBD6EB) else Color(0xFF526078), modifier = Modifier.fillMaxWidth().padding(vertical = 28.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-                } else {
-                    downloadHistory.forEach { entry ->
-                        Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = livePanel), shape = RoundedCornerShape(16.dp)) {
-                            Row(Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                    Text(entry.name, color = if (profileDarkMode) Color.White else Color(0xFF172033), fontWeight = FontWeight.Bold)
-                                    Text(entry.category, color = if (profileDarkMode) Color(0xFFCBD6EB) else Color(0xFF526078), fontSize = 12.sp)
-                                    Text(java.text.SimpleDateFormat("dd.MM.yyyy • HH:mm", java.util.Locale("az")).format(java.util.Date(entry.downloadedAt)), color = if (profileDarkMode) Color(0xFF9FB0CC) else Color(0xFF64748B), fontSize = 11.sp)
-                                }
-                                TextButton(onClick = { try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(entry.url))) } catch (_: Exception) { error = "Link açıla bilmədi." } }) { Text("YENİDƏN AÇ") }
-                            }
-                        }
-                    }
-                    TextButton(onClick = { downloadHistory.clear(); appPreferences.edit().remove("download_history").apply() }, modifier = Modifier.fillMaxWidth()) { Text("TARİXÇƏNİ TƏMİZLƏ", color = Color(0xFFFF7777)) }
-                }
-            }
-        } else if (showSettings) {
+        if (showSettings) {
             val settingItems = listOf(
                 Triple("👤", "Hesab məlumatları", "Hesab adını, e-poçt ünvanını və giriş məlumatlarını göstərir."),
                 Triple("🔔", "Bildirişlər", "Tətbiq yenilikləri və vacib elanlar barədə bildirişlərin idarəsini izah edir."),
@@ -3246,17 +3196,7 @@ fun TexnoTelekomApp(
                                     Text("Tətbiq versiyası: $appVersion", color = Color.White, fontSize = 14.sp)
                                 }
                                 "Bildirişlər" -> Text("Bildiriş icazəsini telefonunuzun Ayarlar → Tətbiqlər → TEXNO-TELEKOM → Bildirişlər bölməsindən idarə edə bilərsiniz.", color = Color.White, fontSize = 14.sp, lineHeight = 22.sp)
-                                "Görünüş" -> {
-                                    Text("Tətbiqin görünüşünü seçin. Seçim bu telefonda yadda saxlanılacaq.", color = if (profileDarkMode) Color.White else Color(0xFF172033), fontSize = 14.sp, lineHeight = 22.sp)
-                                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                        listOf(true to "🌙 Tünd", false to "☀️ Açıq").forEach { option ->
-                                            Button(onClick = { profileDarkMode = option.first; appPreferences.edit().putBoolean("profile_dark_mode", option.first).apply() }, modifier = Modifier.weight(1f), colors = ButtonDefaults.buttonColors(containerColor = if (profileDarkMode == option.first) Color(0xFF168BFF) else if (option.first) Color(0xFF26334D) else Color(0xFFE2E8F0))) {
-                                                Text(option.second, color = if (profileDarkMode == option.first || option.first) Color.White else Color(0xFF172033), fontWeight = FontWeight.Bold)
-                                            }
-                                        }
-                                    }
-                                    Text(if (profileDarkMode) "Tünd görünüş aktivdir." else "Açıq görünüş aktivdir.", color = if (profileDarkMode) Color(0xFFCBD6EB) else Color(0xFF526078), fontSize = 12.sp)
-                                }
+                                "Görünüş" -> Text("TEXNO-TELEKOM hazırda tünd rəngli interfeysdən istifadə edir. Bu görünüş rahat oxunuş üçün hazırlanıb.", color = Color.White, fontSize = 14.sp, lineHeight = 22.sp)
                             }
                         }
                     }
@@ -3823,7 +3763,8 @@ fun TexnoTelekomApp(
                                 }
                                 if (app.description.isNotBlank()) Text(app.description, color = Color(0xFFCBD6EB), fontSize = 14.sp, lineHeight = 20.sp)
                                 if (app.downloadUrl.isNotBlank()) Button(onClick = {
-                                    openAppDownload(app)
+                                    try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(app.downloadUrl))) }
+                                    catch (_: Exception) { error = "Yükləmə linki açıla bilmədi." }
                                 }, modifier = Modifier.fillMaxWidth()) { Text("YÜKLƏ") }
                                 if (loggedIn && isAuthorizedDevice) {
                                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -4058,7 +3999,8 @@ fun TexnoTelekomApp(
                                 }
                                 if (app.description.isNotBlank()) Text(app.description, color = Color(0xFFCBD6EB), fontSize = 14.sp)
                                 if (app.downloadUrl.isNotBlank()) Button(onClick = {
-                                    openAppDownload(app)
+                                    try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(app.downloadUrl))) }
+                                    catch (_: Exception) { error = "Yükləmə linki açıla bilmədi." }
                                 }, modifier = Modifier.fillMaxWidth()) { Text("YÜKLƏ") }
                             }
                         }
@@ -4194,9 +4136,9 @@ fun TexnoTelekomApp(
                         colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))
                     ) {
                         Row(Modifier.fillMaxWidth().padding(vertical = 18.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Column(Modifier.weight(1f).clickable { showDownloadHistory = true }, horizontalAlignment = Alignment.CenterHorizontally) {
+                            Column(Modifier.weight(1f).clickable { selectedBottomTab = 1; showPrograms = true; showGames = false }, horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text("⬇️", fontSize = 27.sp)
-                                Text(downloadHistory.size.toString(), color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                                Text("0", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
                                 Text("Yükləmə", color = Color(0xFFCBD6EB), fontSize = 14.sp)
                             }
                             Box(Modifier.width(1.dp).height(78.dp).background(Color(0xFF26334D)))
@@ -4226,7 +4168,6 @@ fun TexnoTelekomApp(
                             Text("›", color = Color(0xFFDCE7FF), fontSize = 34.sp)
                         }
                     }
-                    ProfileItem("⬇️", "Yükləmə tarixçəsi", Color(0xFF20C997)) { showDownloadHistory = true }
                     ProfileItem("⚡", "Yeniliklər", Color(0xFFFFD21C)) { showPhoneInfo = true }
                     ProfileItem("🛡️", "Təhlükəsizlik Məlumatı", Color(0xFF168BFF)) { showSecurity = true }
                     ProfileItem("💬", "Təklif Qutusu", Color(0xFF00D5C5)) { showFeedback = true }
@@ -4528,7 +4469,8 @@ fun TexnoTelekomApp(
                                     if (app.downloadUrl.isNotBlank()) {
                                         Button(
                                             onClick = {
-                                                openAppDownload(app)
+                                                try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(app.downloadUrl))) }
+                                                catch (_: Exception) { error = "Yükləmə linki açıla bilmədi." }
                                             },
                                             modifier = Modifier.fillMaxWidth().height(22.dp),
                                             contentPadding = PaddingValues(horizontal = 2.dp, vertical = 0.dp)
