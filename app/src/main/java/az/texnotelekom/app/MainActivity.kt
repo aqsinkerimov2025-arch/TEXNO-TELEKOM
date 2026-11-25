@@ -2412,6 +2412,10 @@ fun TexnoTelekomApp(
     }
     val savedAdminUser = remember { FirebaseAuth.getInstance().currentUser }
     var loggedIn by remember { mutableStateOf(isAuthorizedDevice && savedAdminUser?.uid == ADMIN_UID && savedAdminUser.email == ADMIN_EMAIL) }
+    var broadcastTitle by remember { mutableStateOf("") }
+    var broadcastBody by remember { mutableStateOf("") }
+    var latestBroadcast by remember { mutableStateOf<Map<String, String>?>(null) }
+    LaunchedEffect(Unit) { db.collection("broadcast_messages").document("current").addSnapshotListener { snap, _ -> latestBroadcast = if (snap != null && snap.exists()) mapOf("title" to (snap.getString("title") ?: ""), "body" to (snap.getString("body") ?: "")) else null } }
 
 
     val pushPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
@@ -4024,7 +4028,8 @@ fun TexnoTelekomApp(
                         listOf(
                             Triple("📱", "Proqram əlavə et", "program"),
                             Triple("🎮", "Oyun əlavə et", "game"),
-                            Triple("📰", "Texno məlumat paylaş", "info")
+                            Triple("📰", "Texno məlumat paylaş", "info"),
+                            Triple("✉️", "Bütün istifadəçilərə məktub", "broadcast")
                         ).forEach { item ->
                             Card(
                                 modifier = Modifier.fillMaxWidth().clickable {
@@ -4086,6 +4091,12 @@ fun TexnoTelekomApp(
                                 OutlinedTextField(gameLink, { gameLink = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Yükləmə linki") }, colors = fieldColors)
                                 OutlinedButton(onClick = { gameImagePicker.launch("image/*") }, modifier = Modifier.fillMaxWidth()) { Text(if (gameImage == null) "Oyun şəklini seç" else "Şəkil seçildi") }
                                 Button(onClick = { saveGame() }, enabled = !busy, modifier = Modifier.fillMaxWidth()) { Text(if (busy) "Yadda saxlanılır..." else "Oyunu əlavə et") }
+                            }
+                            "broadcast" -> {
+                                OutlinedTextField(broadcastTitle, { broadcastTitle = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Məktubun başlığı") }, colors = fieldColors)
+                                OutlinedTextField(broadcastBody, { broadcastBody = it }, modifier = Modifier.fillMaxWidth(), minLines = 4, label = { Text("Məktubun mətni") }, colors = fieldColors)
+                                Button(onClick = { if (broadcastTitle.trim().isNotEmpty() && broadcastBody.trim().isNotEmpty()) db.collection("broadcast_messages").document("current").set(mapOf("title" to broadcastTitle.trim(), "body" to broadcastBody.trim(), "updated_at" to FieldValue.serverTimestamp())).addOnSuccessListener { message = "Məktub bütün istifadəçilərə göndərildi."; broadcastTitle = ""; broadcastBody = "" }.addOnFailureListener { message = "Göndərilmədi: ${it.localizedMessage}" } }, modifier = Modifier.fillMaxWidth()) { Text("MƏKTUBU GÖNDƏR") }
+                                if (message.isNotBlank()) Text(message, color = Color(0xFFFFD36A))
                             }
                             "info" -> {
                                 OutlinedTextField(phoneInfoTitle, { phoneInfoTitle = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Başlıq") }, colors = fieldColors)
@@ -4284,6 +4295,14 @@ fun TexnoTelekomApp(
                         )
                         IconButton(onClick = { searchOpen = !searchOpen }) {
                             Icon(Icons.Default.Search, contentDescription = "Axtarış", tint = Color.White)
+                        }
+                    }
+                }
+                latestBroadcast?.let { letter ->
+                    Card(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp), shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF18345A))) {
+                        Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text("✉️ ${letter["title"]}", color = Color(0xFFFFD36A), fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                            Text(letter["body"].orEmpty(), color = Color.White, fontSize = 15.sp, lineHeight = 21.sp)
                         }
                     }
                 }
