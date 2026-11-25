@@ -1066,54 +1066,6 @@ class MainActivity : FragmentActivity() {
 @Composable
 private fun GroupChatScreen(backgroundColor: Color, onClose: () -> Unit, onOpenBubbleAdmin: () -> Unit, onNicknameChanged: (String) -> Unit) {
     val context = LocalContext.current
-    val activity = context as? FragmentActivity
-    val biometricPrefs = remember { context.getSharedPreferences("texno_telekom_security", Context.MODE_PRIVATE) }
-    var biometricEnabled by remember { mutableStateOf(biometricPrefs.getBoolean("biometric_enabled", false)) }
-    var biometricLocked by remember { mutableStateOf(biometricEnabled) }
-    var biometricEnablePending by remember { mutableStateOf(false) }
-    var biometricMessage by remember { mutableStateOf("") }
-    val biometricPromptInfo = remember {
-        BiometricPrompt.PromptInfo.Builder()
-            .setTitle("TEXNO-TELEKOM")
-            .setSubtitle("Tətbiqə daxil olmaq üçün barmaq izi və ya üz tanımanı təsdiqləyin")
-            .setNegativeButtonText("Ləğv et")
-            .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_WEAK)
-            .build()
-    }
-    val biometricPrompt = remember(activity) {
-        activity?.let { host ->
-            BiometricPrompt(host, ContextCompat.getMainExecutor(context),
-                object : BiometricPrompt.AuthenticationCallback() {
-                    override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                        if (biometricEnablePending) {
-                            biometricPrefs.edit().putBoolean("biometric_enabled", true).apply()
-                            biometricEnabled = true
-                            biometricEnablePending = false
-                            biometricLocked = false
-                            biometricMessage = "Biometrik giriş aktiv edildi."
-                        } else {
-                            biometricLocked = false
-                            biometricMessage = ""
-                        }
-                    }
-                    override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                        if (biometricEnablePending) {
-                            biometricEnablePending = false
-                            biometricMessage = errString.toString()
-                        }
-                    }
-                    override fun onAuthenticationFailed() {
-                        biometricMessage = "Biometrik tanınma alınmadı. Yenidən cəhd edin."
-                    }
-                })
-        }
-    }
-    LaunchedEffect(Unit) {
-        if (biometricEnabled) {
-            if (biometricPrompt != null) biometricPrompt.authenticate(biometricPromptInfo)
-            else biometricMessage = "Biometrik giriş bu cihazda əlçatan deyil."
-        }
-    }
     val db = remember { FirebaseFirestore.getInstance() }
     val prefs = remember { context.getSharedPreferences("texno_group_chat", Context.MODE_PRIVATE) }
     var nickname by remember { mutableStateOf(prefs.getString("nickname", "") ?: "") }
@@ -2118,6 +2070,54 @@ fun TexnoTelekomApp(
     onNotificationTargetHandled: () -> Unit = {}
 ) {
     val context = LocalContext.current
+    val activity = context as? FragmentActivity
+    val biometricPrefs = remember { context.getSharedPreferences("texno_telekom_security", Context.MODE_PRIVATE) }
+    var biometricEnabled by remember { mutableStateOf(biometricPrefs.getBoolean("biometric_enabled", false)) }
+    var biometricLocked by remember { mutableStateOf(biometricEnabled) }
+    var biometricEnablePending by remember { mutableStateOf(false) }
+    var biometricMessage by remember { mutableStateOf("") }
+    val biometricPromptInfo = remember {
+        BiometricPrompt.PromptInfo.Builder()
+            .setTitle("TEXNO-TELEKOM")
+            .setSubtitle("Tətbiqə daxil olmaq üçün barmaq izi və ya üz tanımanı təsdiqləyin")
+            .setNegativeButtonText("Ləğv et")
+            .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_WEAK)
+            .build()
+    }
+    val biometricPrompt = remember(activity) {
+        activity?.let { host ->
+            BiometricPrompt(host, ContextCompat.getMainExecutor(context),
+                object : BiometricPrompt.AuthenticationCallback() {
+                    override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                        if (biometricEnablePending) {
+                            biometricPrefs.edit().putBoolean("biometric_enabled", true).apply()
+                            biometricEnabled = true
+                            biometricEnablePending = false
+                            biometricLocked = false
+                            biometricMessage = "Biometrik giriş aktiv edildi."
+                        } else {
+                            biometricLocked = false
+                            biometricMessage = ""
+                        }
+                    }
+                    override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                        if (biometricEnablePending) {
+                            biometricEnablePending = false
+                            biometricMessage = errString.toString()
+                        }
+                    }
+                    override fun onAuthenticationFailed() {
+                        biometricMessage = "Biometrik tanınma alınmadı. Yenidən cəhd edin."
+                    }
+                })
+        }
+    }
+    LaunchedEffect(Unit) {
+        if (biometricEnabled) {
+            if (biometricPrompt != null) biometricPrompt.authenticate(biometricPromptInfo)
+            else biometricMessage = "Biometrik giriş bu cihazda əlçatan deyil."
+        }
+    }
     val db = remember { FirebaseFirestore.getInstance() }
     var showGroupChat by remember { mutableStateOf(false) }
     BackHandler(enabled = showGroupChat) { showGroupChat = false }
