@@ -3823,8 +3823,7 @@ fun TexnoTelekomApp(
                                 }
                                 if (app.description.isNotBlank()) Text(app.description, color = Color(0xFFCBD6EB), fontSize = 14.sp, lineHeight = 20.sp)
                                 if (app.downloadUrl.isNotBlank()) Button(onClick = {
-                                    try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(app.downloadUrl))) }
-                                    catch (_: Exception) { error = "Yükləmə linki açıla bilmədi." }
+                                    openAppDownload(app)
                                 }, modifier = Modifier.fillMaxWidth()) { Text("YÜKLƏ") }
                                 if (loggedIn && isAuthorizedDevice) {
                                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -4530,8 +4529,7 @@ fun TexnoTelekomApp(
                                     if (app.downloadUrl.isNotBlank()) {
                                         Button(
                                             onClick = {
-                                                try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(app.downloadUrl))) }
-                                                catch (_: Exception) { error = "Yükləmə linki açıla bilmədi." }
+                                                openAppDownload(app)
                                             },
                                             modifier = Modifier.fillMaxWidth().height(22.dp),
                                             contentPadding = PaddingValues(horizontal = 2.dp, vertical = 0.dp)
