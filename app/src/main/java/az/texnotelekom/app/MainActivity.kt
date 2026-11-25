@@ -2072,8 +2072,10 @@ fun TexnoTelekomApp(
     val context = LocalContext.current
     val activity = context as? FragmentActivity
     val biometricPrefs = remember { context.getSharedPreferences("texno_telekom_security", Context.MODE_PRIVATE) }
-    var biometricEnabled by remember { mutableStateOf(biometricPrefs.getBoolean("biometric_enabled", false)) }
-    var biometricLocked by remember { mutableStateOf(biometricEnabled) }
+    // Recovery patch: disable the startup biometric gate so users cannot be trapped outside the app.
+    biometricPrefs.edit().putBoolean("biometric_enabled", false).apply()
+    var biometricEnabled by remember { mutableStateOf(false) }
+    var biometricLocked by remember { mutableStateOf(false) }
     var biometricEnablePending by remember { mutableStateOf(false) }
     var biometricMessage by remember { mutableStateOf("") }
     val biometricPromptInfo = remember {
@@ -2110,12 +2112,6 @@ fun TexnoTelekomApp(
                         biometricMessage = "Biometrik tanınma alınmadı. Yenidən cəhd edin."
                     }
                 })
-        }
-    }
-    LaunchedEffect(Unit) {
-        if (biometricEnabled) {
-            if (biometricPrompt != null) biometricPrompt.authenticate(biometricPromptInfo)
-            else biometricMessage = "Biometrik giriş bu cihazda əlçatan deyil."
         }
     }
     val db = remember { FirebaseFirestore.getInstance() }
