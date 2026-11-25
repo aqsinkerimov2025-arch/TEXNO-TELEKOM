@@ -4668,7 +4668,7 @@ private fun DeviceBlockAdminPanel(db: FirebaseFirestore) {
 
 @Composable
 private fun HomeDesignCard(emoji: String, label: String, modifier: Modifier = Modifier, showLogo: Boolean = false, showMelumatLogo: Boolean = false, onClick: () -> Unit) {
-    Card(modifier = modifier.heightIn(min = 150.dp).clickable(onClick = onClick), shape = RoundedCornerShape(28.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF151F3B))) {
+    Card(modifier = modifier.heightIn(min = 125.dp).clickable(onClick = onClick), shape = RoundedCornerShape(28.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF151F3B))) {
         if (showMelumatLogo) {
             Column(
                 Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 16.dp),
