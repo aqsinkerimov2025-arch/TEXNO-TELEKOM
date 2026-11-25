@@ -4642,6 +4642,7 @@ fun TexnoTelekomApp(
                             .clip(RoundedCornerShape(12.dp))
                             .clickable {
                                 if (index == 3 && isAuthorizedDevice) {
+                                    adminPanelAuthenticated = false
                                     adminLoginPurpose = "panel"
                                     adminUsernameInput = context.getSharedPreferences("texno_admin_login", Context.MODE_PRIVATE).getString("username", "") ?: ""
                                     adminPasswordInput = ""
