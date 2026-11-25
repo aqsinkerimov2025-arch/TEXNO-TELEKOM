@@ -2342,7 +2342,8 @@ fun TexnoTelekomApp(
         showSecurity = false
         showSettings = false
         settingsSelected = null
-        selectedBottomTab = 0
+        // Profil daxilində alt bölmədən geri çıxarkən profil tabını saxla.
+        if (selectedBottomTab != 4) selectedBottomTab = 0
     }
     var phoneInfoTitle by remember { mutableStateOf("") }
     var phoneInfoBody by remember { mutableStateOf("") }
@@ -2357,7 +2358,7 @@ fun TexnoTelekomApp(
     BackHandler(enabled = adminOpen && !showGroupManagementAdmin) { adminOpen = false }
     BackHandler(enabled = showGroupManagementAdmin) { showGroupManagementAdmin = false }
     BackHandler(
-        enabled = !showGroupChat && !showPhoneInfoFeed && !showPhoneInfo && !showPrograms && !showGames &&
+        enabled = !showGroupChat && !showPhoneInfoFeed && !showPhoneInfo && !showAppUpdates && !showPrograms && !showGames &&
             !showFeedback && !showAbout && !showSecurity && !showSettings && !adminOpen && !showGroupManagementAdmin
     ) {
         when {
