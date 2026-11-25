@@ -4106,13 +4106,13 @@ fun TexnoTelekomApp(
                             Box(Modifier.width(1.dp).height(78.dp).background(Color(0xFF26334D)))
                             Column(Modifier.weight(1f).clickable { selectedBottomTab = 2 }, horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text("⭐", fontSize = 27.sp)
-                                Text("${favoriteIds.size}", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                                Text("${favoriteIds.count { id -> programs.any { it.id == id } || games.any { it.id == id }}", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
                                 Text("Sevimli", color = Color(0xFFCBD6EB), fontSize = 14.sp)
                             }
                             Box(Modifier.width(1.dp).height(78.dp).background(Color(0xFF26334D)))
                             Column(Modifier.weight(1f).clickable { noticeFilter = "all"; showPhoneInfo = true }, horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text("🗓️", fontSize = 27.sp)
-                                Text("${appNoticeItems.size}", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                                Text("${appNoticeItems.count { it.second.second in setOf("program", "game", "phone_info", "program_added", "program_updated", "game_added", "game_updated", "phone_info_added", "phone_info_updated") }}", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
                                 Text("Bildiriş", color = Color(0xFFCBD6EB), fontSize = 14.sp)
                             }
                         }
