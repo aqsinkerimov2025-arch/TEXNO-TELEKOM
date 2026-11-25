@@ -3089,17 +3089,14 @@ fun TexnoTelekomApp(
 
 
     MaterialTheme(
-        colorScheme = darkColorScheme(
-            background = liveBg,
-            surface = livePanel,
-            surfaceVariant = Color(0xFF17233A),
-            primary = Color(0xFF168BFF),
-            secondary = Color(0xFF62B7FF),
-            tertiary = Color(0xFF168BFF),
-            onPrimary = Color.White,
-            onSecondary = Color(0xFFFFFFFF),
-            onBackground = Color.White,
-            onSurface = Color.White
+        colorScheme = if (profileDarkMode) darkColorScheme(
+            background = liveBg, surface = livePanel, surfaceVariant = Color(0xFF17233A),
+            primary = Color(0xFF168BFF), secondary = Color(0xFF62B7FF), tertiary = Color(0xFF168BFF),
+            onPrimary = Color.White, onSecondary = Color.White, onBackground = Color.White, onSurface = Color.White
+        ) else lightColorScheme(
+            background = liveBg, surface = livePanel, surfaceVariant = Color(0xFFE7EDF6),
+            primary = Color(0xFF0868C9), secondary = Color(0xFF2877C7), tertiary = Color(0xFF0868C9),
+            onPrimary = Color.White, onSecondary = Color.White, onBackground = Color(0xFF172033), onSurface = Color(0xFF172033)
         ),
         shapes = Shapes(
             small = RoundedCornerShape(14.dp),
@@ -4199,9 +4196,9 @@ fun TexnoTelekomApp(
                         colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))
                     ) {
                         Row(Modifier.fillMaxWidth().padding(vertical = 18.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Column(Modifier.weight(1f).clickable { selectedBottomTab = 1; showPrograms = true; showGames = false }, horizontalAlignment = Alignment.CenterHorizontally) {
+                            Column(Modifier.weight(1f).clickable { showDownloadHistory = true }, horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text("⬇️", fontSize = 27.sp)
-                                Text("0", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                                Text(downloadHistory.size.toString(), color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
                                 Text("Yükləmə", color = Color(0xFFCBD6EB), fontSize = 14.sp)
                             }
                             Box(Modifier.width(1.dp).height(78.dp).background(Color(0xFF26334D)))
