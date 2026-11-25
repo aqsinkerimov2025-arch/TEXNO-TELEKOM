@@ -2184,65 +2184,92 @@ fun TexnoTelekomApp(
     var updateCheckResult by remember { mutableStateOf<ReleaseUpdate?>(null) }
     val lifecycleOwner = LocalLifecycleOwner.current
     val checkForAppUpdate: (Boolean) -> Unit = { manualCheck ->
-        Thread {
-            try {
-                val connection = (URL("https://api.github.com/repos/aqsinkerimov2025-arch/TEXNO-TELEKOM/releases/latest").openConnection() as HttpURLConnection).apply {
-                    connectTimeout = 10000
-                    readTimeout = 10000
-                    setRequestProperty("Accept", "application/vnd.github+json")
-                    setRequestProperty("User-Agent", "TEXNO-TELEKOM-Android")
-                }
-                val json = connection.inputStream.bufferedReader().use { JSONObject(it.readText()) }
-                connection.disconnect()
-                val tag = json.optString("tag_name")
-                val remoteCode = tag.removePrefix("app-v").toLongOrNull() ?: 0L
-                val assets = json.optJSONArray("assets")
-                var apkUrl = ""
-                if (assets != null) for (i in 0 until assets.length()) {
-                    val asset = assets.getJSONObject(i)
-                    if (asset.optString("name") == "TEXNO-TELEKOM.apk") apkUrl = asset.optString("browser_download_url")
-                }
-                val info = context.packageManager.getPackageInfo(context.packageName, 0)
-                val currentCode = if (Build.VERSION.SDK_INT >= 28) info.longVersionCode else @Suppress("DEPRECATION") info.versionCode.toLong()
-                val currentName = info.versionName ?: "Naməlum"
-                val displayVersion = Regex("""\d+\.\d+(?:\.\d+)?""")
-                    .find(json.optString("name"))?.value ?: currentName
-                if (remoteCode > currentCode && apkUrl.startsWith("https://")) {
-                    val rawNotes = json.optString("body").ifBlank { "Yeni versiya və yeniliklər mövcuddur." }
-                    val update = ReleaseUpdate(remoteCode, displayVersion, apkUrl, rawNotes.trim())
-                    Handler(Looper.getMainLooper()).post {
-                        updateCheckInProgress = false
-                        availableUpdate = update
-                        if (manualCheck) {
-                            updateCheckResult = update
-                            updateCheckMessage = ""
-                            showUpdateCheckDialog = true
-                        }
-                        // Yeniləmə yalnız tətbiqin daxilində göstərilir; telefon bildirişi göndərilmir.
+        // Ardıcıl yoxlamalar üst-üstə düşməsin; 10 saniyəlik dövr qorunur.
+        if (!manualCheck && updateCheckInProgress) {
+            Unit
+        } else {
+            updateCheckInProgress = true
+            Thread {
+                val cache = context.getSharedPreferences("release_update_cache", Context.MODE_PRIVATE)
+                try {
+                    // Müvəqqəti şəbəkə/API xətalarında sorğuları 60 saniyə saxla; əl ilə yoxlama bunu keçər.
+                    if (!manualCheck && System.currentTimeMillis() < cache.getLong("retry_after", 0L)) {
+                        Handler(Looper.getMainLooper()).post { updateCheckInProgress = false }
+                        return@Thread
                     }
-                } else if (remoteCode > 0L && remoteCode <= currentCode) {
+                    val connection = (URL("https://api.github.com/repos/aqsinkerimov2025-arch/TEXNO-TELEKOM/releases/latest").openConnection() as HttpURLConnection).apply {
+                        connectTimeout = 8000
+                        readTimeout = 8000
+                        setRequestProperty("Accept", "application/vnd.github+json")
+                        setRequestProperty("User-Agent", "TEXNO-TELEKOM-Android")
+                        cache.getString("etag", null)?.let { setRequestProperty("If-None-Match", it) }
+                    }
+                    val responseCode = connection.responseCode
+                    val jsonText = if (responseCode == HttpURLConnection.HTTP_NOT_MODIFIED) {
+                        cache.getString("release_json", null) ?: throw Exception("Yeniləmə məlumatı keşdə yoxdur.")
+                    } else if (responseCode in 200..299) {
+                        connection.getHeaderField("ETag")?.let { cache.edit().putString("etag", it).apply() }
+                        connection.inputStream.bufferedReader().use { it.readText() }.also {
+                            cache.edit().putString("release_json", it).putLong("retry_after", 0L).apply()
+                        }
+                    } else {
+                        if (responseCode == 403 || responseCode == 429) {
+                            cache.edit().putLong("retry_after", System.currentTimeMillis() + 60_000L).apply()
+                        }
+                        throw Exception("GitHub API cavabı: $responseCode")
+                    }
+                    connection.disconnect()
+                    val json = JSONObject(jsonText)
+                    val tag = json.optString("tag_name")
+                    val remoteCode = tag.removePrefix("app-v").toLongOrNull() ?: 0L
+                    val assets = json.optJSONArray("assets")
+                    var apkUrl = ""
+                    if (assets != null) for (i in 0 until assets.length()) {
+                        val asset = assets.getJSONObject(i)
+                        if (asset.optString("name") == "TEXNO-TELEKOM.apk") apkUrl = asset.optString("browser_download_url")
+                    }
+                    val info = context.packageManager.getPackageInfo(context.packageName, 0)
+                    val currentCode = if (Build.VERSION.SDK_INT >= 28) info.longVersionCode else @Suppress("DEPRECATION") info.versionCode.toLong()
+                    val currentName = info.versionName ?: "Naməlum"
+                    val displayVersion = Regex("""\d+\.\d+(?:\.\d+)?""")
+                        .find(json.optString("name"))?.value ?: currentName
+                    if (remoteCode > currentCode && apkUrl.startsWith("https://")) {
+                        val rawNotes = json.optString("body").ifBlank { "Yeni versiya və yeniliklər mövcuddur." }
+                        val update = ReleaseUpdate(remoteCode, displayVersion, apkUrl, rawNotes.trim())
+                        Handler(Looper.getMainLooper()).post {
+                            updateCheckInProgress = false
+                            availableUpdate = update
+                            if (manualCheck) {
+                                updateCheckResult = update
+                                updateCheckMessage = ""
+                                showUpdateCheckDialog = true
+                            }
+                        }
+                    } else if (remoteCode > 0L && remoteCode <= currentCode) {
+                        Handler(Looper.getMainLooper()).post {
+                            updateCheckInProgress = false
+                            if (manualCheck) {
+                                updateCheckResult = null
+                                updateCheckMessage = "Tətbiqin versiyası son versiyadır. (Versiya: $currentName)"
+                                showUpdateCheckDialog = true
+                            }
+                        }
+                    } else {
+                        throw Exception("Son versiyanın APK faylı tapılmadı.")
+                    }
+                } catch (e: Exception) {
+                    cache.edit().putLong("retry_after", System.currentTimeMillis() + 60_000L).apply()
                     Handler(Looper.getMainLooper()).post {
                         updateCheckInProgress = false
                         if (manualCheck) {
                             updateCheckResult = null
-                            updateCheckMessage = "Tətbiqin versiyası son versiyadır. (Versiya: $currentName)"
+                            updateCheckMessage = "Yeniləməni yoxlamaq mümkün olmadı. İnternet bağlantınızı yoxlayıb yenidən cəhd edin."
                             showUpdateCheckDialog = true
                         }
                     }
-                } else {
-                    throw Exception("Son versiyanın APK faylı tapılmadı.")
                 }
-            } catch (e: Exception) {
-                Handler(Looper.getMainLooper()).post {
-                    updateCheckInProgress = false
-                    if (manualCheck) {
-                        updateCheckResult = null
-                        updateCheckMessage = "Yeniləməni yoxlamaq mümkün olmadı. İnternet bağlantınızı yoxlayıb yenidən cəhd edin."
-                        showUpdateCheckDialog = true
-                    }
-                }
-            }
-        }.start()
+            }.start()
+        }
     }
     // Ekran ilk dəfə açılanda da dərhal yoxla; ON_RESUME observer-i gec qoşula bilər.
     LaunchedEffect(Unit) {
