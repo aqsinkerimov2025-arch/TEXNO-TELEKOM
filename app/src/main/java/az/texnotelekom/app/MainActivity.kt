@@ -4440,16 +4440,16 @@ fun TexnoTelekomApp(
                     ) {
                         weeklyHitPrograms.forEach { app ->
                             Card(
-                                modifier = Modifier.width(104.dp).height(112.dp),
+                                modifier = Modifier.width(116.dp).height(146.dp),
                                 shape = RoundedCornerShape(11.dp),
                                 colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))
                             ) {
                                 Column(
-                                    Modifier.fillMaxWidth().padding(horizontal = 5.dp, vertical = 4.dp),
+                                    Modifier.fillMaxWidth().padding(horizontal = 5.dp, vertical = 7.dp),
                                     horizontalAlignment = Alignment.CenterHorizontally,
                                     verticalArrangement = Arrangement.spacedBy(3.dp)
                                 ) {
-                                    ProgramIcon(app.iconUrl, app.name, 32)
+                                    ProgramIcon(app.iconUrl, app.name, 64)
                                     Text(
                                         app.name,
                                         color = Color.White,
