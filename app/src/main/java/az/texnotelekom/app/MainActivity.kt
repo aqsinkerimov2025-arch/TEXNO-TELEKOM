@@ -4117,7 +4117,7 @@ fun TexnoTelekomApp(
                 ) {
                     Row(
                         Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 24.dp)
-                            .clickable { showAbout = true },
+                            .clickable { showSettings = true; settingsSelected = "Hesab məlumatları" },
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Box(Modifier.size(112.dp), contentAlignment = Alignment.Center) {
