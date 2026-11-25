@@ -2350,6 +2350,8 @@ fun TexnoTelekomApp(
     var phoneInfoSticker by remember { mutableStateOf<Uri?>(null) }
     var phoneInfoStickerBusy by remember { mutableStateOf(false) }
     var phoneInfoBusy by remember { mutableStateOf(false) }
+    var pendingDeletePhoneInfoId by remember { mutableStateOf<String?>(null) }
+    var pendingDeletePhoneInfoTitle by remember { mutableStateOf("") }
     var adminOpen by remember { mutableStateOf(false) }
     var showGroupManagementAdmin by remember { mutableStateOf(false) }
     BackHandler(enabled = adminOpen && !showGroupManagementAdmin) { adminOpen = false }
@@ -3667,6 +3669,28 @@ fun TexnoTelekomApp(
                         Text("TEXNO-MƏLUMAT", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Black)
                     }
                     if (phoneInfos.isEmpty()) Text("Hələ TEXNO-MƏLUMAT paylaşılmayıb.", color = Color(0xFFCBD6EB), modifier = Modifier.fillMaxWidth().padding(vertical = 28.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                    if (pendingDeletePhoneInfoId != null && loggedIn && isAuthorizedDevice) {
+                        AlertDialog(
+                            onDismissRequest = { pendingDeletePhoneInfoId = null; pendingDeletePhoneInfoTitle = "" },
+                            title = { Text("TEXNO-MƏLUMAT paylaşımını sil") },
+                            text = { Text("\"$pendingDeletePhoneInfoTitle\" paylaşımını silmək istədiyinizə əminsiniz? Bu əməliyyat geri qaytarılmır.") },
+                            confirmButton = {
+                                TextButton(onClick = {
+                                    val deleteId = pendingDeletePhoneInfoId
+                                    if (deleteId != null) {
+                                        db.collection("phone_information").document(deleteId).delete()
+                                            .addOnSuccessListener { message = "TEXNO-MƏLUMAT paylaşımı silindi." }
+                                            .addOnFailureListener { error = "Paylaşım silinmədi: ${it.localizedMessage}" }
+                                    }
+                                    pendingDeletePhoneInfoId = null
+                                    pendingDeletePhoneInfoTitle = ""
+                                }) { Text("BƏLİ, SİL", color = Color(0xFFE05252)) }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = { pendingDeletePhoneInfoId = null; pendingDeletePhoneInfoTitle = "" }) { Text("LƏĞV ET") }
+                            }
+                        )
+                    }
                     phoneInfos.filter { selectedPhoneInfoId == null || it.id == selectedPhoneInfoId }.forEach { info ->
                         Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))) {
                             Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
@@ -3674,6 +3698,20 @@ fun TexnoTelekomApp(
                                 if (info.imageUrl.isNotBlank()) AsyncImage(model = info.imageUrl, contentDescription = info.title, modifier = Modifier.fillMaxWidth().heightIn(max = 240.dp).clip(RoundedCornerShape(12.dp)), contentScale = ContentScale.Fit)
                                 if (info.body.isNotBlank()) Text(info.body, color = Color.White, fontSize = 15.sp, lineHeight = 22.sp)
                                 if (info.stickerUrl.isNotBlank()) AsyncImage(model = info.stickerUrl, contentDescription = "Stiker", modifier = Modifier.size(120.dp), contentScale = ContentScale.Fit)
+                                if (loggedIn && isAuthorizedDevice) {
+                                    OutlinedButton(
+                                        onClick = {
+                                            pendingDeletePhoneInfoId = info.id
+                                            pendingDeletePhoneInfoTitle = info.title.ifBlank { "Adsız paylaşım" }
+                                        },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFF7777))
+                                    ) {
+                                        Icon(Icons.Default.Delete, contentDescription = null)
+                                        Spacer(Modifier.width(6.dp))
+                                        Text("SİL")
+                                    }
+                                }
                             }
                         }
                     }
