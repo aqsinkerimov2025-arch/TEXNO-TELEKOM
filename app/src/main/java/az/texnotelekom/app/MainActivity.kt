@@ -2437,8 +2437,45 @@ fun TexnoTelekomApp(
                 }
         }
     }
-    val savedAdminUser = remember { FirebaseAuth.getInstance().currentUser }
-    var loggedIn by remember { mutableStateOf(isAuthorizedDevice && savedAdminUser?.uid == ADMIN_UID && savedAdminUser.email == ADMIN_EMAIL) }
+    var loggedIn by remember { mutableStateOf(false) }
+    var adminStartupUnlocked by remember { mutableStateOf(!isAuthorizedDevice) }
+    var adminPanelAuthenticated by remember { mutableStateOf(false) }
+    var showAdminLoginDialog by remember { mutableStateOf(isAuthorizedDevice) }
+    var adminLoginPurpose by remember { mutableStateOf("startup") }
+    var adminUsernameInput by remember { mutableStateOf(context.getSharedPreferences("texno_admin_login", Context.MODE_PRIVATE).getString("username", "") ?: "") }
+    var adminPasswordInput by remember { mutableStateOf("") }
+    var adminLoginBusy by remember { mutableStateOf(false) }
+    var adminLoginError by remember { mutableStateOf("") }
+    fun submitAdminLogin() {
+        val username = adminUsernameInput.trim()
+        val passwordValue = adminPasswordInput
+        if (username.isBlank() || passwordValue.isBlank() || adminLoginBusy) {
+            adminLoginError = "İstifadəçi adı və şifrəni daxil edin."
+            return
+        }
+        adminLoginBusy = true
+        adminLoginError = ""
+        FirebaseAuth.getInstance().signInWithEmailAndPassword(ADMIN_EMAIL, passwordValue)
+            .addOnCompleteListener { task ->
+                adminLoginBusy = false
+                if (task.isSuccessful && FirebaseAuth.getInstance().currentUser?.uid == ADMIN_UID) {
+                    context.getSharedPreferences("texno_admin_login", Context.MODE_PRIVATE)
+                        .edit().putString("username", username).apply()
+                    loggedIn = true
+                    adminPasswordInput = ""
+                    showAdminLoginDialog = false
+                    if (adminLoginPurpose == "startup") {
+                        adminStartupUnlocked = true
+                    } else {
+                        adminPanelAuthenticated = true
+                        selectedBottomTab = 3
+                    }
+                } else {
+                    if (task.isSuccessful) FirebaseAuth.getInstance().signOut()
+                    adminLoginError = if (task.isSuccessful) "Bu hesab admin hesabı deyil." else "İstifadəçi adı və ya şifrə yanlışdır."
+                }
+            }
+    }
     var broadcastTitle by remember { mutableStateOf("") }
     var broadcastBody by remember { mutableStateOf("") }
     var latestBroadcast by remember { mutableStateOf<Map<String, String>?>(null) }
@@ -4038,7 +4075,7 @@ fun TexnoTelekomApp(
                         }
                     }
                 }
-            } else if (selectedBottomTab == 3 && isAuthorizedDevice) {
+            } else if (selectedBottomTab == 3 && isAuthorizedDevice && adminPanelAuthenticated) {
                 Column(
                     Modifier.weight(1f).fillMaxWidth().verticalScroll(homeScrollState)
                         .padding(horizontal = 16.dp, vertical = 18.dp),
@@ -4536,6 +4573,43 @@ fun TexnoTelekomApp(
             }
 
             }
+
+            if (showAdminLoginDialog && isAuthorizedDevice && (!adminStartupUnlocked || adminLoginPurpose == "panel")) {
+                AlertDialog(
+                    onDismissRequest = { if (adminLoginPurpose == "panel") showAdminLoginDialog = false },
+                    title = { Text(if (adminLoginPurpose == "startup") "ADMİN GİRİŞİ" else "ADMİN PANELİNƏ GİRİŞ") },
+                    text = {
+                        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Text("İstifadəçi adınızı və mövcud admin şifrənizi daxil edin.")
+                            OutlinedTextField(
+                                value = adminUsernameInput,
+                                onValueChange = { adminUsernameInput = it; adminLoginError = "" },
+                                label = { Text("İstifadəçi adı") },
+                                singleLine = true,
+                                enabled = !adminLoginBusy
+                            )
+                            OutlinedTextField(
+                                value = adminPasswordInput,
+                                onValueChange = { adminPasswordInput = it; adminLoginError = "" },
+                                label = { Text("Şifrə") },
+                                singleLine = true,
+                                visualTransformation = PasswordVisualTransformation(),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                                enabled = !adminLoginBusy
+                            )
+                            if (adminLoginError.isNotBlank()) Text(adminLoginError, color = Color(0xFFFF7777), fontSize = 12.sp)
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(onClick = { submitAdminLogin() }, enabled = !adminLoginBusy) {
+                            Text(if (adminLoginBusy) "YOXLANILIR..." else "DAXİL OL")
+                        }
+                    },
+                    dismissButton = {
+                        if (adminLoginPurpose == "panel") TextButton(onClick = { showAdminLoginDialog = false }) { Text("LƏĞV ET") }
+                    }
+                )
+            }
             if (deviceBlocked) {
                 AlertDialog(
                     onDismissRequest = { },
@@ -4567,7 +4641,16 @@ fun TexnoTelekomApp(
                             .weight(1f)
                             .clip(RoundedCornerShape(12.dp))
                             .clickable {
-                                selectedBottomTab = index
+                                if (index == 3 && isAuthorizedDevice) {
+                                    adminLoginPurpose = "panel"
+                                    adminUsernameInput = context.getSharedPreferences("texno_admin_login", Context.MODE_PRIVATE).getString("username", "") ?: ""
+                                    adminPasswordInput = ""
+                                    adminLoginError = ""
+                                    showAdminLoginDialog = true
+                                } else {
+                                    selectedBottomTab = index
+                                    if (index != 3) adminPanelAuthenticated = false
+                                }
                                 // Alt menyudan başqa bölməyə keçəndə kateqoriya daxilindəki ekranları bağla.
                                 showPrograms = false
                                 showGames = false
