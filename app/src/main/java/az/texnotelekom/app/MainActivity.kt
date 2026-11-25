@@ -4058,7 +4058,7 @@ fun TexnoTelekomApp(
                                 }
                                 if (app.description.isNotBlank()) Text(app.description, color = Color(0xFFCBD6EB), fontSize = 14.sp)
                                 if (app.downloadUrl.isNotBlank()) Button(onClick = {
-                                    try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(app.downloadUrl))) }
+                                    openAppDownload(app)
                                     catch (_: Exception) { error = "Yükləmə linki açıla bilmədi." }
                                 }, modifier = Modifier.fillMaxWidth()) { Text("YÜKLƏ") }
                             }
