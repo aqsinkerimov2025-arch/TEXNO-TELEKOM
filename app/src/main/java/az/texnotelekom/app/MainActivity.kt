@@ -2356,16 +2356,41 @@ fun TexnoTelekomApp(
     var showSettings by remember { mutableStateOf(false) }
     var settingsSelected by remember { mutableStateOf<String?>(null) }
     var biometricEnabled by remember { mutableStateOf(context.getSharedPreferences("texno_biometric", Context.MODE_PRIVATE).getBoolean("enabled", false)) }
-    LaunchedEffect(Unit) {
+    LaunchedEffect(biometricEnabled) {
         if (biometricEnabled && context is FragmentActivity) {
             val manager = BiometricManager.from(context)
-            if (manager.canAuthenticate(Authenticators.BIOMETRIC_WEAK or Authenticators.DEVICE_CREDENTIAL) == BiometricManager.BIOMETRIC_SUCCESS) {
-                val executor = ContextCompat.getMainExecutor(context)
-                val prompt = BiometricPrompt(context, executor, object : BiometricPrompt.AuthenticationCallback() {
-                    override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) { }
-                    override fun onAuthenticationError(errorCode: Int, errString: CharSequence) { }
-                })
-                prompt.authenticate(BiometricPrompt.PromptInfo.Builder().setTitle("TEXNO-TELEKOM").setSubtitle("Biometrik giriş").setAllowedAuthenticators(Authenticators.BIOMETRIC_WEAK or Authenticators.DEVICE_CREDENTIAL).build())
+            val biometricType = Authenticators.BIOMETRIC_WEAK
+            when (manager.canAuthenticate(biometricType)) {
+                BiometricManager.BIOMETRIC_SUCCESS -> {
+                    val executor = ContextCompat.getMainExecutor(context)
+                    val prompt = BiometricPrompt(context, executor, object : BiometricPrompt.AuthenticationCallback() {
+                        override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                            android.widget.Toast.makeText(context, "Biometrik giriş uğurludur.", android.widget.Toast.LENGTH_SHORT).show()
+                        }
+                        override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                            if (errorCode != BiometricPrompt.ERROR_USER_CANCELED &&
+                                errorCode != BiometricPrompt.ERROR_NEGATIVE_BUTTON &&
+                                errorCode != BiometricPrompt.ERROR_CANCELED
+                            ) {
+                                android.widget.Toast.makeText(context, errString, android.widget.Toast.LENGTH_LONG).show()
+                            }
+                        }
+                        override fun onAuthenticationFailed() {
+                            android.widget.Toast.makeText(context, "Üz və ya barmaq izi tanınmadı. Yenidən cəhd edin.", android.widget.Toast.LENGTH_SHORT).show()
+                        }
+                    })
+                    val promptInfo = BiometricPrompt.PromptInfo.Builder()
+                        .setTitle("TEXNO-TELEKOM")
+                        .setSubtitle("Üz tanıma və ya barmaq izi ilə təsdiqləyin")
+                        .setNegativeButtonText("Ləğv et")
+                        .setAllowedAuthenticators(biometricType)
+                        .build()
+                    prompt.authenticate(promptInfo)
+                }
+                BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED ->
+                    android.widget.Toast.makeText(context, "Telefon ayarlarında üz tanıma və ya barmaq izi əlavə edin.", android.widget.Toast.LENGTH_LONG).show()
+                else ->
+                    android.widget.Toast.makeText(context, "Bu telefon Android biometrik üz tanıma/barmaq izi dəstəyini təqdim etmir.", android.widget.Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -3288,7 +3313,7 @@ fun TexnoTelekomApp(
                                 "Görünüş" -> Text("TEXNO-TELEKOM hazırda tünd rəngli interfeysdən istifadə edir. Bu görünüş rahat oxunuş üçün hazırlanıb.", color = Color.White, fontSize = 14.sp, lineHeight = 22.sp)
                                 "Biometrik giriş" -> {
                                     val biometricManager = BiometricManager.from(context)
-                                    val supported = biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_WEAK or BiometricManager.Authenticators.DEVICE_CREDENTIAL) == BiometricManager.BIOMETRIC_SUCCESS
+                                    val supported = biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_WEAK) == BiometricManager.BIOMETRIC_SUCCESS
                                     Text(if (supported) "Barmaq izi və ya üz tanıma ilə giriş. İstədiyiniz vaxt aktiv və ya söndür edə bilərsiniz." else "Bu telefonda biometrik giriş və ya ekran kilidi dəstəyi hazır deyil.", color = Color.White, fontSize = 14.sp, lineHeight = 22.sp)
                                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                                         Text("Biometrik girişi aktiv et", color = Color.White, modifier = Modifier.weight(1f))
