@@ -4527,7 +4527,7 @@ fun TexnoTelekomApp(
                     ) {
                         weeklyHitPrograms.forEach { app ->
                             Card(
-                                modifier = Modifier.width(116.dp).height(146.dp),
+                                modifier = Modifier.width(128.dp).height(146.dp),
                                 shape = RoundedCornerShape(11.dp),
                                 colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))
                             ) {
