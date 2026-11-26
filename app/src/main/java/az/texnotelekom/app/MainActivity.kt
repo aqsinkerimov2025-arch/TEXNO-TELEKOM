@@ -4862,7 +4862,7 @@ private fun HomeHeroBanner(onClick: () -> Unit) {
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text(
-                    "Ən yeni APK-lar\nTEXNO-TELEKOM-da!",
+                    "Ən Yeni Məlumatlar\nƏn Yeni APK-lar\nTEXNO-TELEKOMDA",
                     color = Color.White,
                     fontSize = 21.sp,
                     lineHeight = 27.sp,
