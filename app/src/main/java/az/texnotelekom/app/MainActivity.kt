@@ -4825,6 +4825,12 @@ private fun DeviceBlockAdminPanel(db: FirebaseFirestore) {
 
 @Composable
 private fun HomeHeroBanner(onClick: () -> Unit) {
+    val context = LocalContext.current
+    val robotBitmap = remember(context) {
+        val encoded = context.resources.openRawResource(R.raw.android_robot_photo).bufferedReader().use { it.readText() }
+        val bytes = Base64.decode(encoded, Base64.DEFAULT)
+        BitmapFactory.decodeByteArray(bytes, 0, bytes.size).asImageBitmap()
+    }
     Card(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 2.dp).clickable(onClick = onClick),
         shape = RoundedCornerShape(24.dp),
@@ -4872,7 +4878,7 @@ private fun HomeHeroBanner(onClick: () -> Unit) {
                 }
             }
             Image(
-                painter = painterResource(id = R.drawable.android_robot),
+                bitmap = robotBitmap,
                 contentDescription = "Android robot",
                 modifier = Modifier.align(Alignment.CenterEnd).size(width = 112.dp, height = 132.dp),
                 contentScale = ContentScale.Fit
