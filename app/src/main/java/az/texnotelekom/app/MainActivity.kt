@@ -4874,7 +4874,7 @@ private fun HomeHeroBanner(onClick: () -> Unit) {
             Image(
                 painter = painterResource(id = R.drawable.android_robot),
                 contentDescription = "Android robot",
-                modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(0.94f).width(112.dp),
+                modifier = Modifier.align(Alignment.CenterEnd).size(width = 112.dp, height = 132.dp),
                 contentScale = ContentScale.Fit
             )
         }
