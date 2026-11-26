@@ -4304,25 +4304,7 @@ fun TexnoTelekomApp(
                         }
                     }
                 }
-                Box(Modifier.fillMaxWidth().heightIn(min = 112.dp)) {
-                    Column(
-                        Modifier.align(Alignment.Center),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.texno_melumat_logo),
-                            contentDescription = "TEXNO-MƏLUMAT loqosu",
-                            modifier = Modifier.size(76.dp).clip(CircleShape),
-                            contentScale = ContentScale.Crop
-                        )
-                        Text(
-                            "TEXNO-MƏLUMAT",
-                            color = Color.White,
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Black
-                        )
-                    }
+                Box(Modifier.fillMaxWidth().height(52.dp)) {
                     val bellTransition = rememberInfiniteTransition(label = "home_notification_bell")
                     val bellRotation by bellTransition.animateFloat(
                         initialValue = -12f,
@@ -4364,6 +4346,16 @@ fun TexnoTelekomApp(
                         }
                     }
                 }
+                HomeHeroBanner(
+                    onClick = {
+                        selectedBottomTab = 1
+                        showPrograms = true
+                        showGames = false
+                        showPhoneInfo = false
+                        showPhoneInfoFeed = false
+                        showFeedback = false
+                    }
+                )
                 latestBroadcast?.let { letter ->
                     Card(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp), shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF18345A))) {
                         Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -4828,6 +4820,63 @@ private fun DeviceBlockAdminPanel(db: FirebaseFirestore) {
         }
         OutlinedButton(onClick = { refreshDevices() }, modifier = Modifier.fillMaxWidth()) { Text("SİYAHINI YENİLƏ") }
         if (message.isNotBlank()) Text(message, color = Color(0xFFFFD36A))
+    }
+}
+
+@Composable
+private fun HomeHeroBanner(onClick: () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 2.dp).clickable(onClick = onClick),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF06152F))
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 148.dp)
+                .background(
+                    Brush.linearGradient(
+                        colors = listOf(Color(0xFF020817), Color(0xFF082A62), Color(0xFF020817))
+                    )
+                )
+                .border(1.dp, Color(0xFF168BFF), RoundedCornerShape(24.dp))
+                .padding(horizontal = 18.dp, vertical = 16.dp)
+        ) {
+            Box(
+                Modifier.align(Alignment.CenterEnd).size(150.dp)
+                    .background(
+                        Brush.radialGradient(
+                            colors = listOf(Color(0xFF087BFF).copy(alpha = 0.42f), Color.Transparent)
+                        ),
+                        CircleShape
+                    )
+            )
+            Column(
+                modifier = Modifier.align(Alignment.CenterStart).fillMaxWidth(0.72f),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    "Ən yeni APK-lar\nTEXNO-TELEKOM-da!",
+                    color = Color.White,
+                    fontSize = 21.sp,
+                    lineHeight = 27.sp,
+                    fontWeight = FontWeight.Black
+                )
+                Button(
+                    onClick = onClick,
+                    shape = RoundedCornerShape(24.dp),
+                    contentPadding = PaddingValues(horizontal = 18.dp, vertical = 8.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF168BFF))
+                ) {
+                    Text("Daha ətraflı  →", color = Color(0xFF03142D), fontWeight = FontWeight.Bold)
+                }
+            }
+            Text(
+                "🤖",
+                modifier = Modifier.align(Alignment.CenterEnd),
+                fontSize = 76.sp
+            )
+        }
     }
 }
 
