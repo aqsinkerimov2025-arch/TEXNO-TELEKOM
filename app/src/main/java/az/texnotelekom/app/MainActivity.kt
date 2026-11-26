@@ -2356,14 +2356,24 @@ fun TexnoTelekomApp(
     var showSettings by remember { mutableStateOf(false) }
     var settingsSelected by remember { mutableStateOf<String?>(null) }
     var biometricEnabled by remember { mutableStateOf(context.getSharedPreferences("texno_biometric", Context.MODE_PRIVATE).getBoolean("enabled", false)) }
-    LaunchedEffect(biometricEnabled) {
-        if (biometricEnabled && context is FragmentActivity) {
-            val manager = BiometricManager.from(context)
+    val biometricActivity = remember(context) {
+        var current: Context = context
+        while (current is android.content.ContextWrapper && current !is FragmentActivity) {
+            val base = current.baseContext
+            if (base === current) break
+            current = base
+        }
+        current as? FragmentActivity
+    }
+    LaunchedEffect(biometricEnabled, biometricActivity) {
+        val activity = biometricActivity
+        if (biometricEnabled && activity != null) {
+            val manager = BiometricManager.from(activity)
             val biometricType = Authenticators.BIOMETRIC_WEAK
             when (manager.canAuthenticate(biometricType)) {
                 BiometricManager.BIOMETRIC_SUCCESS -> {
-                    val executor = ContextCompat.getMainExecutor(context)
-                    val prompt = BiometricPrompt(context, executor, object : BiometricPrompt.AuthenticationCallback() {
+                    val executor = ContextCompat.getMainExecutor(activity)
+                    val prompt = BiometricPrompt(activity, executor, object : BiometricPrompt.AuthenticationCallback() {
                         override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                             android.widget.Toast.makeText(context, "Biometrik giriş uğurludur.", android.widget.Toast.LENGTH_SHORT).show()
                         }
