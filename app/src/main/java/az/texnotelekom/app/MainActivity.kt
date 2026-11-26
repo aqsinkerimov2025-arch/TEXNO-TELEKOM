@@ -4871,10 +4871,11 @@ private fun HomeHeroBanner(onClick: () -> Unit) {
                     Text("Daha ətraflı  →", color = Color(0xFF03142D), fontWeight = FontWeight.Bold)
                 }
             }
-            Text(
-                "🤖",
-                modifier = Modifier.align(Alignment.CenterEnd),
-                fontSize = 76.sp
+            Image(
+                painter = painterResource(id = R.drawable.android_robot),
+                contentDescription = "Android robot",
+                modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(0.94f).width(112.dp),
+                contentScale = ContentScale.Fit
             )
         }
     }
