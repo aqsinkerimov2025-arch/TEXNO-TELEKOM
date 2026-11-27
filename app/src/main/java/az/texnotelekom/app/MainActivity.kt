@@ -2187,6 +2187,9 @@ fun TexnoTelekomApp(
     var groupBusy by remember { mutableStateOf(false) }
     var groupAuthReady by remember { mutableStateOf(FirebaseAuth.getInstance().currentUser != null) }
     var groupAuthError by remember { mutableStateOf("") }
+    val deviceDisclosurePrefs = remember { context.getSharedPreferences("texno_device_disclosure", Context.MODE_PRIVATE) }
+    var deviceInfoConsentAccepted by remember { mutableStateOf(deviceDisclosurePrefs.getBoolean("accepted", false)) }
+    var showDeviceInfoDisclosure by remember { mutableStateOf(!deviceDisclosurePrefs.getBoolean("decided", false)) }
     val groupMessages = remember { mutableStateListOf<GroupChatMessage>() }
     var feedbackDraft by remember { mutableStateOf("") }
     var feedbackBusy by remember { mutableStateOf(false) }
@@ -2287,9 +2290,31 @@ fun TexnoTelekomApp(
             .addOnFailureListener { groupAuthError = "Qrupa qoşulmaq mümkün olmadı: ${it.localizedMessage}" }
     }
 
-    // Cihaz modeli və Android versiyası tətbiqə qoşulma zamanı admin statistikası üçün qeydə alınır.
-    LaunchedEffect(groupAuthReady) {
-        if (groupAuthReady) {
+    if (showDeviceInfoDisclosure) {
+        AlertDialog(
+            onDismissRequest = { },
+            title = { Text("Cihaz məlumatları barədə") },
+            text = { Text("TEXNO-TELEKOM-a qoşulma zamanı telefon modeli və Android versiyası giriş statistikası üçün qeydə alınacaq və yalnız admin panelində görünəcək. Bu məlumatların qeydə alınmasına razısınız?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    deviceDisclosurePrefs.edit().putBoolean("decided", true).putBoolean("accepted", true).apply()
+                    deviceInfoConsentAccepted = true
+                    showDeviceInfoDisclosure = false
+                }) { Text("RAZIYAM") }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    deviceDisclosurePrefs.edit().putBoolean("decided", true).putBoolean("accepted", false).apply()
+                    deviceInfoConsentAccepted = false
+                    showDeviceInfoDisclosure = false
+                }) { Text("RAZI DEYİLƏM") }
+            }
+        )
+    }
+
+    // Cihaz məlumatları yalnız istifadəçi məlumatlandırıldıqdan və razılıq verdikdən sonra qeydə alınır.
+    LaunchedEffect(groupAuthReady, deviceInfoConsentAccepted) {
+        if (groupAuthReady && deviceInfoConsentAccepted) {
             val user = FirebaseAuth.getInstance().currentUser
             if (user != null && user.uid != ADMIN_UID) {
                 val manufacturer = Build.MANUFACTURER.orEmpty().replaceFirstChar { it.uppercase() }
