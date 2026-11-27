@@ -1105,8 +1105,44 @@ private fun GroupChatScreen(backgroundColor: Color, onClose: () -> Unit, onOpenB
     var initialMessagesPositioned by remember { mutableStateOf(false) }
     var groupMembers by remember { mutableStateOf<List<Triple<String, String, Boolean>>>(emptyList()) }
     var showMembersDialog by remember { mutableStateOf(false) }
+    var showGroupOptions by remember { mutableStateOf(false) }
+    var showBlockedUsersDialog by remember { mutableStateOf(false) }
+    var blockedGroupUids by remember { mutableStateOf<Set<String>>(emptySet()) }
+    var allGroupMessages by remember { mutableStateOf<List<GroupChatMessage>>(emptyList()) }
     val auth = FirebaseAuth.getInstance()
+    val currentUid = auth.currentUser?.uid.orEmpty()
     val isOwner = auth.currentUser?.uid == ADMIN_UID
+
+    DisposableEffect(currentUid) {
+        if (currentUid.isBlank()) {
+            onDispose { }
+        } else {
+            val blockListener = db.collection("group_user_blocks").document(currentUid)
+                .addSnapshotListener { doc, error ->
+                    if (error == null) {
+                        blockedGroupUids = (doc?.get("blocked_uids") as? List<*>)
+                            ?.filterIsInstance<String>()?.toSet() ?: emptySet()
+                    }
+                }
+            onDispose { blockListener.remove() }
+        }
+    }
+    LaunchedEffect(allGroupMessages, blockedGroupUids) {
+        messages.clear()
+        messages.addAll(allGroupMessages.filter { it.uid !in blockedGroupUids })
+    }
+    fun setGroupUserBlocked(uid: String, blocked: Boolean) {
+        if (uid.isBlank() || uid == currentUid || currentUid.isBlank()) return
+        val ref = db.collection("group_user_blocks").document(currentUid)
+        val update = if (blocked) FieldValue.arrayUnion(uid) else FieldValue.arrayRemove(uid)
+        ref.set(
+            mapOf("blocked_uids" to update, "updated_at" to FieldValue.serverTimestamp()),
+            SetOptions.merge()
+        ).addOnFailureListener {
+            status = if (blocked) "İstifadəçi bloklanmadı: ${it.localizedMessage}"
+                else "Blok ləğv edilmədi: ${it.localizedMessage}"
+        }
+    }
     var isGroupAdmin by remember { mutableStateOf(isOwner) }
     var groupManagerUids by remember { mutableStateOf<List<String>>(emptyList()) }
     LaunchedEffect(auth.currentUser?.uid) {
@@ -1410,8 +1446,7 @@ private fun GroupChatScreen(backgroundColor: Color, onClose: () -> Unit, onOpenB
                             d.getString("reply_to_id") ?: "", d.getString("reply_to_nickname") ?: "", d.getString("reply_to_text") ?: ""
                         )
                     }
-                    messages.clear()
-                    messages.addAll(loadedMessages)
+                    allGroupMessages = loadedMessages
                     messagesLoaded = true
                 } else if (error != null) status = "Mesajlar yüklənmədi: ${error.localizedMessage}"
             }
@@ -1523,6 +1558,17 @@ private fun GroupChatScreen(backgroundColor: Color, onClose: () -> Unit, onOpenB
                 Text("TEXNO DƏSTƏK QRUPU", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Black)
                 if (groupSubtitle.isNotBlank()) Text(groupSubtitle, color = Color(0xFFBDBDBD), fontSize = 11.sp, lineHeight = 16.sp, maxLines = 5, softWrap = true, overflow = androidx.compose.ui.text.style.TextOverflow.Clip)
             }
+            Box {
+                IconButton(onClick = { showGroupOptions = true }) {
+                    Text("⋮", color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Bold)
+                }
+                DropdownMenu(expanded = showGroupOptions, onDismissRequest = { showGroupOptions = false }) {
+                    DropdownMenuItem(
+                        text = { Text("🚫 Blok siyahısı") },
+                        onClick = { showGroupOptions = false; showBlockedUsersDialog = true }
+                    )
+                }
+            }
         }
         Row(
             Modifier.fillMaxWidth().clickable { showMembersDialog = true }.padding(start = 70.dp, end = 16.dp, top = 0.dp, bottom = 7.dp),
@@ -1558,6 +1604,17 @@ private fun GroupChatScreen(backgroundColor: Color, onClose: () -> Unit, onOpenB
                         items(groupMembers, key = { it.first }) { member ->
                             Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                                 Text(member.second, color = Color.White, modifier = Modifier.weight(1f))
+                                if (member.first != currentUid) {
+                                    TextButton(onClick = {
+                                        setGroupUserBlocked(member.first, member.first !in blockedGroupUids)
+                                    }) {
+                                        Text(
+                                            if (member.first in blockedGroupUids) "BLOKDAN ÇIXAR" else "BLOK ET",
+                                            color = if (member.first in blockedGroupUids) Color(0xFF72D99A) else Color(0xFFFF7777),
+                                            fontSize = 10.sp
+                                        )
+                                    }
+                                }
                                 Text(if (member.third) "ONLAYN" else "OFLAYN",
                                     color = if (member.third) Color(0xFF72D99A) else Color(0xFFAAAAAA),
                                     fontSize = 11.sp, fontWeight = FontWeight.Bold)
@@ -1567,6 +1624,31 @@ private fun GroupChatScreen(backgroundColor: Color, onClose: () -> Unit, onOpenB
                     }
                 },
                 confirmButton = { TextButton(onClick = { showMembersDialog = false }) { Text("BAĞLA") } }
+            )
+        }
+        if (showBlockedUsersDialog) {
+            AlertDialog(
+                onDismissRequest = { showBlockedUsersDialog = false },
+                title = { Text("BLOKLANMIŞ İSTİFADƏÇİLƏR") },
+                text = {
+                    if (blockedGroupUids.isEmpty()) {
+                        Text("Blok siyahısı boşdur.")
+                    } else {
+                        LazyColumn(Modifier.heightIn(max = 440.dp)) {
+                            items(blockedGroupUids.toList(), key = { it }) { uid ->
+                                val member = groupMembers.firstOrNull { it.first == uid }
+                                Row(Modifier.fillMaxWidth().padding(vertical = 7.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    Text(member?.second ?: "İstifadəçi", color = Color.White, modifier = Modifier.weight(1f))
+                                    TextButton(onClick = { setGroupUserBlocked(uid, false) }) {
+                                        Text("BLOKDAN ÇIXAR", color = Color(0xFF72D99A), fontSize = 10.sp)
+                                    }
+                                }
+                                HorizontalDivider(color = Color(0xFF444444))
+                            }
+                        }
+                    }
+                },
+                confirmButton = { TextButton(onClick = { showBlockedUsersDialog = false }) { Text("BAĞLA") } }
             )
         }
         if (showGroupRules) {
