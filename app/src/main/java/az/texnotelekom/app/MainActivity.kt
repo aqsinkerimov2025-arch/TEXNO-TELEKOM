@@ -2320,17 +2320,25 @@ fun TexnoTelekomApp(
                 val manufacturer = Build.MANUFACTURER.orEmpty().replaceFirstChar { it.uppercase() }
                 val model = Build.MODEL.orEmpty()
                 val deviceName = listOf(manufacturer, model).filter { it.isNotBlank() }.distinct().joinToString(" ")
-                db.collection("device_connection_events").add(
-                    mapOf(
-                        "uid" to user.uid,
-                        "device_name" to deviceName.ifBlank { "Naməlum cihaz" },
-                        "manufacturer" to manufacturer,
-                        "model" to model,
-                        "android_version" to Build.VERSION.RELEASE.orEmpty(),
-                        "android_sdk" to Build.VERSION.SDK_INT,
-                        "connected_at" to FieldValue.serverTimestamp()
+                val deviceRef = db.collection("registered_devices").document(deviceHash)
+                deviceRef.get().addOnSuccessListener { existing ->
+                    val firstSeen = existing.getLong("first_seen") ?: System.currentTimeMillis()
+                    deviceRef.set(
+                        mapOf(
+                            "uid" to user.uid,
+                            "device_id" to deviceHash,
+                            "manufacturer" to manufacturer,
+                            "model" to model,
+                            "device" to deviceName.ifBlank { "Naməlum cihaz" },
+                            "android_version" to Build.VERSION.RELEASE.orEmpty(),
+                            "sdk_int" to Build.VERSION.SDK_INT,
+                            "app_version" to "TEXNO-TELEKOM",
+                            "first_seen" to firstSeen,
+                            "last_seen" to FieldValue.serverTimestamp()
+                        ),
+                        SetOptions.merge()
                     )
-                )
+                }
             }
         }
     }
@@ -5301,16 +5309,16 @@ private fun DeviceConnectionsAdminPanel() {
     fun refresh() {
         if (uid != ADMIN_UID) return
         loading = true
-        db.collection("device_connection_events")
-            .orderBy("connected_at", com.google.firebase.firestore.Query.Direction.DESCENDING)
+        db.collection("registered_devices")
+            .orderBy("last_seen", com.google.firebase.firestore.Query.Direction.DESCENDING)
             .limit(100)
             .get()
             .addOnSuccessListener { snapshot ->
                 entries = snapshot.documents.map { doc ->
                     DeviceConnectionEntry(
-                        deviceName = doc.getString("device_name").orEmpty().ifBlank { "Naməlum cihaz" },
+                        deviceName = doc.getString("device").orEmpty().ifBlank { "Naməlum cihaz" },
                         androidVersion = doc.getString("android_version").orEmpty(),
-                        connectedAt = doc.getTimestamp("connected_at")?.toDate()?.time ?: 0L
+                        connectedAt = doc.getTimestamp("last_seen")?.toDate()?.time ?: 0L
                     )
                 }
                 loading = false
