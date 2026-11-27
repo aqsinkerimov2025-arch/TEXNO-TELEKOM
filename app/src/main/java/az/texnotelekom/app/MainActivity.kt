@@ -5168,7 +5168,8 @@ private fun ModerationAdminPanel() {
                         }.addOnFailureListener { status = "Bloklama alınmadı: ${it.localizedMessage}" }
                     }
                 }, modifier = Modifier.fillMaxWidth()) { Text("TƏTBİQƏ GİRİŞİ BAĞLA") }
-                Text("Bloklanmış hesablar: ${blockedAccounts.size}", color = Color.White, fontWeight = FontWeight.Bold)
+                Text("BLOKLANMIŞ HESABLAR (${blockedAccounts.size})", color = Color.White, fontWeight = FontWeight.Bold)
+                if (blockedAccounts.isEmpty()) Text("Siyahı boşdur. Tətbiqdən qovulan istifadəçilər burada görünəcək.", color = Color.LightGray, fontSize = 12.sp)
                 blockedAccounts.forEach { item ->
                     Column(Modifier.fillMaxWidth().background(Color(0xFF202B40), RoundedCornerShape(12.dp)).padding(10.dp)) {
                         Text(item.nickname.ifBlank { "İstifadəçi" }, color = Color.White, fontWeight = FontWeight.Bold)
@@ -5201,7 +5202,8 @@ private fun ModerationAdminPanel() {
                         }.addOnFailureListener { status = "Qrupdan uzaqlaşdırmaq olmadı: ${it.localizedMessage}" }
                     }
                 }, modifier = Modifier.fillMaxWidth()) { Text("QRUPDAN QOV") }
-                Text("Qrupdan uzaqlaşdırılanlar: ${removedGroupUsers.size}", color = Color.White, fontWeight = FontWeight.Bold)
+                Text("QRUPDAN QOVULANLAR (${removedGroupUsers.size})", color = Color.White, fontWeight = FontWeight.Bold)
+                if (removedGroupUsers.isEmpty()) Text("Siyahı boşdur. Qrupdan qovulan istifadəçilər burada görünəcək.", color = Color.LightGray, fontSize = 12.sp)
                 removedGroupUsers.forEach { item ->
                     Column(Modifier.fillMaxWidth().background(Color(0xFF202B40), RoundedCornerShape(12.dp)).padding(10.dp)) {
                         Text(item.nickname.ifBlank { "İstifadəçi" }, color = Color.White, fontWeight = FontWeight.Bold)
