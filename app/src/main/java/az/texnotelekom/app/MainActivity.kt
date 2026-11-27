@@ -2514,6 +2514,7 @@ fun TexnoTelekomApp(
     }
     var deviceBlocked by remember { mutableStateOf(false) }
     var deviceBlockReason by remember { mutableStateOf("") }
+    val isAuthorizedDevice = deviceId in ADMIN_DEVICE_IDS
     var accountBlocked by remember { mutableStateOf(false) }
     var accountBlockReason by remember { mutableStateOf("") }
     LaunchedEffect(groupAuthReady, isAuthorizedDevice) {
@@ -2527,7 +2528,6 @@ fun TexnoTelekomApp(
                 .addOnFailureListener { accountBlocked = false }
         }
     }
-    val isAuthorizedDevice = deviceId in ADMIN_DEVICE_IDS
 
     LaunchedEffect(deviceHash, groupAuthReady, isAuthorizedDevice) {
         val currentUser = FirebaseAuth.getInstance().currentUser
