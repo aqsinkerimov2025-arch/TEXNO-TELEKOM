@@ -5090,10 +5090,8 @@ private data class ModerationEntry(
 private fun ModerationAdminPanel() {
     val db = remember { FirebaseFirestore.getInstance() }
     val uid = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
-    var accountUid by remember { mutableStateOf("") }
     var accountName by remember { mutableStateOf("") }
     var accountReason by remember { mutableStateOf("") }
-    var groupUid by remember { mutableStateOf("") }
     var groupName by remember { mutableStateOf("") }
     var groupReason by remember { mutableStateOf("") }
     var blockedAccounts by remember { mutableStateOf<List<ModerationEntry>>(emptyList()) }
@@ -5121,39 +5119,59 @@ private fun ModerationAdminPanel() {
             .addOnFailureListener { loading = false; status = "Tətbiq siyahısı yüklənmədi: ${it.localizedMessage}" }
     }
 
+    fun findUidByNickname(name: String, onFound: (String) -> Unit) {
+        val targetName = name.trim()
+        if (targetName.isBlank()) {
+            status = "Qrupda görünən istifadəçi adını yazın."
+            return
+        }
+        loading = true
+        db.collection("group_messages").whereEqualTo("nickname", targetName).get()
+            .addOnSuccessListener { snap ->
+                val matches = snap.documents.map { it.getString("uid").orEmpty() }
+                    .filter { it.isNotBlank() && it != ADMIN_UID }.distinct()
+                loading = false
+                when (matches.size) {
+                    0 -> status = "Bu adda istifadəçi tapılmadı. Adı qrupda göründüyü kimi yazın."
+                    1 -> onFound(matches.first())
+                    else -> status = "Bu ad bir neçə istifadəçidə var. Qarışıqlığın qarşısını almaq üçün həmin istifadəçinin unikal ləqəbini yazın."
+                }
+            }
+            .addOnFailureListener {
+                loading = false
+                status = "İstifadəçi axtarılmadı: ${it.localizedMessage}"
+            }
+    }
+
     LaunchedEffect(uid) { refresh() }
 
     if (uid != ADMIN_UID) return
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(9.dp)) {
         Text("İSTİFADƏÇİ MƏHDUDİYYƏTLƏRİ", color = Color(0xFFFFD36A), fontWeight = FontWeight.Black)
-        Text("Aşağıdakı iki əməliyyat bir-birindən tam ayrıdır.", color = Color.LightGray, fontSize = 12.sp)
+        Text("İstifadəçiləri UID ilə deyil, qrupda görünən ləqəbləri ilə axtarın. İki əməliyyat bir-birindən ayrıdır.", color = Color.LightGray, fontSize = 12.sp)
 
         Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D)), shape = RoundedCornerShape(16.dp)) {
             Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
                 Text("📵 TƏTBİQDƏN QOV — hesab girişini bağla", color = Color(0xFFFF8888), fontWeight = FontWeight.Bold)
-                OutlinedTextField(accountUid, { accountUid = it.trim() }, Modifier.fillMaxWidth(), label = { Text("İstifadəçi UID") }, singleLine = true)
-                OutlinedTextField(accountName, { accountName = it }, Modifier.fillMaxWidth(), label = { Text("Ad / ləqəb (istəyə bağlı)") }, singleLine = true)
+                OutlinedTextField(accountName, { accountName = it }, Modifier.fillMaxWidth(), label = { Text("Qrupdakı istifadəçi ləqəbi") }, singleLine = true)
                 OutlinedTextField(accountReason, { accountReason = it }, Modifier.fillMaxWidth(), label = { Text("Səbəb") }, minLines = 2)
-                Button(
-                    onClick = {
-                        val target = accountUid.trim()
-                        if (target.isBlank() || target == uid) status = "Düzgün istifadəçi UID-si daxil edin."
+                Button(onClick = {
+                    findUidByNickname(accountName) { target ->
+                        if (target == uid) status = "Öz hesabınızı bloklaya bilməzsiniz."
                         else db.collection("blocked_accounts").document(target).set(mapOf(
                             "uid" to target, "nickname" to accountName.trim(),
                             "reason" to accountReason.trim().ifBlank { "Tətbiq qaydalarının ciddi pozulması" },
                             "created_at" to FieldValue.serverTimestamp()
                         )).addOnSuccessListener {
                             status = "Hesabın tətbiqə girişi bloklandı."
-                            accountUid = ""; accountName = ""; accountReason = ""; refresh()
+                            accountName = ""; accountReason = ""; refresh()
                         }.addOnFailureListener { status = "Bloklama alınmadı: ${it.localizedMessage}" }
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) { Text("TƏTBİQƏ GİRİŞİ BAĞLA") }
+                    }
+                }, modifier = Modifier.fillMaxWidth()) { Text("TƏTBİQƏ GİRİŞİ BAĞLA") }
                 Text("Bloklanmış hesablar: ${blockedAccounts.size}", color = Color.White, fontWeight = FontWeight.Bold)
                 blockedAccounts.forEach { item ->
                     Column(Modifier.fillMaxWidth().background(Color(0xFF202B40), RoundedCornerShape(12.dp)).padding(10.dp)) {
                         Text(item.nickname.ifBlank { "İstifadəçi" }, color = Color.White, fontWeight = FontWeight.Bold)
-                        Text("UID: ${item.uid}", color = Color.LightGray, fontSize = 10.sp)
                         Text("Səbəb: ${item.reason}", color = Color(0xFFFFB3B3), fontSize = 12.sp)
                         OutlinedButton(onClick = {
                             db.collection("blocked_accounts").document(item.uid).delete()
@@ -5168,29 +5186,25 @@ private fun ModerationAdminPanel() {
         Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D)), shape = RoundedCornerShape(16.dp)) {
             Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
                 Text("🚫 QRUPDAN QOV — yalnız qrupa girişi bağla", color = Color(0xFFFFD36A), fontWeight = FontWeight.Bold)
-                OutlinedTextField(groupUid, { groupUid = it.trim() }, Modifier.fillMaxWidth(), label = { Text("İstifadəçi UID") }, singleLine = true)
-                OutlinedTextField(groupName, { groupName = it }, Modifier.fillMaxWidth(), label = { Text("Ad / ləqəb (istəyə bağlı)") }, singleLine = true)
+                OutlinedTextField(groupName, { groupName = it }, Modifier.fillMaxWidth(), label = { Text("Qrupdakı istifadəçi ləqəbi") }, singleLine = true)
                 OutlinedTextField(groupReason, { groupReason = it }, Modifier.fillMaxWidth(), label = { Text("Səbəb") }, minLines = 2)
-                Button(
-                    onClick = {
-                        val target = groupUid.trim()
-                        if (target.isBlank() || target == uid) status = "Düzgün istifadəçi UID-si daxil edin."
+                Button(onClick = {
+                    findUidByNickname(groupName) { target ->
+                        if (target == uid) status = "Özünüzü qrupdan qova bilməzsiniz."
                         else db.collection("group_removed_users").document(target).set(mapOf(
                             "uid" to target, "nickname" to groupName.trim(),
                             "reason" to groupReason.trim().ifBlank { "Qrup qaydalarının pozulması" },
                             "removed_at" to FieldValue.serverTimestamp()
                         )).addOnSuccessListener {
                             status = "İstifadəçi yalnız qrupdan uzaqlaşdırıldı."
-                            groupUid = ""; groupName = ""; groupReason = ""; refresh()
+                            groupName = ""; groupReason = ""; refresh()
                         }.addOnFailureListener { status = "Qrupdan uzaqlaşdırmaq olmadı: ${it.localizedMessage}" }
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) { Text("QRUPDAN QOV") }
+                    }
+                }, modifier = Modifier.fillMaxWidth()) { Text("QRUPDAN QOV") }
                 Text("Qrupdan uzaqlaşdırılanlar: ${removedGroupUsers.size}", color = Color.White, fontWeight = FontWeight.Bold)
                 removedGroupUsers.forEach { item ->
                     Column(Modifier.fillMaxWidth().background(Color(0xFF202B40), RoundedCornerShape(12.dp)).padding(10.dp)) {
                         Text(item.nickname.ifBlank { "İstifadəçi" }, color = Color.White, fontWeight = FontWeight.Bold)
-                        Text("UID: ${item.uid}", color = Color.LightGray, fontSize = 10.sp)
                         Text("Səbəb: ${item.reason}", color = Color(0xFFFFD36A), fontSize = 12.sp)
                         OutlinedButton(onClick = {
                             db.collection("group_removed_users").document(item.uid).delete()
