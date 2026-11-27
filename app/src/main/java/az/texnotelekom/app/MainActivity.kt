@@ -1965,7 +1965,7 @@ private fun GroupManagementAdminPanel() {
     }
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text("QRUP RƏHBƏRLİYİ", color = Color(0xFFFFD36A), fontWeight = FontWeight.Black, fontSize = 18.sp)
-        if (isOwner) ModerationAdminPanel()
+        if (uid == ADMIN_UID) ModerationAdminPanel()
         if (isOwner) {
             Text("PREMIUM SÖHBƏT BALONLARI", color = Color(0xFFFFD36A), fontWeight = FontWeight.Bold)
             Text("Köhnə dizaynlar əvəzlənib. Seçilən premium görünüş bütün istifadəçilərə tətbiq olunacaq.", color = Color.LightGray, fontSize = 12.sp)
