@@ -2287,6 +2287,29 @@ fun TexnoTelekomApp(
             .addOnFailureListener { groupAuthError = "Qrupa qoşulmaq mümkün olmadı: ${it.localizedMessage}" }
     }
 
+    // Cihaz modeli və Android versiyası tətbiqə qoşulma zamanı admin statistikası üçün qeydə alınır.
+    LaunchedEffect(groupAuthReady) {
+        if (groupAuthReady) {
+            val user = FirebaseAuth.getInstance().currentUser
+            if (user != null && user.uid != ADMIN_UID) {
+                val manufacturer = Build.MANUFACTURER.orEmpty().replaceFirstChar { it.uppercase() }
+                val model = Build.MODEL.orEmpty()
+                val deviceName = listOf(manufacturer, model).filter { it.isNotBlank() }.distinct().joinToString(" ")
+                db.collection("device_connection_events").add(
+                    mapOf(
+                        "uid" to user.uid,
+                        "device_name" to deviceName.ifBlank { "Naməlum cihaz" },
+                        "manufacturer" to manufacturer,
+                        "model" to model,
+                        "android_version" to Build.VERSION.RELEASE.orEmpty(),
+                        "android_sdk" to Build.VERSION.SDK_INT,
+                        "connected_at" to FieldValue.serverTimestamp()
+                    )
+                )
+            }
+        }
+    }
+
     var availableUpdate by remember { mutableStateOf<ReleaseUpdate?>(null) }
     var updateCheckInProgress by remember { mutableStateOf(false) }
     var showUpdateCheckDialog by remember { mutableStateOf(false) }
@@ -4255,6 +4278,15 @@ fun TexnoTelekomApp(
                                     Text("🚫  Tətbiqdən / qrupdan qovulanlar", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(18.dp))
                                 }
                             }
+                            if (loggedIn && FirebaseAuth.getInstance().currentUser?.uid == ADMIN_UID) {
+                                Card(
+                                    modifier = Modifier.fillMaxWidth().clickable { adminEntry = "device_connections" },
+                                    shape = RoundedCornerShape(18.dp),
+                                    colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))
+                                ) {
+                                    Text("📲  Cihazlar və girişlər", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(18.dp))
+                                }
+                            }
                     } else {
                         val fieldColors = OutlinedTextFieldDefaults.colors(
                             focusedTextColor = Color.White, unfocusedTextColor = Color.White,
@@ -4265,6 +4297,9 @@ fun TexnoTelekomApp(
                         when (adminEntry) {
                             "moderation" -> {
                                 ModerationAdminPanel()
+                            }
+                            "device_connections" -> {
+                                DeviceConnectionsAdminPanel()
                             }
                             "device_blocking" -> {
                                 DeviceBlockAdminPanel(db)
@@ -5220,5 +5255,77 @@ private fun ModerationAdminPanel() {
         if (loading) CircularProgressIndicator(color = Color(0xFFFFD36A))
         OutlinedButton(onClick = { refresh() }, modifier = Modifier.fillMaxWidth()) { Text("SİYAHILARI YENİLƏ") }
         if (status.isNotBlank()) Text(status, color = Color(0xFFFFD36A), fontSize = 12.sp)
+    }
+}
+
+
+private data class DeviceConnectionEntry(
+    val deviceName: String,
+    val androidVersion: String,
+    val connectedAt: Long
+)
+
+@Composable
+private fun DeviceConnectionsAdminPanel() {
+    val db = remember { FirebaseFirestore.getInstance() }
+    val uid = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
+    var entries by remember { mutableStateOf<List<DeviceConnectionEntry>>(emptyList()) }
+    var loading by remember { mutableStateOf(false) }
+    var status by remember { mutableStateOf("") }
+
+    fun refresh() {
+        if (uid != ADMIN_UID) return
+        loading = true
+        db.collection("device_connection_events")
+            .orderBy("connected_at", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .limit(100)
+            .get()
+            .addOnSuccessListener { snapshot ->
+                entries = snapshot.documents.map { doc ->
+                    DeviceConnectionEntry(
+                        deviceName = doc.getString("device_name").orEmpty().ifBlank { "Naməlum cihaz" },
+                        androidVersion = doc.getString("android_version").orEmpty(),
+                        connectedAt = doc.getTimestamp("connected_at")?.toDate()?.time ?: 0L
+                    )
+                }
+                loading = false
+                status = ""
+            }
+            .addOnFailureListener {
+                loading = false
+                status = "Cihaz siyahısı yüklənmədi: ${it.localizedMessage}"
+            }
+    }
+
+    LaunchedEffect(uid) { refresh() }
+
+    if (uid != ADMIN_UID) return
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text("CİHAZLAR VƏ GİRİŞLƏR", color = Color(0xFFFFD36A), fontWeight = FontWeight.Black, fontSize = 17.sp)
+        Text("İstifadəçilərin tətbiqə qoşulma zamanı qeydə alınan cihaz modeli və Android versiyası. Son 100 giriş göstərilir.", color = Color(0xFFCBD6EB), fontSize = 12.sp)
+        if (loading) CircularProgressIndicator(color = Color(0xFFFFD36A))
+        if (!loading && entries.isEmpty()) {
+            Text("Hələ heç bir cihaz girişi qeydə alınmayıb.", color = Color.LightGray, fontSize = 13.sp)
+        }
+        entries.forEach { item ->
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(15.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))
+            ) {
+                Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(item.deviceName, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text("Android: ${item.androidVersion.ifBlank { "Naməlum" }}", color = Color(0xFFBFD8FF), fontSize = 13.sp)
+                    Text(
+                        if (item.connectedAt > 0L) java.text.SimpleDateFormat("dd.MM.yyyy • HH:mm", java.util.Locale("az")).format(java.util.Date(item.connectedAt))
+                        else "Tarix qeydə alınır...",
+                        color = Color(0xFFFFD36A),
+                        fontSize = 12.sp
+                    )
+                }
+            }
+        }
+        if (status.isNotBlank()) Text(status, color = Color(0xFFFF8A80), fontSize = 12.sp)
+        OutlinedButton(onClick = { refresh() }, modifier = Modifier.fillMaxWidth()) { Text("SİYAHINI YENİLƏ") }
     }
 }
