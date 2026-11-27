@@ -2187,9 +2187,6 @@ fun TexnoTelekomApp(
     var groupBusy by remember { mutableStateOf(false) }
     var groupAuthReady by remember { mutableStateOf(FirebaseAuth.getInstance().currentUser != null) }
     var groupAuthError by remember { mutableStateOf("") }
-    val deviceDisclosurePrefs = remember { context.getSharedPreferences("texno_device_disclosure", Context.MODE_PRIVATE) }
-    var deviceInfoConsentAccepted by remember { mutableStateOf(deviceDisclosurePrefs.getBoolean("accepted", false)) }
-    var showDeviceInfoDisclosure by remember { mutableStateOf(!deviceDisclosurePrefs.getBoolean("decided", false)) }
     val groupMessages = remember { mutableStateListOf<GroupChatMessage>() }
     var feedbackDraft by remember { mutableStateOf("") }
     var feedbackBusy by remember { mutableStateOf(false) }
@@ -2288,59 +2285,6 @@ fun TexnoTelekomApp(
         if (auth.currentUser != null) groupAuthReady = true
         else auth.signInAnonymously().addOnSuccessListener { groupAuthReady = true }
             .addOnFailureListener { groupAuthError = "Qrupa qoşulmaq mümkün olmadı: ${it.localizedMessage}" }
-    }
-
-    if (showDeviceInfoDisclosure) {
-        AlertDialog(
-            onDismissRequest = { },
-            title = { Text("Cihaz məlumatları barədə") },
-            text = { Text("TEXNO-TELEKOM-a qoşulma zamanı telefon modeli və Android versiyası giriş statistikası üçün qeydə alınacaq və yalnız admin panelində görünəcək. Bu məlumatların qeydə alınmasına razısınız?") },
-            confirmButton = {
-                TextButton(onClick = {
-                    deviceDisclosurePrefs.edit().putBoolean("decided", true).putBoolean("accepted", true).apply()
-                    deviceInfoConsentAccepted = true
-                    showDeviceInfoDisclosure = false
-                }) { Text("RAZIYAM") }
-            },
-            dismissButton = {
-                TextButton(onClick = {
-                    deviceDisclosurePrefs.edit().putBoolean("decided", true).putBoolean("accepted", false).apply()
-                    deviceInfoConsentAccepted = false
-                    showDeviceInfoDisclosure = false
-                }) { Text("RAZI DEYİLƏM") }
-            }
-        )
-    }
-
-    // Cihaz məlumatları yalnız istifadəçi məlumatlandırıldıqdan və razılıq verdikdən sonra qeydə alınır.
-    LaunchedEffect(groupAuthReady, deviceInfoConsentAccepted) {
-        if (groupAuthReady && deviceInfoConsentAccepted) {
-            val user = FirebaseAuth.getInstance().currentUser
-            if (user != null && user.uid != ADMIN_UID) {
-                val manufacturer = Build.MANUFACTURER.orEmpty().replaceFirstChar { it.uppercase() }
-                val model = Build.MODEL.orEmpty()
-                val deviceName = listOf(manufacturer, model).filter { it.isNotBlank() }.distinct().joinToString(" ")
-                val deviceRef = db.collection("registered_devices").document(deviceHash)
-                deviceRef.get().addOnSuccessListener { existing ->
-                    val firstSeen = existing.getLong("first_seen") ?: System.currentTimeMillis()
-                    deviceRef.set(
-                        mapOf(
-                            "uid" to user.uid,
-                            "device_id" to deviceHash,
-                            "manufacturer" to manufacturer,
-                            "model" to model,
-                            "device" to deviceName.ifBlank { "Naməlum cihaz" },
-                            "android_version" to Build.VERSION.RELEASE.orEmpty(),
-                            "sdk_int" to Build.VERSION.SDK_INT,
-                            "app_version" to "TEXNO-TELEKOM",
-                            "first_seen" to firstSeen,
-                            "last_seen" to FieldValue.serverTimestamp()
-                        ),
-                        SetOptions.merge()
-                    )
-                }
-            }
-        }
     }
 
     var availableUpdate by remember { mutableStateOf<ReleaseUpdate?>(null) }
@@ -4311,15 +4255,7 @@ fun TexnoTelekomApp(
                                     Text("🚫  Tətbiqdən / qrupdan qovulanlar", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(18.dp))
                                 }
                             }
-                            if (loggedIn && FirebaseAuth.getInstance().currentUser?.uid == ADMIN_UID) {
-                                Card(
-                                    modifier = Modifier.fillMaxWidth().clickable { adminEntry = "device_connections" },
-                                    shape = RoundedCornerShape(18.dp),
-                                    colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))
-                                ) {
-                                    Text("📲  Cihazlar və girişlər", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(18.dp))
-                                }
-                            }
+
                     } else {
                         val fieldColors = OutlinedTextFieldDefaults.colors(
                             focusedTextColor = Color.White, unfocusedTextColor = Color.White,
@@ -4330,9 +4266,6 @@ fun TexnoTelekomApp(
                         when (adminEntry) {
                             "moderation" -> {
                                 ModerationAdminPanel()
-                            }
-                            "device_connections" -> {
-                                DeviceConnectionsAdminPanel()
                             }
                             "device_blocking" -> {
                                 DeviceBlockAdminPanel(db)
@@ -5291,74 +5224,3 @@ private fun ModerationAdminPanel() {
     }
 }
 
-
-private data class DeviceConnectionEntry(
-    val deviceName: String,
-    val androidVersion: String,
-    val connectedAt: Long
-)
-
-@Composable
-private fun DeviceConnectionsAdminPanel() {
-    val db = remember { FirebaseFirestore.getInstance() }
-    val uid = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
-    var entries by remember { mutableStateOf<List<DeviceConnectionEntry>>(emptyList()) }
-    var loading by remember { mutableStateOf(false) }
-    var status by remember { mutableStateOf("") }
-
-    fun refresh() {
-        if (uid != ADMIN_UID) return
-        loading = true
-        db.collection("registered_devices")
-            .orderBy("last_seen", com.google.firebase.firestore.Query.Direction.DESCENDING)
-            .limit(100)
-            .get()
-            .addOnSuccessListener { snapshot ->
-                entries = snapshot.documents.map { doc ->
-                    DeviceConnectionEntry(
-                        deviceName = doc.getString("device").orEmpty().ifBlank { "Naməlum cihaz" },
-                        androidVersion = doc.getString("android_version").orEmpty(),
-                        connectedAt = doc.getTimestamp("last_seen")?.toDate()?.time ?: 0L
-                    )
-                }
-                loading = false
-                status = ""
-            }
-            .addOnFailureListener {
-                loading = false
-                status = "Cihaz siyahısı yüklənmədi: ${it.localizedMessage}"
-            }
-    }
-
-    LaunchedEffect(uid) { refresh() }
-
-    if (uid != ADMIN_UID) return
-    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text("CİHAZLAR VƏ GİRİŞLƏR", color = Color(0xFFFFD36A), fontWeight = FontWeight.Black, fontSize = 17.sp)
-        Text("İstifadəçilərin tətbiqə qoşulma zamanı qeydə alınan cihaz modeli və Android versiyası. Son 100 giriş göstərilir.", color = Color(0xFFCBD6EB), fontSize = 12.sp)
-        if (loading) CircularProgressIndicator(color = Color(0xFFFFD36A))
-        if (!loading && entries.isEmpty()) {
-            Text("Hələ heç bir cihaz girişi qeydə alınmayıb.", color = Color.LightGray, fontSize = 13.sp)
-        }
-        entries.forEach { item ->
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(15.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))
-            ) {
-                Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(item.deviceName, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                    Text("Android: ${item.androidVersion.ifBlank { "Naməlum" }}", color = Color(0xFFBFD8FF), fontSize = 13.sp)
-                    Text(
-                        if (item.connectedAt > 0L) java.text.SimpleDateFormat("dd.MM.yyyy • HH:mm", java.util.Locale("az")).format(java.util.Date(item.connectedAt))
-                        else "Tarix qeydə alınır...",
-                        color = Color(0xFFFFD36A),
-                        fontSize = 12.sp
-                    )
-                }
-            }
-        }
-        if (status.isNotBlank()) Text(status, color = Color(0xFFFF8A80), fontSize = 12.sp)
-        OutlinedButton(onClick = { refresh() }, modifier = Modifier.fillMaxWidth()) { Text("SİYAHINI YENİLƏ") }
-    }
-}
