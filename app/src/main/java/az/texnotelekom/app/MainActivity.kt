@@ -1942,6 +1942,7 @@ private fun GroupManagementAdminPanel() {
     }
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text("QRUP RƏHBƏRLİYİ", color = Color(0xFFFFD36A), fontWeight = FontWeight.Black, fontSize = 18.sp)
+        if (isOwner) ModerationAdminPanel()
         if (isOwner) {
             Text("PREMIUM SÖHBƏT BALONLARI", color = Color(0xFFFFD36A), fontWeight = FontWeight.Bold)
             Text("Köhnə dizaynlar əvəzlənib. Seçilən premium görünüş bütün istifadəçilərə tətbiq olunacaq.", color = Color.LightGray, fontSize = 12.sp)
@@ -2490,6 +2491,19 @@ fun TexnoTelekomApp(
     }
     var deviceBlocked by remember { mutableStateOf(false) }
     var deviceBlockReason by remember { mutableStateOf("") }
+    var accountBlocked by remember { mutableStateOf(false) }
+    var accountBlockReason by remember { mutableStateOf("") }
+    LaunchedEffect(groupAuthReady, isAuthorizedDevice) {
+        val currentUid = FirebaseAuth.getInstance().currentUser?.uid ?: return@LaunchedEffect
+        if (groupAuthReady && !isAuthorizedDevice) {
+            db.collection("blocked_accounts").document(currentUid).get()
+                .addOnSuccessListener { doc ->
+                    accountBlocked = doc.exists()
+                    accountBlockReason = if (doc.exists()) doc.getString("reason").orEmpty() else ""
+                }
+                .addOnFailureListener { accountBlocked = false }
+        }
+    }
     val isAuthorizedDevice = deviceId in ADMIN_DEVICE_IDS
 
     LaunchedEffect(deviceHash, groupAuthReady, isAuthorizedDevice) {
@@ -4686,6 +4700,14 @@ fun TexnoTelekomApp(
                     }
                 )
             }
+            if (accountBlocked) {
+                AlertDialog(
+                    onDismissRequest = { },
+                    title = { Text("Tətbiqə giriş bloklanıb") },
+                    text = { Text("Bu hesabın TEXNO-TELEKOM tətbiqinə girişi admin tərəfindən dayandırılıb.\n\nSəbəb: " + accountBlockReason.ifBlank { "Tətbiq qaydalarının ciddi pozulması" }) },
+                    confirmButton = { }
+                )
+            }
             if (deviceBlocked) {
                 AlertDialog(
                     onDismissRequest = { },
@@ -5021,5 +5043,132 @@ private fun HomeDesignCard(emoji: String, label: String, modifier: Modifier = Mo
                 Text(label, color = Color.White, fontSize = 10.sp, lineHeight = 12.sp, fontWeight = FontWeight.Medium, textAlign = androidx.compose.ui.text.style.TextAlign.Center, modifier = Modifier.fillMaxWidth())
             }
         }
+    }
+}
+
+private data class ModerationEntry(
+    val uid: String,
+    val nickname: String,
+    val reason: String
+)
+
+@Composable
+private fun ModerationAdminPanel() {
+    val db = remember { FirebaseFirestore.getInstance() }
+    val uid = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
+    var accountUid by remember { mutableStateOf("") }
+    var accountName by remember { mutableStateOf("") }
+    var accountReason by remember { mutableStateOf("") }
+    var groupUid by remember { mutableStateOf("") }
+    var groupName by remember { mutableStateOf("") }
+    var groupReason by remember { mutableStateOf("") }
+    var blockedAccounts by remember { mutableStateOf<List<ModerationEntry>>(emptyList()) }
+    var removedGroupUsers by remember { mutableStateOf<List<ModerationEntry>>(emptyList()) }
+    var status by remember { mutableStateOf("") }
+    var loading by remember { mutableStateOf(false) }
+
+    fun refresh() {
+        if (uid != ADMIN_UID) return
+        loading = true
+        db.collection("blocked_accounts").get()
+            .addOnSuccessListener { snap ->
+                blockedAccounts = snap.documents.map { d ->
+                    ModerationEntry(d.id, d.getString("nickname").orEmpty(), d.getString("reason").orEmpty())
+                }
+                db.collection("group_removed_users").get()
+                    .addOnSuccessListener { groupSnap ->
+                        removedGroupUsers = groupSnap.documents.map { d ->
+                            ModerationEntry(d.id, d.getString("nickname").orEmpty(), d.getString("reason").orEmpty())
+                        }
+                        loading = false
+                    }
+                    .addOnFailureListener { loading = false; status = "Qrup siyahısı yüklənmədi: ${it.localizedMessage}" }
+            }
+            .addOnFailureListener { loading = false; status = "Tətbiq siyahısı yüklənmədi: ${it.localizedMessage}" }
+    }
+
+    LaunchedEffect(uid) { refresh() }
+
+    if (uid != ADMIN_UID) return
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+        Text("İSTİFADƏÇİ MƏHDUDİYYƏTLƏRİ", color = Color(0xFFFFD36A), fontWeight = FontWeight.Black)
+        Text("Aşağıdakı iki əməliyyat bir-birindən tam ayrıdır.", color = Color.LightGray, fontSize = 12.sp)
+
+        Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D)), shape = RoundedCornerShape(16.dp)) {
+            Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                Text("📵 TƏTBİQDƏN QOV — hesab girişini bağla", color = Color(0xFFFF8888), fontWeight = FontWeight.Bold)
+                OutlinedTextField(accountUid, { accountUid = it.trim() }, Modifier.fillMaxWidth(), label = { Text("İstifadəçi UID") }, singleLine = true)
+                OutlinedTextField(accountName, { accountName = it }, Modifier.fillMaxWidth(), label = { Text("Ad / ləqəb (istəyə bağlı)") }, singleLine = true)
+                OutlinedTextField(accountReason, { accountReason = it }, Modifier.fillMaxWidth(), label = { Text("Səbəb") }, minLines = 2)
+                Button(
+                    onClick = {
+                        val target = accountUid.trim()
+                        if (target.isBlank() || target == uid) status = "Düzgün istifadəçi UID-si daxil edin."
+                        else db.collection("blocked_accounts").document(target).set(mapOf(
+                            "uid" to target, "nickname" to accountName.trim(),
+                            "reason" to accountReason.trim().ifBlank { "Tətbiq qaydalarının ciddi pozulması" },
+                            "created_at" to FieldValue.serverTimestamp()
+                        )).addOnSuccessListener {
+                            status = "Hesabın tətbiqə girişi bloklandı."
+                            accountUid = ""; accountName = ""; accountReason = ""; refresh()
+                        }.addOnFailureListener { status = "Bloklama alınmadı: ${it.localizedMessage}" }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) { Text("TƏTBİQƏ GİRİŞİ BAĞLA") }
+                Text("Bloklanmış hesablar: ${blockedAccounts.size}", color = Color.White, fontWeight = FontWeight.Bold)
+                blockedAccounts.forEach { item ->
+                    Column(Modifier.fillMaxWidth().background(Color(0xFF202B40), RoundedCornerShape(12.dp)).padding(10.dp)) {
+                        Text(item.nickname.ifBlank { "İstifadəçi" }, color = Color.White, fontWeight = FontWeight.Bold)
+                        Text("UID: ${item.uid}", color = Color.LightGray, fontSize = 10.sp)
+                        Text("Səbəb: ${item.reason}", color = Color(0xFFFFB3B3), fontSize = 12.sp)
+                        OutlinedButton(onClick = {
+                            db.collection("blocked_accounts").document(item.uid).delete()
+                                .addOnSuccessListener { status = "Tətbiqə giriş bərpa edildi."; refresh() }
+                                .addOnFailureListener { status = "Giriş açılmadı: ${it.localizedMessage}" }
+                        }, modifier = Modifier.fillMaxWidth()) { Text("TƏTBİQƏ GİRİŞİ AÇ") }
+                    }
+                }
+            }
+        }
+
+        Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D)), shape = RoundedCornerShape(16.dp)) {
+            Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                Text("🚫 QRUPDAN QOV — yalnız qrupa girişi bağla", color = Color(0xFFFFD36A), fontWeight = FontWeight.Bold)
+                OutlinedTextField(groupUid, { groupUid = it.trim() }, Modifier.fillMaxWidth(), label = { Text("İstifadəçi UID") }, singleLine = true)
+                OutlinedTextField(groupName, { groupName = it }, Modifier.fillMaxWidth(), label = { Text("Ad / ləqəb (istəyə bağlı)") }, singleLine = true)
+                OutlinedTextField(groupReason, { groupReason = it }, Modifier.fillMaxWidth(), label = { Text("Səbəb") }, minLines = 2)
+                Button(
+                    onClick = {
+                        val target = groupUid.trim()
+                        if (target.isBlank() || target == uid) status = "Düzgün istifadəçi UID-si daxil edin."
+                        else db.collection("group_removed_users").document(target).set(mapOf(
+                            "uid" to target, "nickname" to groupName.trim(),
+                            "reason" to groupReason.trim().ifBlank { "Qrup qaydalarının pozulması" },
+                            "removed_at" to FieldValue.serverTimestamp()
+                        )).addOnSuccessListener {
+                            status = "İstifadəçi yalnız qrupdan uzaqlaşdırıldı."
+                            groupUid = ""; groupName = ""; groupReason = ""; refresh()
+                        }.addOnFailureListener { status = "Qrupdan uzaqlaşdırmaq olmadı: ${it.localizedMessage}" }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) { Text("QRUPDAN QOV") }
+                Text("Qrupdan uzaqlaşdırılanlar: ${removedGroupUsers.size}", color = Color.White, fontWeight = FontWeight.Bold)
+                removedGroupUsers.forEach { item ->
+                    Column(Modifier.fillMaxWidth().background(Color(0xFF202B40), RoundedCornerShape(12.dp)).padding(10.dp)) {
+                        Text(item.nickname.ifBlank { "İstifadəçi" }, color = Color.White, fontWeight = FontWeight.Bold)
+                        Text("UID: ${item.uid}", color = Color.LightGray, fontSize = 10.sp)
+                        Text("Səbəb: ${item.reason}", color = Color(0xFFFFD36A), fontSize = 12.sp)
+                        OutlinedButton(onClick = {
+                            db.collection("group_removed_users").document(item.uid).delete()
+                                .addOnSuccessListener { status = "İstifadəçinin qrupa girişi bərpa edildi."; refresh() }
+                                .addOnFailureListener { status = "Qrupa qaytarmaq olmadı: ${it.localizedMessage}" }
+                        }, modifier = Modifier.fillMaxWidth()) { Text("QRUPA QAYTAR") }
+                    }
+                }
+            }
+        }
+        if (loading) CircularProgressIndicator(color = Color(0xFFFFD36A))
+        OutlinedButton(onClick = { refresh() }, modifier = Modifier.fillMaxWidth()) { Text("SİYAHILARI YENİLƏ") }
+        if (status.isNotBlank()) Text(status, color = Color(0xFFFFD36A), fontSize = 12.sp)
     }
 }
