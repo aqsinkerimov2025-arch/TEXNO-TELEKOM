@@ -1112,6 +1112,21 @@ private fun GroupChatScreen(backgroundColor: Color, onClose: () -> Unit, onOpenB
     val auth = FirebaseAuth.getInstance()
     val currentUid = auth.currentUser?.uid.orEmpty()
     val isOwner = auth.currentUser?.uid == ADMIN_UID
+    var removedFromGroup by remember { mutableStateOf(false) }
+    var groupRemovalReason by remember { mutableStateOf("") }
+    DisposableEffect(currentUid) {
+        if (currentUid.isBlank()) onDispose { }
+        else {
+            val removalListener = db.collection("group_removed_users").document(currentUid)
+                .addSnapshotListener { doc, error ->
+                    if (error == null) {
+                        removedFromGroup = doc?.exists() == true
+                        groupRemovalReason = if (doc?.exists() == true) doc.getString("reason").orEmpty() else ""
+                    }
+                }
+            onDispose { removalListener.remove() }
+        }
+    }
 
     DisposableEffect(currentUid) {
         if (currentUid.isBlank()) {
@@ -1589,6 +1604,14 @@ private fun GroupChatScreen(backgroundColor: Color, onClose: () -> Unit, onOpenB
             Text("QRUP QAYDALARI", color = Color(0xFFFFD36A), fontSize = 12.sp, fontWeight = FontWeight.Bold)
         }
         HorizontalDivider(color = Color(0xFF303030))
+        if (removedFromGroup) {
+            AlertDialog(
+                onDismissRequest = { },
+                title = { Text("Qrupdan uzaqlaşdırılmısınız") },
+                text = { Text("Admin bu hesabın qrupda iştirakını dayandırıb.\n\nSəbəb: " + groupRemovalReason.ifBlank { "Qrup qaydalarının pozulması" } + "\n\nQrupa giriş yalnız admin sizi siyahıdan çıxardıqdan sonra bərpa olunacaq.") },
+                confirmButton = { TextButton(onClick = onClose) { Text("BAĞLA") } }
+            )
+        }
         if (showMembersDialog) {
             AlertDialog(
                 onDismissRequest = { showMembersDialog = false },
