@@ -3214,7 +3214,8 @@ fun TexnoTelekomApp(
                     "program_id" to programDocument.id, "name" to rawName,
                     "folder_name" to folderName, "category" to category.trim(),
                     "version" to version.trim(), "download_url" to link.trim(),
-                    "icon_url" to iconUrl, "updated_at" to FieldValue.serverTimestamp()
+                    "icon_url" to iconUrl, "description" to description.trim(),
+                    "file_size" to fileSize.trim(), "updated_at" to FieldValue.serverTimestamp()
                 ), SetOptions.merge()
             )
             newProgramNotice = true
@@ -4382,7 +4383,24 @@ fun TexnoTelekomApp(
                                 DeviceBlockAdminPanel(db)
                             }
                             "program_archive" -> {
-                                if (FirebaseAuth.getInstance().currentUser?.uid == ADMIN_UID) AdminProgramArchivePanel()
+                                if (FirebaseAuth.getInstance().currentUser?.uid == ADMIN_UID) {
+                                    AdminProgramArchivePanel { item ->
+                                        name = item.name
+                                        category = item.category
+                                        version = item.version
+                                        description = item.description
+                                        link = item.downloadUrl
+                                        fileSize = item.fileSize.ifBlank { "0 MB" }
+                                        currentIcon = item.iconUrl
+                                        editingId = item.id
+                                        pickedImage = null
+                                        programSticker = null
+                                        error = ""; message = ""
+                                        selectedBottomTab = 3
+                                        adminPanelAuthenticated = true
+                                        adminEntry = "program"
+                                    }
+                                }
                             }
                             "program" -> {
                                 OutlinedTextField(name, { name = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Proqramın adı") }, colors = fieldColors)
@@ -5224,16 +5242,21 @@ private data class ModerationEntry(
     val reason: String
 )
 
-private data class ArchivedProgram(val id: String, val name: String, val folder: String, val category: String, val version: String, val downloadUrl: String)
+private data class ArchivedProgram(
+    val id: String, val name: String, val folder: String, val category: String,
+    val version: String, val downloadUrl: String, val description: String,
+    val fileSize: String, val iconUrl: String
+)
 
 @Composable
-private fun AdminProgramArchivePanel() {
+private fun AdminProgramArchivePanel(onEdit: (ArchivedProgram) -> Unit) {
     val db = remember { FirebaseFirestore.getInstance() }
     val uid = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
     val context = LocalContext.current
     var entries by remember { mutableStateOf<List<ArchivedProgram>>(emptyList()) }
     var status by remember { mutableStateOf("Arxiv yüklənir...") }
     var selectedFolder by remember { mutableStateOf<String?>(null) }
+    var deleting by remember { mutableStateOf<ArchivedProgram?>(null) }
 
     DisposableEffect(uid) {
         if (uid != ADMIN_UID) onDispose { } else {
@@ -5244,7 +5267,8 @@ private fun AdminProgramArchivePanel() {
                         ArchivedProgram(doc.id, doc.getString("name").orEmpty(),
                             doc.getString("folder_name").orEmpty().ifBlank { doc.getString("name").orEmpty() },
                             doc.getString("category").orEmpty(), doc.getString("version").orEmpty(),
-                            doc.getString("download_url").orEmpty())
+                            doc.getString("download_url").orEmpty(), doc.getString("description").orEmpty(),
+                            doc.getString("file_size").orEmpty(), doc.getString("icon_url").orEmpty())
                     }.sortedBy { it.folder.lowercase() }
                     status = if (entries.isEmpty()) "Arxiv boşdur. Yeni proqram paylaşdıqca burada görünəcək." else ""
                 }
@@ -5277,17 +5301,53 @@ private fun AdminProgramArchivePanel() {
             Text(selectedFolder.orEmpty(), color = Color(0xFFFFD36A), fontWeight = FontWeight.Bold)
             entries.filter { it.folder == selectedFolder }.forEach { item ->
                 Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D)), shape = RoundedCornerShape(14.dp)) {
-                    Column(Modifier.fillMaxWidth().padding(13.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                    Column(Modifier.fillMaxWidth().padding(13.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
                         Text(item.name, color = Color.White, fontWeight = FontWeight.Bold)
                         Text("${item.category}  ${item.version}".trim(), color = Color(0xFFB8C5DC), fontSize = 12.sp)
-                        if (item.downloadUrl.isNotBlank()) OutlinedButton(onClick = {
-                            try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(item.downloadUrl))) } catch (_: Exception) { }
-                        }, modifier = Modifier.fillMaxWidth()) { Text("YÜKLƏ / AÇ") }
-                        else Text("Yükləmə linki əlavə edilməyib.", color = Color(0xFFFFD36A), fontSize = 12.sp)
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            OutlinedButton(
+                                onClick = {
+                                    if (item.downloadUrl.isBlank()) status = "Bu proqram üçün yükləmə linki yoxdur."
+                                    else try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(item.downloadUrl))) }
+                                    catch (_: Exception) { status = "Link açıla bilmədi." }
+                                }, modifier = Modifier.weight(1f)
+                            ) { Text("YÜKLƏ") }
+                            OutlinedButton(onClick = { onEdit(item) }, modifier = Modifier.weight(1f)) {
+                                Icon(Icons.Default.Edit, contentDescription = null)
+                                Text(" REDAKTƏ ET")
+                            }
+                            OutlinedButton(
+                                onClick = { deleting = item }, modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFF7777))
+                            ) {
+                                Icon(Icons.Default.Delete, contentDescription = null)
+                                Text(" SİL")
+                            }
+                        }
                     }
                 }
             }
         }
+        if (status.isNotBlank()) Text(status, color = Color(0xFFFFD36A), fontSize = 12.sp)
+    }
+    deleting?.let { item ->
+        AlertDialog(
+            onDismissRequest = { deleting = null },
+            title = { Text("Proqram silinsin?") },
+            text = { Text("${item.name} həm arxivdən, həm də proqram siyahısından silinəcək.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    db.collection("programs").document(item.id).delete()
+                        .addOnSuccessListener {
+                            db.collection("admin_program_archive").document(item.id).delete()
+                                .addOnSuccessListener { status = "Proqram silindi."; deleting = null }
+                                .addOnFailureListener { status = "Arxivdən silinmədi: ${it.localizedMessage}" }
+                        }
+                        .addOnFailureListener { status = "Proqram silinmədi: ${it.localizedMessage}" }
+                }) { Text("SİL", color = Color(0xFFFF7777)) }
+            },
+            dismissButton = { TextButton(onClick = { deleting = null }) { Text("LƏĞV ET") } }
+        )
     }
 }
 
