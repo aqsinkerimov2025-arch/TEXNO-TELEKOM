@@ -2594,9 +2594,9 @@ fun TexnoTelekomApp(
         }
     }
     var loggedIn by remember { mutableStateOf(false) }
-    var adminStartupUnlocked by remember { mutableStateOf(!isAuthorizedDevice) }
+    var adminStartupUnlocked by remember { mutableStateOf(true) }
     var adminPanelAuthenticated by remember { mutableStateOf(false) }
-    var showAdminLoginDialog by remember { mutableStateOf(isAuthorizedDevice) }
+    var showAdminLoginDialog by remember { mutableStateOf(false) }
     var adminLoginPurpose by remember { mutableStateOf("startup") }
     var adminUsernameInput by remember { mutableStateOf(context.getSharedPreferences("texno_admin_login", Context.MODE_PRIVATE).getString("username", "") ?: "") }
     var adminPasswordInput by remember { mutableStateOf("") }
