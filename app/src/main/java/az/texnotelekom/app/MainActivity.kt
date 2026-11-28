@@ -2347,13 +2347,10 @@ fun TexnoTelekomApp(
                         readTimeout = 8000
                         setRequestProperty("Accept", "application/vnd.github+json")
                         setRequestProperty("User-Agent", "TEXNO-TELEKOM-Android")
-                        cache.getString("etag", null)?.let { setRequestProperty("If-None-Match", it) }
+                        setRequestProperty("Cache-Control", "no-cache")
                     }
                     val responseCode = connection.responseCode
-                    val jsonText = if (responseCode == HttpURLConnection.HTTP_NOT_MODIFIED) {
-                        cache.getString("release_json", null) ?: throw Exception("Yeniləmə məlumatı keşdə yoxdur.")
-                    } else if (responseCode in 200..299) {
-                        connection.getHeaderField("ETag")?.let { cache.edit().putString("etag", it).apply() }
+                    val jsonText = if (responseCode in 200..299) {
                         connection.inputStream.bufferedReader().use { it.readText() }.also {
                             cache.edit().putString("release_json", it).putLong("retry_after", 0L).apply()
                         }
@@ -2361,7 +2358,7 @@ fun TexnoTelekomApp(
                         if (responseCode == 403 || responseCode == 429) {
                             cache.edit().putLong("retry_after", System.currentTimeMillis() + 60_000L).apply()
                         }
-                        throw Exception("GitHub API cavabı: $responseCode")
+                        throw Exception("GitHub server cavabı: $responseCode")
                     }
                     connection.disconnect()
                     val json = JSONObject(jsonText)
@@ -2408,7 +2405,12 @@ fun TexnoTelekomApp(
                         updateCheckInProgress = false
                         if (manualCheck) {
                             updateCheckResult = null
-                            updateCheckMessage = "Yeniləməni yoxlamaq mümkün olmadı. İnternet bağlantınızı yoxlayıb yenidən cəhd edin."
+                            val reason = e.message?.takeIf { it.isNotBlank() } ?: e.javaClass.simpleName
+                            updateCheckMessage = if (e is java.net.UnknownHostException || e is java.net.SocketTimeoutException || e is java.net.ConnectException) {
+                                "İnternet bağlantısı qurulmadı. Bağlantını yoxlayıb yenidən cəhd edin."
+                            } else {
+                                "Yeniləmə serverindən cavab alınmadı: $reason"
+                            }
                             showUpdateCheckDialog = true
                         }
                     }
