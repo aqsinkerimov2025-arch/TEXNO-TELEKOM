@@ -2525,6 +2525,10 @@ fun TexnoTelekomApp(
     var phoneInfoBusy by remember { mutableStateOf(false) }
     var pendingDeletePhoneInfoId by remember { mutableStateOf<String?>(null) }
     var pendingDeletePhoneInfoTitle by remember { mutableStateOf("") }
+    var editingPhoneInfoId by remember { mutableStateOf<String?>(null) }
+    var editingPhoneInfoImageUrl by remember { mutableStateOf("") }
+    var editingPhoneInfoStickerUrl by remember { mutableStateOf("") }
+    var editingPhoneInfoStickerMime by remember { mutableStateOf("") }
     var adminOpen by remember { mutableStateOf(false) }
     var showGroupManagementAdmin by remember { mutableStateOf(false) }
     BackHandler(enabled = adminOpen && !showGroupManagementAdmin) { adminOpen = false }
@@ -2994,32 +2998,40 @@ fun TexnoTelekomApp(
     var phoneInfoStickerMimePending by remember { mutableStateOf("") }
 
     fun publishPhoneInfo(imageUrl: String) {
+        val editId = editingPhoneInfoId
         val values = hashMapOf<String, Any>(
             "title" to phoneInfoTitle.trim().ifBlank { "TEXNO-MƏLUMAT" },
             "body" to phoneInfoBody.trim(),
-            "image_url" to imageUrl,
-            "sticker_url" to phoneInfoStickerUrlPending,
-            "sticker_mime" to phoneInfoStickerMimePending,
+            "image_url" to imageUrl.ifBlank { editingPhoneInfoImageUrl },
+            "sticker_url" to phoneInfoStickerUrlPending.ifBlank { editingPhoneInfoStickerUrl },
+            "sticker_mime" to phoneInfoStickerMimePending.ifBlank { editingPhoneInfoStickerMime },
             "created_at" to FieldValue.serverTimestamp()
         )
-        db.collection("phone_information").add(values)
-            .addOnSuccessListener {
+        val write = if (editId != null) db.collection("phone_information").document(editId).set(values, SetOptions.merge())
+            else db.collection("phone_information").add(values)
+        write.addOnSuccessListener {
                 phoneInfoTitle = ""
                 phoneInfoBody = ""
                 phoneInfoImage = null
                 phoneInfoSticker = null
                 phoneInfoStickerUrlPending = ""
                 phoneInfoStickerMimePending = ""
+                editingPhoneInfoId = null
+                editingPhoneInfoImageUrl = ""
+                editingPhoneInfoStickerUrl = ""
+                editingPhoneInfoStickerMime = ""
                 phoneInfoBusy = false
-                newPhoneInfoNotice = true
-                db.collection("app_notifications")
-                    .add(hashMapOf("type" to "phone_info", "title" to "Yeni TEXNO-MƏLUMAT paylaşımı", "body" to "Yeni məlumat paylaşıldı. Tətbiqə daxil olub baxın.", "created_at" to FieldValue.serverTimestamp()))
-                    .addOnSuccessListener { triggerInstantPush() }
-                message = "TEXNO-MƏLUMAT bölməsində paylaşıldı."
+                if (editId == null) {
+                    newPhoneInfoNotice = true
+                    db.collection("app_notifications")
+                        .add(hashMapOf("type" to "phone_info", "title" to "Yeni TEXNO-MƏLUMAT paylaşımı", "body" to "Yeni məlumat paylaşıldı. Tətbiqə daxil olub baxın.", "created_at" to FieldValue.serverTimestamp()))
+                        .addOnSuccessListener { triggerInstantPush() }
+                    message = "TEXNO-MƏLUMAT bölməsində paylaşıldı."
+                } else message = "TEXNO-MƏLUMAT yeniləndi."
             }
             .addOnFailureListener {
                 phoneInfoBusy = false
-                error = "Paylaşmaq alınmadı: ${it.localizedMessage}"
+                error = "Yadda saxlamaq alınmadı: ${it.localizedMessage}"
             }
     }
 
@@ -3925,17 +3937,42 @@ fun TexnoTelekomApp(
                                 if (info.body.isNotBlank()) Text(info.body, color = Color.White, fontSize = 15.sp, lineHeight = 22.sp)
                                 if (info.stickerUrl.isNotBlank()) AsyncImage(model = info.stickerUrl, contentDescription = "Stiker", modifier = Modifier.size(120.dp), contentScale = ContentScale.Fit)
                                 if (loggedIn && isAuthorizedDevice) {
-                                    OutlinedButton(
-                                        onClick = {
-                                            pendingDeletePhoneInfoId = info.id
-                                            pendingDeletePhoneInfoTitle = info.title.ifBlank { "Adsız paylaşım" }
-                                        },
-                                        modifier = Modifier.fillMaxWidth(),
-                                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFF7777))
-                                    ) {
-                                        Icon(Icons.Default.Delete, contentDescription = null)
-                                        Spacer(Modifier.width(6.dp))
-                                        Text("SİL")
+                                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                        OutlinedButton(
+                                            onClick = {
+                                                phoneInfoTitle = info.title
+                                                phoneInfoBody = info.body
+                                                phoneInfoImage = null
+                                                phoneInfoSticker = null
+                                                editingPhoneInfoId = info.id
+                                                editingPhoneInfoImageUrl = info.imageUrl
+                                                editingPhoneInfoStickerUrl = info.stickerUrl
+                                                editingPhoneInfoStickerMime = info.stickerMime
+                                                phoneInfoStickerUrlPending = info.stickerUrl
+                                                phoneInfoStickerMimePending = info.stickerMime
+                                                adminEntry = "info"
+                                                selectedBottomTab = 3
+                                                showPhoneInfoFeed = false
+                                                error = ""; message = ""
+                                            },
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            Icon(Icons.Default.Edit, contentDescription = null)
+                                            Spacer(Modifier.width(6.dp))
+                                            Text("REDAKTƏ ET")
+                                        }
+                                        OutlinedButton(
+                                            onClick = {
+                                                pendingDeletePhoneInfoId = info.id
+                                                pendingDeletePhoneInfoTitle = info.title.ifBlank { "Adsız paylaşım" }
+                                            },
+                                            modifier = Modifier.weight(1f),
+                                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFF7777))
+                                        ) {
+                                            Icon(Icons.Default.Delete, contentDescription = null)
+                                            Spacer(Modifier.width(6.dp))
+                                            Text("SİL")
+                                        }
                                     }
                                 }
                             }
@@ -4337,7 +4374,8 @@ fun TexnoTelekomApp(
                                 OutlinedTextField(phoneInfoBody, { phoneInfoBody = it }, modifier = Modifier.fillMaxWidth(), minLines = 5, label = { Text("Məlumat mətni") }, colors = fieldColors)
                                 OutlinedButton(onClick = { phoneInfoImagePicker.launch("image/*") }, modifier = Modifier.fillMaxWidth()) { Text(if (phoneInfoImage == null) "Şəkil əlavə et" else "Şəkil seçildi") }
                                 OutlinedButton(onClick = { phoneStickerPicker.launch("*/*") }, modifier = Modifier.fillMaxWidth()) { Text(if (phoneInfoSticker == null) "Stiker əlavə et (istəyə bağlı)" else "Stiker seçildi") }
-                                Button(onClick = { savePhoneInfo() }, enabled = !phoneInfoBusy, modifier = Modifier.fillMaxWidth()) { Text(if (phoneInfoBusy) "Paylaşılır..." else "TEXNO-MƏLUMATI paylaş") }
+                                Button(onClick = { savePhoneInfo() }, enabled = !phoneInfoBusy, modifier = Modifier.fillMaxWidth()) { Text(if (phoneInfoBusy) "Yadda saxlanılır..." else if (editingPhoneInfoId != null) "DƏYİŞİKLİKLƏRİ YADDA SAXLA" else "TEXNO-MƏLUMATI paylaş") }
+                                if (editingPhoneInfoId != null) TextButton(onClick = { editingPhoneInfoId = null; phoneInfoTitle = ""; phoneInfoBody = ""; phoneInfoImage = null; phoneInfoSticker = null; editingPhoneInfoImageUrl = ""; editingPhoneInfoStickerUrl = ""; editingPhoneInfoStickerMime = "" }) { Text("REDaktəni ləğv et") }
                             }
                         }
                         if (error.isNotBlank()) Text(error, color = Color(0xFFFF7777), fontSize = 13.sp)
