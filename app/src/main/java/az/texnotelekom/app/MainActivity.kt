@@ -4801,7 +4801,7 @@ fun TexnoTelekomApp(
                     ) {
                         weeklyHitPrograms.forEach { app ->
                             Card(
-                                modifier = Modifier.width(120.dp).height(195.dp).clickable { weeklyHitDetails = app },
+                                modifier = Modifier.width(120.dp).height(210.dp).clickable { weeklyHitDetails = app },
                                 shape = RoundedCornerShape(11.dp),
                                 colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))
                             ) {
@@ -4833,8 +4833,8 @@ fun TexnoTelekomApp(
                                                 try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(app.downloadUrl))) }
                                                 catch (_: Exception) { error = "Yükləmə linki açıla bilmədi." }
                                             },
-                                            modifier = Modifier.fillMaxWidth().height(30.dp),
-                                            contentPadding = PaddingValues(horizontal = 2.dp, vertical = 2.dp)
+                                            modifier = Modifier.fillMaxWidth().height(40.dp),
+                                            contentPadding = PaddingValues(horizontal = 2.dp, vertical = 4.dp)
                                         ) { Text("Yüklə", fontSize = 9.sp, maxLines = 1) }
                                     }
                                 }
