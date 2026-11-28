@@ -2354,10 +2354,38 @@ fun TexnoTelekomApp(
                         connection.inputStream.bufferedReader().use { it.readText() }.also {
                             cache.edit().putString("release_json", it).putLong("retry_after", 0L).apply()
                         }
-                    } else {
-                        if (responseCode == 403 || responseCode == 429) {
-                            cache.edit().putLong("retry_after", System.currentTimeMillis() + 60_000L).apply()
+                    } else if (responseCode == 403 || responseCode == 429) {
+                        // GitHub API limitinə düşəndə eyni məlumatı Releases Atom lentindən al.
+                        connection.disconnect()
+                        val feedConnection = (URL("https://github.com/aqsinkerimov2025-arch/TEXNO-TELEKOM/releases.atom").openConnection() as HttpURLConnection).apply {
+                            connectTimeout = 10000
+                            readTimeout = 10000
+                            setRequestProperty("User-Agent", "TEXNO-TELEKOM-Android")
+                            setRequestProperty("Accept", "application/atom+xml")
                         }
+                        val feedCode = feedConnection.responseCode
+                        if (feedCode !in 200..299) {
+                            feedConnection.disconnect()
+                            throw Exception("GitHub yeniləmə mənbəyi cavab vermədi: $feedCode")
+                        }
+                        val feed = feedConnection.inputStream.bufferedReader().use { it.readText() }
+                        feedConnection.disconnect()
+                        val tag = Regex("""<link[^>]+href="https://github\\.com/aqsinkerimov2025-arch/TEXNO-TELEKOM/releases/tag/([^"]+)"""")
+                            .find(feed)?.groupValues?.get(1)
+                            ?: throw Exception("GitHub son buraxılışını tapmaq olmadı.")
+                        val releaseTitle = Regex("""<title>(?:<!\\[CDATA\\[)?(.*?)(?:]]>)?</title>""")
+                            .find(feed)?.groupValues?.get(1)?.replace("&amp;", "&")?.trim()
+                            ?: "TEXNO-TELEKOM"
+                        JSONObject()
+                            .put("tag_name", tag)
+                            .put("name", releaseTitle)
+                            .put("body", "Yeni versiya və yeniliklər mövcuddur.")
+                            .put("assets", org.json.JSONArray().put(
+                                JSONObject()
+                                    .put("name", "TEXNO-TELEKOM.apk")
+                                    .put("browser_download_url", "https://github.com/aqsinkerimov2025-arch/TEXNO-TELEKOM/releases/download/$tag/TEXNO-TELEKOM.apk")
+                            )).toString()
+                    } else {
                         throw Exception("GitHub server cavabı: $responseCode")
                     }
                     connection.disconnect()
