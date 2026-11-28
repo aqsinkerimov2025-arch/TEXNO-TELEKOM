@@ -3956,7 +3956,7 @@ fun TexnoTelekomApp(
                         Text("TEXNO-MƏLUMAT", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Black)
                     }
                     if (phoneInfos.isEmpty()) Text("Hələ TEXNO-MƏLUMAT paylaşılmayıb.", color = Color(0xFFCBD6EB), modifier = Modifier.fillMaxWidth().padding(vertical = 28.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-                    if (pendingDeletePhoneInfoId != null && loggedIn && FirebaseAuth.getInstance().currentUser?.uid == ADMIN_UID) {
+                    if (pendingDeletePhoneInfoId != null && FirebaseAuth.getInstance().currentUser?.uid == ADMIN_UID) {
                         AlertDialog(
                             onDismissRequest = { pendingDeletePhoneInfoId = null; pendingDeletePhoneInfoTitle = "" },
                             title = { Text("TEXNO-MƏLUMAT paylaşımını sil") },
@@ -3985,7 +3985,7 @@ fun TexnoTelekomApp(
                                 if (info.imageUrl.isNotBlank()) AsyncImage(model = info.imageUrl, contentDescription = info.title, modifier = Modifier.fillMaxWidth().heightIn(max = 240.dp).clip(RoundedCornerShape(12.dp)), contentScale = ContentScale.Fit)
                                 if (info.body.isNotBlank()) Text(info.body, color = Color.White, fontSize = 15.sp, lineHeight = 22.sp)
                                 if (info.stickerUrl.isNotBlank()) AsyncImage(model = info.stickerUrl, contentDescription = "Stiker", modifier = Modifier.size(120.dp), contentScale = ContentScale.Fit)
-                                if (loggedIn && FirebaseAuth.getInstance().currentUser?.uid == ADMIN_UID) {
+                                if (FirebaseAuth.getInstance().currentUser?.uid == ADMIN_UID) {
                                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                                         OutlinedButton(
                                             onClick = {
@@ -4038,7 +4038,7 @@ fun TexnoTelekomApp(
                         Text(heading, color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Black)
                     }
                     if (listing.isEmpty()) Text(if (showGames) "Hələ oyun əlavə edilməyib." else "Hələ proqram əlavə edilməyib.", color = Color(0xFFCBD6EB), modifier = Modifier.fillMaxWidth().padding(vertical = 28.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-                    if (pendingDeleteProgramId != null && loggedIn && FirebaseAuth.getInstance().currentUser?.uid == ADMIN_UID) {
+                    if (pendingDeleteProgramId != null && FirebaseAuth.getInstance().currentUser?.uid == ADMIN_UID) {
                         AlertDialog(
                             onDismissRequest = { pendingDeleteProgramId = null; pendingDeleteProgramName = "" },
                             title = { Text("Proqramı sil") },
@@ -4087,7 +4087,7 @@ fun TexnoTelekomApp(
                                     enabled = app.downloadUrl.isNotBlank(),
                                     modifier = Modifier.fillMaxWidth()
                                 ) { Text("YÜKLƏ") }
-                                if (loggedIn && FirebaseAuth.getInstance().currentUser?.uid == ADMIN_UID) {
+                                if (FirebaseAuth.getInstance().currentUser?.uid == ADMIN_UID) {
                                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                                         OutlinedButton(
                                             onClick = {
@@ -4379,7 +4379,7 @@ fun TexnoTelekomApp(
                                     Text("📵  Telefon bloklaması", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(18.dp))
                                 }
                             }
-                            if (loggedIn && FirebaseAuth.getInstance().currentUser?.uid == ADMIN_UID) {
+                            if (FirebaseAuth.getInstance().currentUser?.uid == ADMIN_UID) {
                                 Card(
                                     modifier = Modifier.fillMaxWidth().clickable { adminEntry = "program_archive" },
                                     shape = RoundedCornerShape(18.dp),
