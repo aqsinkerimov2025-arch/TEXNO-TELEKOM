@@ -3198,6 +3198,25 @@ fun TexnoTelekomApp(
         if (id == null) values["created_at"] = FieldValue.serverTimestamp()
         val programDocument = if (id == null) db.collection("programs").document() else db.collection("programs").document(id)
         programDocument.set(values, SetOptions.merge()).addOnSuccessListener {
+            val rawName = name.trim()
+            val normalized = rawName.lowercase(java.util.Locale.ROOT)
+            val folderName = when {
+                "whatsapp" in normalized -> "WhatsApp"
+                "telegram" in normalized -> "Telegram"
+                "instagram" in normalized -> "Instagram"
+                "facebook" in normalized -> "Facebook"
+                "tiktok" in normalized -> "TikTok"
+                "youtube" in normalized -> "YouTube"
+                else -> rawName
+            }
+            db.collection("admin_program_archive").document(programDocument.id).set(
+                mapOf(
+                    "program_id" to programDocument.id, "name" to rawName,
+                    "folder_name" to folderName, "category" to category.trim(),
+                    "version" to version.trim(), "download_url" to link.trim(),
+                    "icon_url" to iconUrl, "updated_at" to FieldValue.serverTimestamp()
+                ), SetOptions.merge()
+            )
             newProgramNotice = true
             db.collection("app_notifications").add(hashMapOf(
                 "type" to "program",
@@ -4333,6 +4352,13 @@ fun TexnoTelekomApp(
                             }
                             if (loggedIn && FirebaseAuth.getInstance().currentUser?.uid == ADMIN_UID) {
                                 Card(
+                                    modifier = Modifier.fillMaxWidth().clickable { adminEntry = "program_archive" },
+                                    shape = RoundedCornerShape(18.dp),
+                                    colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))
+                                ) {
+                                    Text("🗂️  Proqram arxivi", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(18.dp))
+                                }
+                                Card(
                                     modifier = Modifier.fillMaxWidth().clickable { adminEntry = "moderation" },
                                     shape = RoundedCornerShape(18.dp),
                                     colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))
@@ -4354,6 +4380,9 @@ fun TexnoTelekomApp(
                             }
                             "device_blocking" -> {
                                 DeviceBlockAdminPanel(db)
+                            }
+                            "program_archive" -> {
+                                if (FirebaseAuth.getInstance().currentUser?.uid == ADMIN_UID) AdminProgramArchivePanel()
                             }
                             "program" -> {
                                 OutlinedTextField(name, { name = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Proqramın adı") }, colors = fieldColors)
@@ -5194,6 +5223,73 @@ private data class ModerationEntry(
     val nickname: String,
     val reason: String
 )
+
+private data class ArchivedProgram(val id: String, val name: String, val folder: String, val category: String, val version: String, val downloadUrl: String)
+
+@Composable
+private fun AdminProgramArchivePanel() {
+    val db = remember { FirebaseFirestore.getInstance() }
+    val uid = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
+    val context = LocalContext.current
+    var entries by remember { mutableStateOf<List<ArchivedProgram>>(emptyList()) }
+    var status by remember { mutableStateOf("Arxiv yüklənir...") }
+    var selectedFolder by remember { mutableStateOf<String?>(null) }
+
+    DisposableEffect(uid) {
+        if (uid != ADMIN_UID) onDispose { } else {
+            val registration = db.collection("admin_program_archive").addSnapshotListener { snapshot, error ->
+                if (error != null) status = "Arxiv yüklənmədi: ${error.localizedMessage}"
+                else {
+                    entries = snapshot?.documents.orEmpty().map { doc ->
+                        ArchivedProgram(doc.id, doc.getString("name").orEmpty(),
+                            doc.getString("folder_name").orEmpty().ifBlank { doc.getString("name").orEmpty() },
+                            doc.getString("category").orEmpty(), doc.getString("version").orEmpty(),
+                            doc.getString("download_url").orEmpty())
+                    }.sortedBy { it.folder.lowercase() }
+                    status = if (entries.isEmpty()) "Arxiv boşdur. Yeni proqram paylaşdıqca burada görünəcək." else ""
+                }
+            }
+            onDispose { registration.remove() }
+        }
+    }
+    if (uid != ADMIN_UID) return
+    val folders = entries.groupBy { it.folder }.toSortedMap(String.CASE_INSENSITIVE_ORDER)
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text("PROQRAM ARXİVİ", color = Color(0xFFFFD36A), fontWeight = FontWeight.Black, fontSize = 18.sp)
+        Text("Paylaşdığın proqramlar adına uyğun qovluqlarda avtomatik saxlanılır.", color = Color(0xFFCBD6EB), fontSize = 12.sp)
+        if (selectedFolder == null) {
+            if (folders.isEmpty()) Text(status, color = Color.LightGray, fontSize = 13.sp)
+            folders.forEach { (folder, items) ->
+                Card(Modifier.fillMaxWidth().clickable { selectedFolder = folder },
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D)), shape = RoundedCornerShape(16.dp)) {
+                    Row(Modifier.fillMaxWidth().padding(15.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text("📁", fontSize = 28.sp)
+                        Column(Modifier.weight(1f).padding(start = 12.dp)) {
+                            Text(folder, color = Color.White, fontWeight = FontWeight.Bold)
+                            Text("${items.size} proqram", color = Color(0xFFB8C5DC), fontSize = 12.sp)
+                        }
+                        Text("›", color = Color.White, fontSize = 26.sp)
+                    }
+                }
+            }
+        } else {
+            TextButton(onClick = { selectedFolder = null }) { Text("‹ Bütün qovluqlar") }
+            Text(selectedFolder.orEmpty(), color = Color(0xFFFFD36A), fontWeight = FontWeight.Bold)
+            entries.filter { it.folder == selectedFolder }.forEach { item ->
+                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D)), shape = RoundedCornerShape(14.dp)) {
+                    Column(Modifier.fillMaxWidth().padding(13.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                        Text(item.name, color = Color.White, fontWeight = FontWeight.Bold)
+                        Text("${item.category}  ${item.version}".trim(), color = Color(0xFFB8C5DC), fontSize = 12.sp)
+                        if (item.downloadUrl.isNotBlank()) OutlinedButton(onClick = {
+                            try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(item.downloadUrl))) } catch (_: Exception) { }
+                        }, modifier = Modifier.fillMaxWidth()) { Text("YÜKLƏ / AÇ") }
+                        else Text("Yükləmə linki əlavə edilməyib.", color = Color(0xFFFFD36A), fontSize = 12.sp)
+                    }
+                }
+            }
+        }
+    }
+}
 
 @Composable
 private fun ModerationAdminPanel() {
