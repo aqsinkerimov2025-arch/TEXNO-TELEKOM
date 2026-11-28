@@ -2370,10 +2370,10 @@ fun TexnoTelekomApp(
                         }
                         val feed = feedConnection.inputStream.bufferedReader().use { it.readText() }
                         feedConnection.disconnect()
-                        val tag = Regex("""<link[^>]+href="https://github\\.com/aqsinkerimov2025-arch/TEXNO-TELEKOM/releases/tag/([^"]+)"""")
+                        val tag = Regex("""<link[^>]+href="https://github\.com/aqsinkerimov2025-arch/TEXNO-TELEKOM/releases/tag/([^"]+)"""")
                             .find(feed)?.groupValues?.get(1)
                             ?: throw Exception("GitHub son buraxılışını tapmaq olmadı.")
-                        val releaseTitle = Regex("""<title>(?:<!\\[CDATA\\[)?(.*?)(?:]]>)?</title>""")
+                        val releaseTitle = Regex("""<title>(?:<!\[CDATA\[)?(.*?)(?:]]>)?</title>""")
                             .find(feed)?.groupValues?.get(1)?.replace("&amp;", "&")?.trim()
                             ?: "TEXNO-TELEKOM"
                         JSONObject()
@@ -2420,7 +2420,7 @@ fun TexnoTelekomApp(
                             updateCheckInProgress = false
                             if (manualCheck) {
                                 updateCheckResult = null
-                                updateCheckMessage = "Tətbiqin versiyası son versiyadır. (Versiya: $currentName)"
+                                updateCheckMessage = "Yeni güncəlləmə tapılmadı. Tətbiqin son versiyası: $currentName"
                                 showUpdateCheckDialog = true
                             }
                         }
