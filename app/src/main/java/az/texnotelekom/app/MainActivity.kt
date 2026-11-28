@@ -2276,9 +2276,10 @@ fun TexnoTelekomApp(
     var designPanelHex by remember { mutableStateOf("#111A2C") }
     var designAccentHex by remember { mutableStateOf("#168BFF") }
     var designGoldCards by remember { mutableStateOf(true) }
-    val liveBg = remoteColor(designBgHex, bg)
-    val livePanel = remoteColor(designPanelHex, panel)
-    val liveAccent = remoteColor(designAccentHex, accent)
+    val selectedPalette = appearancePalettes.firstOrNull { it.first == appearanceChoice }?.third
+    val liveBg = remoteColor(selectedPalette?.first ?: designBgHex, bg)
+    val livePanel = remoteColor(selectedPalette?.second ?: designPanelHex, panel)
+    val liveAccent = remoteColor(selectedPalette?.third ?: designAccentHex, accent)
 
     LaunchedEffect(Unit) {
         val auth = FirebaseAuth.getInstance()
@@ -2460,6 +2461,17 @@ fun TexnoTelekomApp(
     var showSecurity by remember { mutableStateOf(false) }
     var showSettings by remember { mutableStateOf(false) }
     var settingsSelected by remember { mutableStateOf<String?>(null) }
+    val appearancePrefs = context.getSharedPreferences("texno_telekom", Context.MODE_PRIVATE)
+    var appearanceChoice by remember { mutableStateOf(appearancePrefs.getString("appearance_palette", "classic") ?: "classic") }
+    val appearancePalettes = listOf(
+        Triple("classic", "Standart", Triple("#050A18", "#111A2C", "#168BFF")),
+        Triple("purple", "Bənövşəyi", Triple("#160B27", "#291541", "#B66CFF")),
+        Triple("green", "Yaşıl", Triple("#071B13", "#123426", "#38D98A")),
+        Triple("red", "Qırmızı", Triple("#1B090D", "#35141D", "#FF526B")),
+        Triple("blue", "Mavi", Triple("#06152A", "#102B49", "#48A9FF")),
+        Triple("light", "Açıq", Triple("#F2F5F9", "#FFFFFF", "#2563EB"))
+    )
+
 
     var notificationProgramId by remember { mutableStateOf<String?>(null) }
     val notificationItemBringIntoView = remember { BringIntoViewRequester() }
@@ -3385,7 +3397,29 @@ fun TexnoTelekomApp(
                                     Text("Tətbiq versiyası: $appVersion", color = Color.White, fontSize = 14.sp)
                                 }
                                 "Bildirişlər" -> Text("Bildiriş icazəsini telefonunuzun Ayarlar → Tətbiqlər → TEXNO-TELEKOM → Bildirişlər bölməsindən idarə edə bilərsiniz.", color = Color.White, fontSize = 14.sp, lineHeight = 22.sp)
-                                "Görünüş" -> Text("TEXNO-TELEKOM hazırda tünd rəngli interfeysdən istifadə edir. Bu görünüş rahat oxunuş üçün hazırlanıb.", color = Color.White, fontSize = 14.sp, lineHeight = 22.sp)
+                                "Görünüş" -> {
+                                    Text("Tətbiqin rəng dizaynını seçin. Seçim bu telefonda yadda saxlanılır.", color = Color.White, fontSize = 14.sp, lineHeight = 22.sp)
+                                    appearancePalettes.forEach { option ->
+                                        val colors = option.third
+                                        Row(
+                                            Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp))
+                                                .background(remoteColor(colors.second, panel))
+                                                .border(if (appearanceChoice == option.first) 2.dp else 1.dp, remoteColor(colors.third, accent), RoundedCornerShape(16.dp))
+                                                .clickable {
+                                                    appearanceChoice = option.first
+                                                    appearancePrefs.edit().putString("appearance_palette", option.first).apply()
+                                                }.padding(14.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Box(Modifier.size(42.dp).clip(CircleShape).background(remoteColor(colors.third, accent)))
+                                            Column(Modifier.weight(1f).padding(start = 12.dp)) {
+                                                Text(option.second, color = if (option.first == "light") Color(0xFF111827) else Color.White, fontWeight = FontWeight.Bold)
+                                                Text("Tətbiq rəngləri", color = if (option.first == "light") Color(0xFF475569) else Color.LightGray, fontSize = 12.sp)
+                                            }
+                                            if (appearanceChoice == option.first) Text("✓", color = remoteColor(colors.third, accent), fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
