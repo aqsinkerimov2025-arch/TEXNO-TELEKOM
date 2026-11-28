@@ -2355,27 +2355,49 @@ fun TexnoTelekomApp(
                             cache.edit().putString("release_json", it).putLong("retry_after", 0L).apply()
                         }
                     } else if (responseCode == 403 || responseCode == 429) {
-                        // GitHub API limitinə düşəndə eyni məlumatı Releases Atom lentindən al.
+                        // API limitinə düşəndə əvvəl Atom lentini, sonra Releases səhifəsini yoxla.
                         connection.disconnect()
-                        val feedConnection = (URL("https://github.com/aqsinkerimov2025-arch/TEXNO-TELEKOM/releases.atom").openConnection() as HttpURLConnection).apply {
-                            connectTimeout = 10000
-                            readTimeout = 10000
-                            setRequestProperty("User-Agent", "TEXNO-TELEKOM-Android")
-                            setRequestProperty("Accept", "application/atom+xml")
-                        }
-                        val feedCode = feedConnection.responseCode
-                        if (feedCode !in 200..299) {
+                        var tag = ""
+                        var releaseTitle = "TEXNO-TELEKOM"
+                        try {
+                            val feedConnection = (URL("https://github.com/aqsinkerimov2025-arch/TEXNO-TELEKOM/releases.atom").openConnection() as HttpURLConnection).apply {
+                                connectTimeout = 10000
+                                readTimeout = 10000
+                                instanceFollowRedirects = true
+                                setRequestProperty("User-Agent", "Mozilla/5.0 TEXNO-TELEKOM-Android")
+                                setRequestProperty("Accept", "application/atom+xml,application/xml,text/xml")
+                            }
+                            val feedCode = feedConnection.responseCode
+                            if (feedCode in 200..299) {
+                                val feed = feedConnection.inputStream.bufferedReader().use { it.readText() }
+                                tag = Regex("""<link[^>]+href="https://github\\.com/aqsinkerimov2025-arch/TEXNO-TELEKOM/releases/tag/([^"]+)"""")
+                                    .find(feed)?.groupValues?.get(1).orEmpty()
+                                releaseTitle = Regex("""<title>(?:<!\\[CDATA\\[)?(.*?)(?:]]>)?</title>""")
+                                    .find(feed)?.groupValues?.get(1)?.replace("&amp;", "&")?.trim() ?: releaseTitle
+                            }
                             feedConnection.disconnect()
-                            throw Exception("GitHub yeniləmə mənbəyi cavab vermədi: $feedCode")
+                        } catch (_: Exception) { }
+                        if (tag.isBlank()) {
+                            val pageConnection = (URL("https://github.com/aqsinkerimov2025-arch/TEXNO-TELEKOM/releases/latest").openConnection() as HttpURLConnection).apply {
+                                connectTimeout = 12000
+                                readTimeout = 12000
+                                instanceFollowRedirects = true
+                                setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 15) AppleWebKit/537.36 Chrome/120.0 Mobile Safari/537.36")
+                                setRequestProperty("Accept", "text/html,application/xhtml+xml")
+                            }
+                            val pageCode = pageConnection.responseCode
+                            if (pageCode !in 200..299) {
+                                pageConnection.disconnect()
+                                throw Exception("Yeniləmə mənbəyinə qoşulmaq olmadı ($pageCode).")
+                            }
+                            val page = pageConnection.inputStream.bufferedReader().use { it.readText() }
+                            tag = Regex("""/aqsinkerimov2025-arch/TEXNO-TELEKOM/releases/tag/([^"?#]+)""")
+                                .find(page)?.groupValues?.get(1).orEmpty()
+                            releaseTitle = Regex("""<title>(.*?)</title>""", RegexOption.IGNORE_CASE)
+                                .find(page)?.groupValues?.get(1)?.substringBefore(" · GitHub")?.trim() ?: releaseTitle
+                            pageConnection.disconnect()
                         }
-                        val feed = feedConnection.inputStream.bufferedReader().use { it.readText() }
-                        feedConnection.disconnect()
-                        val tag = Regex("""<link[^>]+href="https://github\.com/aqsinkerimov2025-arch/TEXNO-TELEKOM/releases/tag/([^"]+)"""")
-                            .find(feed)?.groupValues?.get(1)
-                            ?: throw Exception("GitHub son buraxılışını tapmaq olmadı.")
-                        val releaseTitle = Regex("""<title>(?:<!\[CDATA\[)?(.*?)(?:]]>)?</title>""")
-                            .find(feed)?.groupValues?.get(1)?.replace("&amp;", "&")?.trim()
-                            ?: "TEXNO-TELEKOM"
+                        if (tag.isBlank()) throw Exception("Son buraxılışın versiyası tapılmadı.")
                         JSONObject()
                             .put("tag_name", tag)
                             .put("name", releaseTitle)
