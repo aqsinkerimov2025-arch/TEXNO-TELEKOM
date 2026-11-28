@@ -2272,6 +2272,16 @@ fun TexnoTelekomApp(
     }
 
     // Server-managed design values update live without publishing a new APK.
+    val appearancePrefs = context.getSharedPreferences("texno_telekom", Context.MODE_PRIVATE)
+    var appearanceChoice by remember { mutableStateOf(appearancePrefs.getString("appearance_palette", "classic") ?: "classic") }
+    val appearancePalettes = listOf(
+        Triple("classic", "Standart", Triple("#050A18", "#111A2C", "#168BFF")),
+        Triple("purple", "Bənövşəyi", Triple("#160B27", "#291541", "#B66CFF")),
+        Triple("green", "Yaşıl", Triple("#071B13", "#123426", "#38D98A")),
+        Triple("red", "Qırmızı", Triple("#1B090D", "#35141D", "#FF526B")),
+        Triple("blue", "Mavi", Triple("#06152A", "#102B49", "#48A9FF")),
+        Triple("light", "Açıq", Triple("#F2F5F9", "#FFFFFF", "#2563EB"))
+    )
     var designBgHex by remember { mutableStateOf("#050A18") }
     var designPanelHex by remember { mutableStateOf("#111A2C") }
     var designAccentHex by remember { mutableStateOf("#168BFF") }
@@ -2461,16 +2471,6 @@ fun TexnoTelekomApp(
     var showSecurity by remember { mutableStateOf(false) }
     var showSettings by remember { mutableStateOf(false) }
     var settingsSelected by remember { mutableStateOf<String?>(null) }
-    val appearancePrefs = context.getSharedPreferences("texno_telekom", Context.MODE_PRIVATE)
-    var appearanceChoice by remember { mutableStateOf(appearancePrefs.getString("appearance_palette", "classic") ?: "classic") }
-    val appearancePalettes = listOf(
-        Triple("classic", "Standart", Triple("#050A18", "#111A2C", "#168BFF")),
-        Triple("purple", "Bənövşəyi", Triple("#160B27", "#291541", "#B66CFF")),
-        Triple("green", "Yaşıl", Triple("#071B13", "#123426", "#38D98A")),
-        Triple("red", "Qırmızı", Triple("#1B090D", "#35141D", "#FF526B")),
-        Triple("blue", "Mavi", Triple("#06152A", "#102B49", "#48A9FF")),
-        Triple("light", "Açıq", Triple("#F2F5F9", "#FFFFFF", "#2563EB"))
-    )
 
 
     var notificationProgramId by remember { mutableStateOf<String?>(null) }
