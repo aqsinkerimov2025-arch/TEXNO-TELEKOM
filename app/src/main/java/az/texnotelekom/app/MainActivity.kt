@@ -3953,6 +3953,7 @@ fun TexnoTelekomApp(
                                                 phoneInfoStickerMimePending = info.stickerMime
                                                 adminEntry = "info"
                                                 selectedBottomTab = 3
+                                                adminPanelAuthenticated = true
                                                 showPhoneInfoFeed = false
                                                 error = ""; message = ""
                                             },
@@ -4026,10 +4027,18 @@ fun TexnoTelekomApp(
                                     }
                                 }
                                 if (app.description.isNotBlank()) Text(app.description, color = Color(0xFFCBD6EB), fontSize = 14.sp, lineHeight = 20.sp)
-                                if (app.downloadUrl.isNotBlank()) Button(onClick = {
-                                    try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(app.downloadUrl))) }
-                                    catch (_: Exception) { error = "Yükləmə linki açıla bilmədi." }
-                                }, modifier = Modifier.fillMaxWidth()) { Text("YÜKLƏ") }
+                                Button(
+                                    onClick = {
+                                        if (app.downloadUrl.isBlank()) {
+                                            error = "Bu proqram üçün yükləmə linki əlavə edilməyib."
+                                        } else {
+                                            try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(app.downloadUrl))) }
+                                            catch (_: Exception) { error = "Yükləmə linki açıla bilmədi." }
+                                        }
+                                    },
+                                    enabled = app.downloadUrl.isNotBlank(),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) { Text("YÜKLƏ") }
                                 if (loggedIn && FirebaseAuth.getInstance().currentUser?.uid == ADMIN_UID) {
                                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                                         OutlinedButton(
@@ -4050,6 +4059,7 @@ fun TexnoTelekomApp(
                                                 showPrograms = false
                                                 showGames = false
                                                 selectedBottomTab = 3
+                                                adminPanelAuthenticated = true
                                                 adminEntry = "program"
                                             },
                                             modifier = Modifier.weight(1f)
@@ -4270,7 +4280,7 @@ fun TexnoTelekomApp(
                         }
                     }
                 }
-            } else if (selectedBottomTab == 3 && isAuthorizedDevice && adminPanelAuthenticated) {
+            } else if (selectedBottomTab == 3 && (isAuthorizedDevice || FirebaseAuth.getInstance().currentUser?.uid == ADMIN_UID) && adminPanelAuthenticated) {
                 Column(
                     Modifier.weight(1f).fillMaxWidth().verticalScroll(homeScrollState)
                         .padding(horizontal = 16.dp, vertical = 18.dp),
