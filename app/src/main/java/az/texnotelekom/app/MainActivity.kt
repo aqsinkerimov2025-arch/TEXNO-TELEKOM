@@ -4064,7 +4064,7 @@ fun TexnoTelekomApp(
                         Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))) {
                             Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                                    ProgramIcon(app.iconUrl, app.name, 64)
+                                    ProgramIcon(app.iconUrl, app.name, 56)
                                     Column(Modifier.weight(1f).padding(start = 12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                         Text(app.name, color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold)
                                         if (app.version.isNotBlank()) Text("Versiya: ${app.version}", color = Color(0xFFFFD36A), fontSize = 13.sp)
@@ -4801,14 +4801,14 @@ fun TexnoTelekomApp(
                     ) {
                         weeklyHitPrograms.forEach { app ->
                             Card(
-                                modifier = Modifier.width(120.dp).height(210.dp).clickable { weeklyHitDetails = app },
+                                modifier = Modifier.width(120.dp).height(230.dp).clickable { weeklyHitDetails = app },
                                 shape = RoundedCornerShape(11.dp),
                                 colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))
                             ) {
                                 Column(
-                                    Modifier.fillMaxWidth().padding(horizontal = 5.dp, vertical = 7.dp),
+                                    Modifier.fillMaxWidth().fillMaxHeight().padding(horizontal = 5.dp, vertical = 7.dp),
                                     horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.spacedBy(3.dp)
+                                    verticalArrangement = Arrangement.SpaceBetween
                                 ) {
                                     ProgramIcon(app.iconUrl, app.name, 64)
                                     Text(
