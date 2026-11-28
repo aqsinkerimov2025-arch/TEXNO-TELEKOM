@@ -4535,16 +4535,6 @@ fun TexnoTelekomApp(
                         }
                     }
                 }
-                HomeHeroBanner(
-                    onClick = {
-                        selectedBottomTab = 1
-                        showPrograms = true
-                        showGames = false
-                        showPhoneInfo = false
-                        showPhoneInfoFeed = false
-                        showFeedback = false
-                    }
-                )
                 latestBroadcast?.let { letter ->
                     Card(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp), shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF18345A))) {
                         Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
