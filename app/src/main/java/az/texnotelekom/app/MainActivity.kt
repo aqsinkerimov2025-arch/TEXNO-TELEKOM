@@ -3307,7 +3307,6 @@ fun TexnoTelekomApp(
             val settingItems = listOf(
                 Triple("👤", "Hesab məlumatları", "Hesab adını, e-poçt ünvanını və giriş məlumatlarını göstərir."),
                 Triple("🔔", "Bildirişlər", "Tətbiq yenilikləri və vacib elanlar barədə bildirişlərin idarəsini izah edir."),
-                Triple("🎨", "Görünüş", "Tətbiqin rəngləri və ekran görünüşü haqqında məlumat verir."),
                 Triple("📱", "Cihaz məlumatları", "Telefon modeli, Android versiyası və tətbiq versiyasını göstərir."),
             )
             val selectedSetting = settingItems.firstOrNull { it.second == settingsSelected }
@@ -3421,29 +3420,7 @@ fun TexnoTelekomApp(
                                     Text("Tətbiq versiyası: $appVersion", color = Color.White, fontSize = 14.sp)
                                 }
                                 "Bildirişlər" -> Text("Bildiriş icazəsini telefonunuzun Ayarlar → Tətbiqlər → TEXNO-TELEKOM → Bildirişlər bölməsindən idarə edə bilərsiniz.", color = Color.White, fontSize = 14.sp, lineHeight = 22.sp)
-                                "Görünüş" -> {
-                                    Text("Tətbiqin rəng dizaynını seçin. Seçim bu telefonda yadda saxlanılır.", color = Color.White, fontSize = 14.sp, lineHeight = 22.sp)
-                                    appearancePalettes.forEach { option ->
-                                        val colors = option.third
-                                        Row(
-                                            Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp))
-                                                .background(remoteColor(colors.second, panel))
-                                                .border(if (appearanceChoice == option.first) 2.dp else 1.dp, remoteColor(colors.third, accent), RoundedCornerShape(16.dp))
-                                                .clickable {
-                                                    appearanceChoice = option.first
-                                                    appearancePrefs.edit().putString("appearance_palette", option.first).apply()
-                                                }.padding(14.dp),
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            Box(Modifier.size(42.dp).clip(CircleShape).background(remoteColor(colors.third, accent)))
-                                            Column(Modifier.weight(1f).padding(start = 12.dp)) {
-                                                Text(option.second, color = if (option.first == "light") Color(0xFF111827) else Color.White, fontWeight = FontWeight.Bold)
-                                                Text("Tətbiq rəngləri", color = if (option.first == "light") Color(0xFF475569) else Color.LightGray, fontSize = 12.sp)
-                                            }
-                                            if (appearanceChoice == option.first) Text("✓", color = remoteColor(colors.third, accent), fontSize = 24.sp, fontWeight = FontWeight.Bold)
-                                        }
-                                    }
-                                }
+
                             }
                         }
                     }
