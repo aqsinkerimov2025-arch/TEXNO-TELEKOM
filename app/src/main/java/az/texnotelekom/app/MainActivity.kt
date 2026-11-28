@@ -3332,7 +3332,7 @@ fun TexnoTelekomApp(
                                 settingsSelected = item.second
                             },
                             shape = RoundedCornerShape(18.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))
+                            colors = CardDefaults.cardColors(containerColor = livePanel)
                         ) {
                             Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 16.dp),
                                 verticalAlignment = Alignment.CenterVertically) {
@@ -3341,7 +3341,7 @@ fun TexnoTelekomApp(
                                     Text(item.second, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                                     Text(item.third, color = Color(0xFFB8C5DC), fontSize = 12.sp, lineHeight = 17.sp, maxLines = 2)
                                 }
-                                Text("›", color = Color(0xFFFFD36A), fontSize = 30.sp)
+                                Text("›", color = liveAccent, fontSize = 30.sp)
                             }
                         }
                     }
@@ -3349,11 +3349,11 @@ fun TexnoTelekomApp(
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(22.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))
+                        colors = CardDefaults.cardColors(containerColor = livePanel)
                     ) {
                         Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                             Text(selectedSetting.first, fontSize = 38.sp)
-                            Text(selectedSetting.second, color = Color(0xFFFFD36A), fontSize = 19.sp, fontWeight = FontWeight.Bold)
+                            Text(selectedSetting.second, color = liveAccent, fontSize = 19.sp, fontWeight = FontWeight.Bold)
                             Text(selectedSetting.third, color = Color.White, fontSize = 15.sp, lineHeight = 23.sp)
                             when (selectedSetting.second) {
                                 "Hesab məlumatları" -> {
@@ -3376,9 +3376,9 @@ fun TexnoTelekomApp(
                                         colors = OutlinedTextFieldDefaults.colors(
                                             focusedTextColor = Color.White,
                                             unfocusedTextColor = Color.White,
-                                            focusedBorderColor = Color(0xFFFFD36A),
+                                            focusedBorderColor = liveAccent,
                                             unfocusedBorderColor = Color.Gray,
-                                            cursorColor = Color(0xFFFFD36A)
+                                            cursorColor = liveAccent
                                         )
                                     )
                                     Button(
@@ -3407,7 +3407,7 @@ fun TexnoTelekomApp(
                                                 android.widget.Toast.makeText(context, "İstifadəçi adı boş ola bilməz", android.widget.Toast.LENGTH_SHORT).show()
                                             }
                                         },
-                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD36A))
+                                        colors = ButtonDefaults.buttonColors(containerColor = liveAccent)
                                     ) {
                                         Text("Yadda saxla", color = Color(0xFF101827), fontWeight = FontWeight.Bold)
                                     }
