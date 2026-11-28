@@ -2280,7 +2280,31 @@ fun TexnoTelekomApp(
         Triple("green", "Yaşıl", Triple("#071B13", "#123426", "#38D98A")),
         Triple("red", "Qırmızı", Triple("#1B090D", "#35141D", "#FF526B")),
         Triple("blue", "Mavi", Triple("#06152A", "#102B49", "#48A9FF")),
-        Triple("light", "Açıq", Triple("#F2F5F9", "#FFFFFF", "#2563EB"))
+        Triple("light", "Açıq", Triple("#F2F5F9", "#FFFFFF", "#2563EB")),
+        Triple("ex1", "Eksklüziv 1", Triple("#171323", "#39214C", "#FF3D9A")),
+        Triple("ex2", "Eksklüziv 2", Triple("#152019", "#355B38", "#B6D92B")),
+        Triple("ex3", "Eksklüziv 3", Triple("#26152A", "#5B3D48", "#E6D500")),
+        Triple("ex4", "Eksklüziv 4", Triple("#071D24", "#164C57", "#00D7E0")),
+        Triple("ex5", "Eksklüziv 5", Triple("#102C26", "#246D57", "#4CC6B1")),
+        Triple("ex6", "Eksklüziv 6", Triple("#30221D", "#7B5945", "#F8C7A1")),
+        Triple("ex7", "Eksklüziv 7", Triple("#172B35", "#4B6480", "#D6A8FF")),
+        Triple("ex8", "Eksklüziv 8", Triple("#251E42", "#514080", "#7E5BFF")),
+        Triple("ex9", "Eksklüziv 9", Triple("#1D0D2C", "#431A68", "#B700FF")),
+        Triple("ex10", "Eksklüziv 10", Triple("#160A12", "#291318", "#FF0018")),
+        Triple("ex11", "Eksklüziv 11", Triple("#280915", "#60182D", "#E9004C")),
+        Triple("ex12", "Eksklüziv 12", Triple("#28152A", "#552C51", "#FF4D78")),
+        Triple("ex13", "Eksklüziv 13", Triple("#2D1710", "#602B20", "#FF7850")),
+        Triple("ex14", "Eksklüziv 14", Triple("#17202B", "#364B7A", "#FFB94D")),
+        Triple("ex15", "Eksklüziv 15", Triple("#1E0D38", "#4C2175", "#5A00FF")),
+        Triple("ex16", "Eksklüziv 16", Triple("#22102C", "#553061", "#E75BFF")),
+        Triple("ex17", "Eksklüziv 17", Triple("#220B42", "#4E1481", "#A900FF")),
+        Triple("ex18", "Eksklüziv 18", Triple("#15233A", "#344A66", "#47B8FF")),
+        Triple("ex19", "Eksklüziv 19", Triple("#24122D", "#4A2A55", "#FF00BC")),
+        Triple("ex20", "Eksklüziv 20", Triple("#1D1730", "#4A3468", "#C900FF")),
+        Triple("ex21", "Eksklüziv 21", Triple("#26150B", "#65420D", "#FFD600")),
+        Triple("ex22", "Eksklüziv 22", Triple("#29172B", "#56355D", "#E6B5A8")),
+        Triple("ex23", "Eksklüziv 23", Triple("#170B30", "#482165", "#7C00FF")),
+        Triple("ex24", "Eksklüziv 24", Triple("#260D28", "#57224F", "#D500FF"))
     )
     var designBgHex by remember { mutableStateOf("#050A18") }
     var designPanelHex by remember { mutableStateOf("#111A2C") }
