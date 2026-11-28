@@ -2748,6 +2748,7 @@ fun TexnoTelekomApp(
     var homeSignature by remember { mutableStateOf("MR_R3HB3R") }
     val programs = remember { mutableStateListOf<AppItem>() }
     val weeklyHitPrograms = remember { mutableStateListOf<AppItem>() }
+    var weeklyHitDetails by remember { mutableStateOf<AppItem?>(null) }
     val games = remember { mutableStateListOf<AppItem>() }
     val favoritesPrefs = remember { context.getSharedPreferences("texno_favorites", Context.MODE_PRIVATE) }
     val favoriteIds = remember {
@@ -4715,7 +4716,7 @@ fun TexnoTelekomApp(
                     ) {
                         weeklyHitPrograms.forEach { app ->
                             Card(
-                                modifier = Modifier.width(120.dp).height(175.dp),
+                                modifier = Modifier.width(120.dp).height(175.dp).clickable { weeklyHitDetails = app },
                                 shape = RoundedCornerShape(11.dp),
                                 colors = CardDefaults.cardColors(containerColor = Color(0xFF111A2D))
                             ) {
@@ -4754,6 +4755,38 @@ fun TexnoTelekomApp(
                                 }
                             }
                         }
+                    }
+                    weeklyHitDetails?.let { app ->
+                        AlertDialog(
+                            onDismissRequest = { weeklyHitDetails = null },
+                            title = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    ProgramIcon(app.iconUrl, app.name, 52)
+                                    Spacer(Modifier.width(12.dp))
+                                    Text(app.name, color = Color.White, fontWeight = FontWeight.Bold)
+                                }
+                            },
+                            text = {
+                                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    if (app.version.isNotBlank()) Text("Versiya: ${app.version}", color = Color(0xFFFFD36A))
+                                    if (app.fileSize.isNotBlank()) Text("Həcm: ${app.fileSize}", color = Color(0xFFCBD6EB))
+                                    if (app.category.isNotBlank()) Text("Kateqoriya: ${app.category}", color = Color(0xFFCBD6EB))
+                                    if (app.description.isNotBlank()) Text(app.description, color = Color(0xFFCBD6EB), lineHeight = 20.sp)
+                                }
+                            },
+                            confirmButton = {
+                                if (app.downloadUrl.isNotBlank()) {
+                                    TextButton(onClick = {
+                                        try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(app.downloadUrl))) }
+                                        catch (_: Exception) { error = "Yükləmə linki açıla bilmədi." }
+                                        weeklyHitDetails = null
+                                    }) { Text("YÜKLƏ") }
+                                }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = { weeklyHitDetails = null }) { Text("BAĞLA") }
+                            }
+                        )
                     }
                 }
 
