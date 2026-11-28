@@ -4548,11 +4548,11 @@ fun TexnoTelekomApp(
                         }
                     }
                     @Composable
-                    fun ProfileItem(icon: String, title: String, tint: Color = Color.White, onClick: () -> Unit) {
+                    fun ProfileItem(icon: String, title: String, tint: Color = Color.White, enabled: Boolean = true, onClick: () -> Unit) {
                         Row(
                             Modifier.fillMaxWidth().padding(bottom = 5.dp)
                                 .background(Color(0xFF111A2D), RoundedCornerShape(22.dp))
-                                .clickable(onClick = onClick).padding(horizontal = 20.dp, vertical = 13.dp),
+                                .clickable(enabled = enabled, onClick = onClick).padding(horizontal = 20.dp, vertical = 13.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(icon, fontSize = 29.sp, color = tint, modifier = Modifier.width(78.dp))
@@ -4564,14 +4564,7 @@ fun TexnoTelekomApp(
                     ProfileItem("🛡️", "Təhlükəsizlik Məlumatı", Color(0xFF168BFF)) { showSecurity = true }
                     ProfileItem("💬", "Təklif Qutusu", Color(0xFF00D5C5)) { showFeedback = true }
                     ProfileItem("ℹ️", "Tətbiq Haqqında", Color(0xFF247BFF)) { showAbout = true }
-                    ProfileItem("🔄", if (updateCheckInProgress) "Yeniləmə yoxlanılır..." else "Tətbiq yenilə", Color(0xFF20C997)) {
-                        if (!updateCheckInProgress) {
-                            updateCheckResult = null
-                            updateCheckMessage = ""
-                            updateCheckInProgress = true
-                            checkForAppUpdate(true)
-                        }
-                    }
+                    ProfileItem("🔄", "Tətbiq yenilə", Color(0xFF7A8494), enabled = false) { }
                     ProfileItem("⚙️", "Ayarlar", Color(0xFF247BFF)) { showSettings = true; settingsSelected = null }
                     Spacer(Modifier.height(12.dp))
                     Card(
